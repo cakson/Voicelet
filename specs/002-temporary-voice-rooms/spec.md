@@ -8,6 +8,14 @@
 
 **Input**: User description: "Create the Temporary Voice Room Creation feature."
 
+## Clarifications
+
+### Session 2026-08-30
+
+- Q: Should one running Voicelet worker support temporary-room configuration for multiple Discord servers? → A: Multiple servers, each with its own trigger channel and destination category.
+- Q: If Voicelet creates a room but cannot move the member into it, should that room remain the member’s active room for a later retry? → A: Keep the room associated; a later trigger entry retries moving the member into it.
+- Q: What should happen when a voice-state event comes from a Discord server that has no temporary-room configuration? → A: Ignore the event; create no room and emit no per-member details.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Create a Personal Voice Room (Priority: P1)
@@ -85,20 +93,24 @@ rooms, movements, safe failure evidence, and worker readiness.
 - A member moves between unrelated voice channels, leaves voice, or receives an unrelated
   voice-state update; none of these events creates a room.
 - The member leaves or changes voice channel while a room is being created; the attempted movement
-  can fail safely and the worker continues processing future events.
+  can fail safely, the created room remains associated with that member for reuse, and the worker
+  continues processing future events.
 - A created room is deleted after it was associated with a member; the next trigger entry treats
   that association as stale.
 - A duplicate delivery arrives while a room is being created or while the member is being moved;
   it must not create a second active room for that member.
 - The configured trigger or destination category is unavailable when an event arrives; the event
   fails safely, is observable without sensitive data, and does not crash the worker.
+- A voice-state event arrives from a server without temporary-room configuration; it is ignored,
+  creates no room, and emits no per-member details.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: Administrators MUST be able to configure one designated trigger voice channel and one
-  destination category for temporary-room creation.
+- **FR-001**: Administrators MUST be able to configure a designated trigger voice channel and
+  destination category for each Discord server served by the worker; each server's configuration
+  applies only to voice-state events from that server.
 - **FR-002**: When a non-bot member enters the configured trigger channel, the system MUST evaluate
   whether that member already has an active temporary-room association.
 - **FR-003**: For an eligible member without an active existing room, the system MUST create exactly
@@ -119,7 +131,9 @@ rooms, movements, safe failure evidence, and worker readiness.
 - **FR-010**: If room creation fails, the system MUST safely record a privacy-safe operational
   failure and remain able to process later events.
 - **FR-011**: If movement after room creation or room reuse fails, the system MUST safely record a
-  privacy-safe operational failure and remain able to process later events.
+  privacy-safe operational failure, retain any successfully created room as the member's active
+  association, and remain able to process later events; a later qualifying trigger entry MUST retry
+  movement to that associated room rather than create another room.
 - **FR-012**: The feature MUST preserve the application's established readiness, startup,
   reconnection, and shutdown behavior.
 - **FR-013**: The feature MUST have unit coverage for its decision rules, integration coverage for
@@ -131,11 +145,14 @@ rooms, movements, safe failure evidence, and worker readiness.
   temporary-room state across restarts, persist temporary-room state, manage room permissions,
   provide configurable room limits, rename rooms through member controls, or add room-management
   commands.
+- **FR-016**: The system MUST ignore voice-state events from a Discord server without a
+  temporary-room configuration; it MUST create no room and emit no per-member details for those
+  events.
 
 ### Key Entities *(include if feature involves data)*
 
-- **Temporary-room configuration**: The server-scoped selection of the trigger voice channel and
-  destination category that enable room creation.
+- **Temporary-room configuration**: The server-scoped mapping of each served Discord server to its
+  trigger voice channel and destination category that enable room creation.
 - **Temporary-room association**: The in-memory relationship between a member and the one temporary
   room currently considered active for that member; it becomes stale when that room no longer exists
   and does not survive a worker restart.
@@ -166,7 +183,7 @@ rooms, movements, safe failure evidence, and worker readiness.
 - The existing worker receives Discord voice-state changes and provides a simulated Discord
   environment suitable for the required automated tests.
 - Channel and category identifiers are supplied through the application's established configuration
-  mechanism and apply to the server context handled by this worker.
+  mechanism as an explicit mapping for every server handled by this worker.
 - An active temporary-room association is held only while the worker is running; restart recovery,
   persistence, and cleanup are intentionally excluded.
 - A user-friendly derived room name is deterministic for the triggering member and may be adjusted
