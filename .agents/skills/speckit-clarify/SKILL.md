@@ -274,6 +274,8 @@ Check if `.specify/extensions.yml` exists in the project root.
 
 ## Completion Report
 
+Before reporting completion, apply the Commit Checkpoint below.
+
 Report completion (after questioning loop ends or early termination):
 - Number of questions asked & answered.
 - Path to updated spec.
@@ -282,6 +284,15 @@ Report completion (after questioning loop ends or early termination):
 - Coverage summary table listing each taxonomy category with Status: Resolved (was Partial/Missing and addressed), Deferred (exceeds question quota or better suited for planning), Clear (already sufficient), Outstanding (still Partial/Missing but low impact).
 - If any Outstanding or Deferred remain, recommend whether to proceed to `$speckit-plan` or run `$speckit-clarify` again later post-plan.
 - Suggested next command.
+
+## Commit Checkpoint
+
+After validation and all mandatory hooks, inspect `git status --short`. If accepted answers changed
+the feature specification or its checklist, pause and ask whether to commit only those clarification
+artifacts now. List the paths and propose a contextual commit message. Do not stage or commit
+automatically. If the user approves, preserve unrelated worktree changes and stage only files changed
+by this invocation; never use `git add -A` or a broad path. Skip this checkpoint when no files
+changed.
 
 ## Done When
 

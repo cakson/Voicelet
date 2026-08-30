@@ -211,4 +211,14 @@ Every task MUST strictly follow this format:
 
 - [ ] tasks.md generated with all phases, task IDs, and file paths
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
+- [ ] Commit checkpoint offered when this invocation changed task artifacts
 - [ ] Completion reported to user with task count, story breakdown, and MVP scope
+
+## Commit Checkpoint
+
+After validation and all mandatory hooks, inspect `git status --short`. If this invocation generated
+or changed task artifacts, pause before the Completion Report and ask whether to commit only those
+artifacts now. List the paths and propose a contextual commit message. Do not stage or commit
+automatically. If the user approves, preserve unrelated worktree changes and stage only files changed
+by this invocation; never use `git add -A` or a broad path. Skip this checkpoint when no stage-owned
+files changed.

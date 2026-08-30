@@ -277,6 +277,15 @@ Report completion to the user with:
 
 **NOTE:** Branch creation is handled by the `before_specify` hook (git extension). Spec directory and file creation are always handled by this core command.
 
+## Commit Checkpoint
+
+After validation and all mandatory hooks, inspect `git status --short`. If this invocation created or
+changed feature-specification artifacts, pause before the Completion Report and ask whether to commit
+only those artifacts now. List the paths and propose a contextual commit message. Do not stage or
+commit automatically. If the user approves, preserve unrelated worktree changes and stage only files
+created or changed by this invocation; never use `git add -A` or a broad path. Skip this checkpoint
+when no stage-owned files changed.
+
 ## Quick Guidelines
 
 - Focus on **WHAT** users need and **WHY**.

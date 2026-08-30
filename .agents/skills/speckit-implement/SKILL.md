@@ -216,7 +216,17 @@ Check if `.specify/extensions.yml` exists in the project root.
 
 ## Completion Report
 
-Report final status with summary of completed work.
+After all mandatory hooks, apply the Commit Checkpoint below. Then report final status with a summary
+of completed work.
+
+## Commit Checkpoint
+
+Inspect `git status --short`. If implementation changed repository files, pause and ask whether to
+commit only the completed implementation stage now. Group paths into the smallest coherent commit or
+commits when the implementation contains distinct completed stages, and propose contextual commit
+messages. Do not stage or commit automatically. If the user approves, preserve unrelated worktree
+changes and stage only implementation-owned files; never use `git add -A` or a broad path. Skip this
+checkpoint when no implementation files changed.
 
 ## Done When
 

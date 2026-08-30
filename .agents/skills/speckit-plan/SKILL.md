@@ -103,7 +103,17 @@ Check if `.specify/extensions.yml` exists in the project root.
 
 ## Completion Report
 
-Command ends after Phase 1 design. Report branch, IMPL_PLAN path, and generated artifacts.
+After Phase 1 design and all mandatory hooks, apply the Commit Checkpoint below. Then report branch,
+IMPL_PLAN path, and generated artifacts.
+
+## Commit Checkpoint
+
+Inspect `git status --short`. If this invocation changed the feature specification or created planning
+artifacts, pause and ask whether to commit only the completed planning stage now. List the
+stage-owned paths and propose a contextual commit message. Do not stage or commit automatically. If
+the user approves, preserve unrelated worktree changes and stage only files changed by this
+invocation; never use `git add -A` or a broad path. Skip this checkpoint when no stage-owned files
+changed.
 
 ## Phases
 

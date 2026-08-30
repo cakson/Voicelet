@@ -57,6 +57,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 - If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
 
+### Commit Checkpoint
+
+After all mandatory hooks, inspect `git status --short`. When convergence appended tasks, pause and
+ask whether to commit only the changed task artifact now, with a proposed contextual commit message.
+Do not stage or commit automatically. If the user approves, preserve unrelated worktree changes and
+stage only the task artifact; never use `git add -A` or a broad path. Skip this checkpoint when the
+outcome is converged or no stage-owned files changed.
+
 ## Goal
 
 Close the gap between what a feature's specification, plan, and tasks call for and what the

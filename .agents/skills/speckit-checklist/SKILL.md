@@ -82,6 +82,15 @@ You **MUST** consider the user input before proceeding (if not empty).
     After emitting the block above you MUST actually invoke the hook and wait for it to finish before continuing. Run it the same way you would run the command yourself in this agent/session (the invocation may differ from the literal `{command}` id shown above, e.g. a skills-mode agent runs it as `/skill:speckit-...` or `$speckit-...`). Emitting the block alone does not run the hook.
 - If no hooks are registered or `.specify/extensions.yml` does not exist, skip silently
 
+## Commit Checkpoint
+
+After validation and all mandatory hooks, inspect `git status --short`. If this invocation created or
+changed checklist artifacts, pause before reporting completion and ask whether to commit only those
+artifacts now. List the paths and propose a contextual commit message. Do not stage or commit
+automatically. If the user approves, preserve unrelated worktree changes and stage only files changed
+by this invocation; never use `git add -A` or a broad path. Skip this checkpoint when no stage-owned
+files changed.
+
 ## Execution Steps
 
 1. **Setup**: Run `.specify/scripts/bash/check-prerequisites.sh --json --template checklist-template` from repo root and parse JSON for FEATURE_DIR, AVAILABLE_DOCS list, and TEMPLATE_CONTENT.
