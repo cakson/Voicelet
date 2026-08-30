@@ -1,50 +1,96 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+- Version change: 1.0.0 -> 2.0.0
+- Modified principles:
+  - User Intent and Consent First -> removed; requirements are superseded by this engineering constitution
+  - Privacy and Security by Design -> VI. Security by Default
+  - Accessible, Reliable Core Experience -> removed; requirements are superseded by this engineering constitution
+  - Testable Changes and Regression Protection -> I. Testability
+  - Simple, Observable Evolution -> III. Explicit Architecture and VII. Actionable Observability
+- Added principles: II. Enforced Quality Gates, IV. Documentation as Deliverable,
+  V. Explicit API Contracts, VIII. Reproducible Repository, IX. Definition of Done
+- Added sections: Engineering Standards; Development Workflow and Definition of Done
+- Removed sections: Product & Data Constraints
+- Follow-up TODOs: TODO(RATIFICATION_DATE): The original adoption date is not recorded in the repository.
+-->
+# Voicelet Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Testability
+All business logic MUST have automated unit tests. Integration boundaries MUST have integration
+tests, and critical user journeys MUST have end-to-end tests. A feature is incomplete when any
+required test is absent. Rationale: layered automated coverage provides reliable evidence that the
+system works within its domain, across boundaries, and for its users.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Enforced Quality Gates
+Linting, type checking, unit and integration tests, and builds MUST pass before merge. End-to-end
+tests MUST pass for every affected critical flow. CI is the authoritative enforcement point for
+these gates; local checks are a fast feedback mechanism, not a replacement. Rationale: a consistent
+merge bar protects the shared codebase from preventable regressions.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Explicit Architecture
+Implementations MUST favor simple, explicit designs. New abstractions MUST solve an existing,
+demonstrated need rather than a speculative future need. Domain and business logic MUST remain
+independent of infrastructure where practical, and dependencies MUST flow in clearly defined,
+documented directions. Rationale: explicit boundaries keep change understandable and maintainable.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Documentation as Deliverable
+The README MUST enable a new engineer to run the project. Development and testing workflows MUST
+be documented. Non-obvious architectural decisions MUST be recorded near the code or in an
+architecture decision record, and documentation affected by a change MUST be updated in the same
+change. Rationale: accurate documentation makes the project operable by the whole team.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Explicit API Contracts
+APIs MUST define explicit contracts, validate all inputs, and return predictable failure behavior.
+Breaking API changes require explicit approval and a documented migration or compatibility plan
+before merge. Rationale: contracts protect consumers and make integrations safe to evolve.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### VI. Security by Default
+Secrets MUST NEVER be committed to source control, emitted in logs, or exposed to clients.
+Implementations MUST use least-privilege access and validate untrusted input. Authentication and
+authorization behavior MUST have automated tests. Rationale: secure defaults limit the impact of
+errors and protect users and systems.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### VII. Actionable Observability
+Production services MUST provide actionable, privacy-safe logging, and important failures MUST be
+observable. New critical operations MUST include appropriate metrics, tracing, or both. Logs and
+telemetry MUST NOT contain secrets or sensitive user content unless explicitly authorized and
+protected. Rationale: teams must be able to detect, diagnose, and resolve production failures.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+### VIII. Reproducible Repository
+All build, test, lint, type-check, and development commands MUST be reproducible from the
+repository’s documented setup. Dependencies MUST use lock files and changes to dependencies MUST
+update the applicable lock file. Rationale: reproducibility eliminates environment-specific quality
+gaps and makes CI results trustworthy.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### IX. Definition of Done
+A task is complete only when its implementation and required tests are complete, linting,
+type-checking, and builds pass, affected documentation is updated, and no known requirement remains
+unimplemented. Rationale: completion is an evidence-based quality decision, not merely code written.
+
+## Engineering Standards
+
+Each change MUST identify its affected quality gates, test layers, API contracts, security impact,
+observability needs, and documentation impact. Reviews MUST reject changes that lack required
+evidence or an explicitly approved, time-bound exception. Exceptions MUST name an owner, risk,
+remediation plan, and expiration date.
+
+## Development Workflow and Definition of Done
+
+User-visible, cross-cutting, API, security, and architectural changes MUST begin with a written
+specification and an implementation plan. Before merge, CI MUST pass all applicable quality gates
+and reviewers MUST verify compliance with this constitution. Release changes that affect stored
+data, public contracts, or critical flows MUST document migration and rollback considerations.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes conflicting engineering practices. Amendments MUST update this file,
+include a Sync Impact Report, and receive review before adoption. Versioning follows semantic
+versioning: MAJOR for incompatible principle removals or redefinitions, MINOR for new principles or
+materially expanded governance, and PATCH for clarifications that preserve intent. Every
+specification, plan, implementation review, and release review MUST assess compliance; unresolved
+deviations MUST be documented with their risk, owner, and expiration or remediation date.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 2.0.0 | **Ratified**: TODO(RATIFICATION_DATE): original adoption date unknown |
+**Last Amended**: 2026-08-30
