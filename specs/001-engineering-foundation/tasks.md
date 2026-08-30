@@ -221,6 +221,6 @@ then implement the adapters and composition needed to make them pass.
 
 ## Phase 8: Convergence
 
-- [ ] T051 Restore readiness after a Discord Gateway reconnect using the production shard-ready lifecycle signal, with a simulated recovery integration test per FR-002a and data-model: GatewayReadiness transitions (partial)
-- [ ] T052 Add redaction-safe missing and invalid configuration failure coverage per FR-003, US1/AC3, and T020 (partial)
-- [ ] T053 Replace placeholder quality fixtures with runnable format, lint, type, test, and build defects that each fail their corresponding gate per US2/AC2, SC-005, T027, and T028 (partial)
+- [X] T051 Restore readiness after a Discord Gateway reconnect using the production shard-ready lifecycle signal, with a simulated recovery integration test per FR-002a and data-model: GatewayReadiness transitions (partial)
+- [X] T052 Add redaction-safe missing and invalid configuration failure coverage per FR-003, US1/AC3, and T020 (partial)
+- [X] T053 Replace placeholder quality fixtures with runnable format, lint, type, test, and build defects that each fail their corresponding gate per US2/AC2, SC-005, T027, and T028 (partial)
