@@ -44,7 +44,16 @@ export class DiscordGatewayEventSource {
       this.setState('reconnecting');
       this.observability.recordReconnect();
     });
-    await this.client.login(this.token);
+    this.client.onError(() => {
+      this.setState('disconnected');
+      this.observability.recordGatewayFailure();
+    });
+    try {
+      await this.client.login(this.token);
+    } catch {
+      this.setState('disconnected');
+      this.observability.recordGatewayFailure();
+    }
   }
 
   stop(): void {

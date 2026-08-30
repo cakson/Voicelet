@@ -23,6 +23,9 @@ class DiscordJsClient implements DiscordClient {
   onReconnect(listener: () => void): void {
     this.client.on('shardReconnecting', listener);
   }
+  onError(listener: () => void): void {
+    this.client.on('error', () => listener());
+  }
   async login(token: string): Promise<void> {
     await this.client.login(token);
   }

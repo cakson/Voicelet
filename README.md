@@ -17,11 +17,13 @@ pnpm dev
 ```
 
 For a live Discord connection, set `DISCORD_TOKEN` in `.env` and enable only the
-`GuildVoiceStates` intent. Never commit `.env` or a token. For local simulated operation, set
-`GATEWAY_MODE=simulated`.
+`GuildVoiceStates` intent. Never commit `.env` or a token. The worker loads `.env` before
+validating configuration. For a credential-free local readiness check, set
+`GATEWAY_MODE=simulated`; the simulated Gateway automatically emits ready.
 
-The operational endpoints are `GET /livez`, `GET /readyz`, and `GET /metrics`. A simulated worker
-becomes ready only after its simulated Discord client emits a ready signal.
+The operational endpoints are `GET /livez`, `GET /readyz`, and `GET /metrics`. A Unix-domain
+`SOCKET_PATH` is available for process-level local tests; ordinary development uses `HOST` and
+`PORT`.
 
 ## Common commands
 

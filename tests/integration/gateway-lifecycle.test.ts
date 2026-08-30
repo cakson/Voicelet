@@ -6,11 +6,12 @@ import { SimulatedDiscordClientFactory } from '../support/gateway-simulator/inde
 describe('DiscordGatewayEventSource', () => {
   it('translates simulated lifecycle events within the readiness bound', async () => {
     const factory = new SimulatedDiscordClientFactory();
+    const observability = Observability.create('silent');
     const source = new DiscordGatewayEventSource(
       factory,
       'test-token',
       { now: () => new Date() },
-      Observability.create('silent'),
+      observability,
     );
     await source.start();
     factory.client.emitReady();
@@ -19,5 +20,8 @@ describe('DiscordGatewayEventSource', () => {
     expect(source.readiness).toBe('disconnected');
     factory.client.emitReconnect();
     expect(source.readiness).toBe('reconnecting');
+    factory.client.emitError();
+    expect(source.readiness).toBe('disconnected');
+    expect(await observability.registry.metrics()).toContain('voicelet_gateway_failures_total 1');
   });
 });

@@ -24,6 +24,11 @@ export class Observability implements ObservationSink {
     help: 'Gateway reconnects',
     registers: [this.registry],
   });
+  readonly gatewayFailures = new Counter({
+    name: 'voicelet_gateway_failures_total',
+    help: 'Gateway failures recorded without provider error details',
+    registers: [this.registry],
+  });
 
   constructor(readonly logger: Logger) {}
 
@@ -47,5 +52,10 @@ export class Observability implements ObservationSink {
   recordReconnect(): void {
     this.reconnects.inc();
     this.logger.warn({ state: 'reconnecting' }, 'gateway_reconnect_scheduled');
+  }
+
+  recordGatewayFailure(): void {
+    this.gatewayFailures.inc();
+    this.logger.error({ failureClass: 'gateway' }, 'gateway_failure');
   }
 }

@@ -5,6 +5,7 @@ export class SimulatedDiscordClient implements DiscordClient {
   private voiceListeners: Array<(event: RawVoiceState) => void> = [];
   private disconnectListeners: Array<() => void> = [];
   private reconnectListeners: Array<() => void> = [];
+  private errorListeners: Array<() => void> = [];
 
   onReady(listener: () => void): void {
     this.readyListeners.push(listener);
@@ -18,8 +19,12 @@ export class SimulatedDiscordClient implements DiscordClient {
   onReconnect(listener: () => void): void {
     this.reconnectListeners.push(listener);
   }
+  onError(listener: () => void): void {
+    this.errorListeners.push(listener);
+  }
   async login(token: string): Promise<void> {
     void token;
+    queueMicrotask(() => this.emitReady());
   }
   destroy(): void {}
   emitReady(): void {
@@ -33,6 +38,9 @@ export class SimulatedDiscordClient implements DiscordClient {
   }
   emitReconnect(): void {
     this.reconnectListeners.forEach((listener) => listener());
+  }
+  emitError(): void {
+    this.errorListeners.forEach((listener) => listener());
   }
 }
 

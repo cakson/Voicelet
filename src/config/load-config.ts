@@ -1,10 +1,12 @@
+import { existsSync } from 'node:fs';
 import { z } from 'zod';
 
 const configSchema = z.object({
   DISCORD_TOKEN: z.string().min(1).optional(),
   HOST: z.string().default('127.0.0.1'),
   PORT: z.coerce.number().int().positive().default(3000),
-  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  SOCKET_PATH: z.string().min(1).optional(),
+  LOG_LEVEL: z.enum(['silent', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   GATEWAY_MODE: z.enum(['discord', 'simulated']).default('discord'),
 });
 
@@ -12,6 +14,7 @@ export type AppConfig = {
   discordToken?: string;
   host: string;
   port: number;
+  socketPath?: string;
   logLevel: z.infer<typeof configSchema>['LOG_LEVEL'];
   gatewayMode: 'discord' | 'simulated';
 };
@@ -27,7 +30,12 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     discordToken: parsed.data.DISCORD_TOKEN,
     host: parsed.data.HOST,
     port: parsed.data.PORT,
+    socketPath: parsed.data.SOCKET_PATH,
     logLevel: parsed.data.LOG_LEVEL,
     gatewayMode: parsed.data.GATEWAY_MODE,
   };
+}
+
+export function loadEnvironmentFile(path = '.env'): void {
+  if (existsSync(path)) process.loadEnvFile(path);
 }

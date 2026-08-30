@@ -13,6 +13,7 @@ export interface DiscordClient {
   onVoiceState(listener: (event: RawVoiceState) => void): void;
   onDisconnect(listener: () => void): void;
   onReconnect(listener: () => void): void;
+  onError(listener: () => void): void;
   login(token: string): Promise<void>;
   destroy(): void;
 }
