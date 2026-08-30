@@ -1,0 +1,5 @@
+title = "Voicelet secret scan configuration"
+
+[allowlist]
+  description = "Allow safe configuration placeholders"
+  regexes = ['DISCORD_TOKEN=']
