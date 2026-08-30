@@ -204,3 +204,15 @@ then implement the adapters and composition needed to make them pass.
 1. Add the local/CI quality gate layer (US2) once the MVP scripts exist.
 2. Complete contributor and agent documentation (US3) after commands and architecture stabilize.
 3. Run all Phase 6 validations before treating the foundation as complete.
+
+---
+
+## Phase 7: Convergence
+
+- [ ] T044 CRITICAL Load the documented local `.env` configuration before worker startup and add a startup/configuration integration test per FR-001, FR-003, and US1/AC1 (missing)
+- [ ] T045 Provide and document a credential-free simulated-Gateway local workflow that can reach readiness through the documented command, with an integration test per FR-002, FR-014, and SC-001 (partial)
+- [ ] T046 CRITICAL Add privacy-safe Gateway failure handling and observation, bounded graceful shutdown, and lifecycle tests per FR-002a, plan: lifecycle constraints, and Constitution VII (partial)
+- [ ] T047 Replace the in-process worker check with a process-level simulated-Gateway E2E test that binds the operational interface and enforces the 30-second readiness and 5-second event-handling bounds per FR-006a, SC-003a, and plan: performance goals (partial)
+- [ ] T048 Exercise representative failing format, lint, type, test, and build fixtures in automated validation per US2/AC2, SC-005, T027, and T028 (partial)
+- [ ] T049 Complete voice-state normalization unit coverage for move and malformed channel/session inputs per T011 and Constitution I (partial)
+- [ ] T050 CRITICAL Declare least-privilege GitHub Actions token permissions in `.github/workflows/ci.yml` per Constitution VI (missing)
