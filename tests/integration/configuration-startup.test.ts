@@ -21,4 +21,19 @@ describe('documented environment configuration', () => {
     expect(loadConfig().gatewayMode).toBe('simulated');
     await rm(directory, { recursive: true, force: true });
   });
+
+  it('rejects missing production credentials without exposing values', () => {
+    expect(() => loadConfig({ GATEWAY_MODE: 'discord' })).toThrow('DISCORD_TOKEN is required');
+    try {
+      loadConfig({ GATEWAY_MODE: 'discord', PORT: 'not-a-port', DISCORD_TOKEN: 'secret-value' });
+    } catch (error) {
+      expect(String(error)).not.toContain('secret-value');
+    }
+  });
+
+  it('rejects invalid values with a redaction-safe message', () => {
+    expect(() => loadConfig({ GATEWAY_MODE: 'simulated', PORT: 'not-a-port' })).toThrow(
+      'Invalid environment configuration',
+    );
+  });
 });

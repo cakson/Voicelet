@@ -6,6 +6,7 @@ class DiscordJsClient implements DiscordClient {
 
   onReady(listener: () => void): void {
     this.client.once('clientReady', listener);
+    this.client.on('shardReady', listener);
   }
   onVoiceState(listener: (event: RawVoiceState) => void): void {
     this.client.on('voiceStateUpdate', (_oldState, state) => {

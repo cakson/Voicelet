@@ -23,5 +23,8 @@ describe('DiscordGatewayEventSource', () => {
     factory.client.emitError();
     expect(source.readiness).toBe('disconnected');
     expect(await observability.registry.metrics()).toContain('voicelet_gateway_failures_total 1');
+    factory.client.emitReconnect();
+    factory.client.emitReady();
+    expect(source.readiness).toBe('ready');
   });
 });
