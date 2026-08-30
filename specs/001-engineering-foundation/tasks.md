@@ -45,14 +45,16 @@ Discord, HTTP, configuration, or logging implementations.
 
 **⚠️ CRITICAL**: Complete this phase before starting user-story implementation.
 
-- [ ] T009 Define worker ports for Gateway events, readiness, clock, and safe observations in `src/ports/index.ts`
+- [ ] T009 Define worker ports for Gateway events, readiness, clock, safe observations, and `DiscordClientFactory` in `src/ports/index.ts`
 - [ ] T010 Define transient readiness, normalized voice-state, and safe outcome domain models in `src/domain/voice-state.ts`
-- [ ] T011 Implement boundary validation and normalization for raw voice-state input in `src/domain/normalize-voice-state.ts`
-- [ ] T012 Implement a pure voice-state handling use case that emits only safe outcomes in `src/application/handle-voice-state.ts`
-- [ ] T013 Implement validated environment loading with redaction-safe failure messages in `src/config/load-config.ts`
-- [ ] T014 Implement structured safe observation logging and bounded worker metrics in `src/infrastructure/logging/observability.ts`
-- [ ] T015 Create a controllable Gateway simulator support library with ready, event, disconnect, and reconnect controls in `tests/support/gateway-simulator/index.ts`
-- [ ] T016 Add shared fixture builders with non-production Discord identifiers in `tests/support/fixtures/voice-state.ts`
+- [ ] T011 [P] Add unit tests for valid, malformed, join, leave, and move voice-state normalization in `tests/unit/normalize-voice-state.test.ts`
+- [ ] T012 [P] Add unit tests for safe handled and rejected outcomes with no identifiers in observations in `tests/unit/handle-voice-state.test.ts`
+- [ ] T013 Implement boundary validation and normalization for raw voice-state input in `src/domain/normalize-voice-state.ts`
+- [ ] T014 Implement a pure voice-state handling use case that emits only safe outcomes in `src/application/handle-voice-state.ts`
+- [ ] T015 Implement validated environment loading with redaction-safe failure messages in `src/config/load-config.ts`
+- [ ] T016 Implement structured safe observation logging and bounded worker metrics in `src/infrastructure/logging/observability.ts`
+- [ ] T017 Create a deterministic simulated Discord client that implements the `DiscordClientFactory` contract and emits ready, voice-state, disconnect, and reconnect signals in `tests/support/gateway-simulator/index.ts`
+- [ ] T018 Add shared fixture builders with synthetic non-production Discord identifiers in `tests/support/fixtures/voice-state.ts`
 
 **Checkpoint**: The service boundaries, safe domain behavior, configuration rules, and test support
 are ready for independent story work.
@@ -70,11 +72,9 @@ that disconnect makes readiness return `503`.
 
 ### Tests for User Story 1
 
-- [ ] T017 [P] [US1] Add unit tests for valid, malformed, join, leave, and move voice-state normalization in `tests/unit/normalize-voice-state.test.ts`
-- [ ] T018 [P] [US1] Add unit tests for safe handled and rejected outcomes with no identifiers in observations in `tests/unit/handle-voice-state.test.ts`
 - [ ] T019 [P] [US1] Add HTTP contract integration tests for `/livez`, `/readyz`, and `/metrics` in `tests/integration/operational-http.test.ts`
-- [ ] T020 [P] [US1] Add Gateway lifecycle integration tests for ready, disconnect, reconnect, and safe configuration failure in `tests/integration/gateway-lifecycle.test.ts`
-- [ ] T021 [P] [US1] Add a process-level E2E test that drives the simulated Gateway ready and voice-state flow in `tests/e2e/worker-voice-state.test.ts`
+- [ ] T020 [P] [US1] Add integration tests that exercise `src/infrastructure/discord/discord-gateway-event-source.ts` through the injected simulated Discord client, assert ready state within 30 seconds, and verify disconnect, reconnect, and safe configuration failure in `tests/integration/gateway-lifecycle.test.ts`
+- [ ] T021 [P] [US1] Add a process-level E2E test that launches the worker in simulated-Gateway mode, asserts `/readyz` succeeds within 30 seconds, and verifies a test voice-state event produces safe handling evidence within 5 seconds in `tests/e2e/worker-voice-state.test.ts`
 
 ### Implementation for User Story 1
 
@@ -145,7 +145,7 @@ repository documentation alone.
 **Purpose**: Validate the foundation as a releasable whole and keep specifications synchronized.
 
 - [ ] T040 [P] Verify all quality commands and the complete CI-equivalent suite from the repository root in `package.json`
-- [ ] T041 [P] Validate the quickstart scenarios, readiness contract, and simulated-Gateway E2E evidence in `specs/001-engineering-foundation/quickstart.md`
+- [ ] T041 [P] Run and record a timed clean-environment walkthrough of README setup, worker startup, and `/readyz` verification; confirm completion within 15 minutes in `specs/001-engineering-foundation/quickstart.md`
 - [ ] T042 [P] Reconcile implementation documentation with the final architecture and test behavior in `README.md`, `docs/architecture.md`, and `docs/testing.md`
 - [ ] T043 Confirm every functional requirement and constitution quality gate has implementation and test evidence in `specs/001-engineering-foundation/spec.md`
 
@@ -174,7 +174,7 @@ repository documentation alone.
 ### Parallel Opportunities
 
 - T003–T006 can proceed in parallel after T001.
-- T017–T021 can proceed in parallel after Phase 2.
+- T011–T012 can proceed in parallel after T010; T019–T021 can proceed in parallel after Phase 2.
 - T027 and T028 can proceed in parallel; T035–T038 can proceed in parallel.
 - Documentation drafts (T035–T038) may begin after Phase 1, then are finalized after the corresponding
   implementation commands and endpoints stabilize.
@@ -182,14 +182,12 @@ repository documentation alone.
 ## Parallel Example: User Story 1
 
 ```text
-T017: tests/unit/normalize-voice-state.test.ts
-T018: tests/unit/handle-voice-state.test.ts
 T019: tests/integration/operational-http.test.ts
 T020: tests/integration/gateway-lifecycle.test.ts
 T021: tests/e2e/worker-voice-state.test.ts
 ```
 
-These five test tasks have distinct files and can be authored in parallel after Phase 2. T022–T025
+These three story-test tasks have distinct files and can be authored in parallel after Phase 2. T022–T025
 then implement the adapters and composition needed to make them pass.
 
 ## Implementation Strategy
@@ -197,7 +195,8 @@ then implement the adapters and composition needed to make them pass.
 ### MVP First
 
 1. Complete Phases 1 and 2.
-2. Complete US1 tests and implementation (T017–T026).
+2. Complete US1 tests and implementation (T019–T026); foundational unit tests T011–T012 are already
+   complete before domain implementation.
 3. Run its independent simulated-Gateway validation before moving on.
 
 ### Incremental Delivery

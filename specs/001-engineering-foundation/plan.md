@@ -22,8 +22,8 @@ layered tests, CI quality gates, and contributor documentation.
 
 **Storage**: N/A — no event, user, or configuration persistence in the foundation
 
-**Testing**: Vitest unit, integration, and end-to-end suites; local Discord Gateway simulator;
-coverage reporting for unit and integration suites
+**Testing**: Vitest unit, integration, and end-to-end suites; deterministic simulated Discord client
+through the Gateway factory port; coverage reporting for unit and integration suites
 
 **Target Platform**: Linux container or process-hosted background worker; local macOS/Linux
 development
@@ -35,7 +35,8 @@ Gateway; process the representative simulated voice-state event within 5 seconds
 
 **Constraints**: Node 24 LTS; only the `GuildVoiceStates` Discord Gateway intent; no real Discord
 credentials or live Discord dependency in CI; tokens and raw Discord IDs/payloads must never appear
-in logs, metrics, test snapshots, or committed files
+in logs, metrics, or test snapshots; production Discord IDs and payloads must never appear in
+committed files, while synthetic test identifiers are permitted only in test fixtures
 
 **Scale/Scope**: One worker process, one Discord application, no sharding, persistence, queue,
 database, product commands, or voice-media connection in this feature
@@ -109,7 +110,10 @@ docs/
 `domain ← application/ports ← infrastructure/composition`. Domain and application code must not
 import Discord, HTTP, environment, logger implementation, or test-framework modules. No database,
 repository, event bus, plugin system, or generic abstraction is introduced because the foundation
-does not need one.
+does not need one. `DiscordGatewayEventSource` depends on a `DiscordClientFactory` port: production
+composition supplies a `discord.js`-backed factory, while CI and end-to-end composition supply a
+deterministic simulated client through the same port. The simulator emits ready, voice-state,
+disconnect, and reconnect signals without opening a live network connection.
 
 ## Complexity Tracking
 
