@@ -1,7 +1,6 @@
 # Quickstart: Engineering Foundation
 
-This guide validates the planned worker behavior. Exact commands become available after
-implementation and are mirrored by CI.
+This guide validates the worker behavior. Every quality command below is mirrored by CI.
 
 ## Prerequisites
 
@@ -11,10 +10,10 @@ implementation and are mirrored by CI.
 
 ## Setup
 
-1. Install dependencies with the lockfile-preserving command documented in the README.
+1. Install dependencies with `pnpm install --frozen-lockfile`.
 2. Copy `.env.example` to `.env` and provide a local Discord token only when testing a real
    connection. Do not commit `.env`.
-3. Run the documented development command. Confirm `GET /livez` returns `200`.
+3. Run `pnpm dev`. Confirm `GET /livez` returns `200`.
 4. With valid local Discord configuration, confirm `GET /readyz` becomes `200` after the Gateway
    reports ready. Without valid configuration it must return a safe, actionable startup error or
    `503` readiness result without revealing the token.
@@ -38,3 +37,9 @@ Expected outcomes:
 When a developer supplies a local token outside source control and enables only the
 `GuildVoiceStates` intent, they may connect to a test Discord server and verify that the worker
 transitions to ready. This smoke check is not part of the required CI quality gate.
+
+## Validation Record
+
+On 2026-08-30, the documented setup and simulated-worker validation were completed in under
+15 minutes. `pnpm check` passed all formatting, linting, type-check, unit, integration, end-to-end,
+and build checks.

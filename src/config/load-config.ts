@@ -1,0 +1,33 @@
+import { z } from 'zod';
+
+const configSchema = z.object({
+  DISCORD_TOKEN: z.string().min(1).optional(),
+  HOST: z.string().default('127.0.0.1'),
+  PORT: z.coerce.number().int().positive().default(3000),
+  LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  GATEWAY_MODE: z.enum(['discord', 'simulated']).default('discord'),
+});
+
+export type AppConfig = {
+  discordToken?: string;
+  host: string;
+  port: number;
+  logLevel: z.infer<typeof configSchema>['LOG_LEVEL'];
+  gatewayMode: 'discord' | 'simulated';
+};
+
+export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppConfig {
+  const parsed = configSchema.safeParse(environment);
+  if (!parsed.success)
+    throw new Error('Invalid environment configuration. Check documented variable names.');
+  if (parsed.data.GATEWAY_MODE === 'discord' && !parsed.data.DISCORD_TOKEN) {
+    throw new Error('DISCORD_TOKEN is required when GATEWAY_MODE=discord.');
+  }
+  return {
+    discordToken: parsed.data.DISCORD_TOKEN,
+    host: parsed.data.HOST,
+    port: parsed.data.PORT,
+    logLevel: parsed.data.LOG_LEVEL,
+    gatewayMode: parsed.data.GATEWAY_MODE,
+  };
+}

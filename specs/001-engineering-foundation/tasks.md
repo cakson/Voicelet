@@ -27,14 +27,14 @@ validation path.
 
 **Purpose**: Establish the reproducible Node.js/TypeScript repository baseline.
 
-- [ ] T001 Create the Node 24 and Corepack/pnpm project manifest, package-manager pin, and engines in `package.json`
-- [ ] T002 Create the reproducible dependency configuration and committed lockfile in `pnpm-lock.yaml`
-- [ ] T003 [P] Configure strict TypeScript compilation and build output in `tsconfig.json`
-- [ ] T004 [P] Configure ESLint flat rules for TypeScript in `eslint.config.mjs`
-- [ ] T005 [P] Configure Prettier formatting and ignore rules in `.prettierrc.json` and `.prettierignore`
-- [ ] T006 [P] Configure Vitest commands, include patterns, and coverage settings in `vitest.config.ts`
-- [ ] T007 Create repository ignore rules and safe configuration examples in `.gitignore` and `.env.example`
-- [ ] T008 Create the planned source, test, documentation, and CI directory structure in `src/`, `tests/`, `docs/`, and `.github/workflows/`
+- [X] T001 Create the Node 24 and Corepack/pnpm project manifest, package-manager pin, and engines in `package.json`
+- [X] T002 Create the reproducible dependency configuration and committed lockfile in `pnpm-lock.yaml`
+- [X] T003 [P] Configure strict TypeScript compilation and build output in `tsconfig.json`
+- [X] T004 [P] Configure ESLint flat rules for TypeScript in `eslint.config.mjs`
+- [X] T005 [P] Configure Prettier formatting and ignore rules in `.prettierrc.json` and `.prettierignore`
+- [X] T006 [P] Configure Vitest commands, include patterns, and coverage settings in `vitest.config.ts`
+- [X] T007 Create repository ignore rules and safe configuration examples in `.gitignore` and `.env.example`
+- [X] T008 Create the planned source, test, documentation, and CI directory structure in `src/`, `tests/`, `docs/`, and `.github/workflows/`
 
 ---
 
@@ -45,16 +45,16 @@ Discord, HTTP, configuration, or logging implementations.
 
 **⚠️ CRITICAL**: Complete this phase before starting user-story implementation.
 
-- [ ] T009 Define worker ports for Gateway events, readiness, clock, safe observations, and `DiscordClientFactory` in `src/ports/index.ts`
-- [ ] T010 Define transient readiness, normalized voice-state, and safe outcome domain models in `src/domain/voice-state.ts`
-- [ ] T011 [P] Add unit tests for valid, malformed, join, leave, and move voice-state normalization in `tests/unit/normalize-voice-state.test.ts`
-- [ ] T012 [P] Add unit tests for safe handled and rejected outcomes with no identifiers in observations in `tests/unit/handle-voice-state.test.ts`
-- [ ] T013 Implement boundary validation and normalization for raw voice-state input in `src/domain/normalize-voice-state.ts`
-- [ ] T014 Implement a pure voice-state handling use case that emits only safe outcomes in `src/application/handle-voice-state.ts`
-- [ ] T015 Implement validated environment loading with redaction-safe failure messages in `src/config/load-config.ts`
-- [ ] T016 Implement structured safe observation logging and bounded worker metrics in `src/infrastructure/logging/observability.ts`
-- [ ] T017 Create a deterministic simulated Discord client that implements the `DiscordClientFactory` contract and emits ready, voice-state, disconnect, and reconnect signals in `tests/support/gateway-simulator/index.ts`
-- [ ] T018 Add shared fixture builders with synthetic non-production Discord identifiers in `tests/support/fixtures/voice-state.ts`
+- [X] T009 Define worker ports for Gateway events, readiness, clock, safe observations, and `DiscordClientFactory` in `src/ports/index.ts`
+- [X] T010 Define transient readiness, normalized voice-state, and safe outcome domain models in `src/domain/voice-state.ts`
+- [X] T011 [P] Add unit tests for valid, malformed, join, leave, and move voice-state normalization in `tests/unit/normalize-voice-state.test.ts`
+- [X] T012 [P] Add unit tests for safe handled and rejected outcomes with no identifiers in observations in `tests/unit/handle-voice-state.test.ts`
+- [X] T013 Implement boundary validation and normalization for raw voice-state input in `src/domain/normalize-voice-state.ts`
+- [X] T014 Implement a pure voice-state handling use case that emits only safe outcomes in `src/application/handle-voice-state.ts`
+- [X] T015 Implement validated environment loading with redaction-safe failure messages in `src/config/load-config.ts`
+- [X] T016 Implement structured safe observation logging and bounded worker metrics in `src/infrastructure/logging/observability.ts`
+- [X] T017 Create a deterministic simulated Discord client that implements the `DiscordClientFactory` contract and emits ready, voice-state, disconnect, and reconnect signals in `tests/support/gateway-simulator/index.ts`
+- [X] T018 Add shared fixture builders with synthetic non-production Discord identifiers in `tests/support/fixtures/voice-state.ts`
 
 **Checkpoint**: The service boundaries, safe domain behavior, configuration rules, and test support
 are ready for independent story work.
@@ -72,17 +72,17 @@ that disconnect makes readiness return `503`.
 
 ### Tests for User Story 1
 
-- [ ] T019 [P] [US1] Add HTTP contract integration tests for `/livez`, `/readyz`, and `/metrics` in `tests/integration/operational-http.test.ts`
-- [ ] T020 [P] [US1] Add integration tests that exercise `src/infrastructure/discord/discord-gateway-event-source.ts` through the injected simulated Discord client, assert ready state within 30 seconds, and verify disconnect, reconnect, and safe configuration failure in `tests/integration/gateway-lifecycle.test.ts`
-- [ ] T021 [P] [US1] Add a process-level E2E test that launches the worker in simulated-Gateway mode, asserts `/readyz` succeeds within 30 seconds, and verifies a test voice-state event produces safe handling evidence within 5 seconds in `tests/e2e/worker-voice-state.test.ts`
+- [X] T019 [P] [US1] Add HTTP contract integration tests for `/livez`, `/readyz`, and `/metrics` in `tests/integration/operational-http.test.ts`
+- [X] T020 [P] [US1] Add integration tests that exercise `src/infrastructure/discord/discord-gateway-event-source.ts` through the injected simulated Discord client, assert ready state within 30 seconds, and verify disconnect, reconnect, and safe configuration failure in `tests/integration/gateway-lifecycle.test.ts`
+- [X] T021 [P] [US1] Add a process-level E2E test that launches the worker in simulated-Gateway mode, asserts `/readyz` succeeds within 30 seconds, and verifies a test voice-state event produces safe handling evidence within 5 seconds in `tests/e2e/worker-voice-state.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T022 [US1] Implement the Discord Gateway adapter with only the `GuildVoiceStates` intent and lifecycle translation in `src/infrastructure/discord/discord-gateway-event-source.ts`
-- [ ] T023 [US1] Implement liveness, readiness, and privacy-safe metrics endpoints per the contract in `src/infrastructure/http/operational-server.ts`
-- [ ] T024 [US1] Compose the gateway, handler, observability, and HTTP adapters in `src/composition/root.ts`
-- [ ] T025 [US1] Implement worker startup, readiness transitions, and bounded graceful shutdown in `src/main.ts`
-- [ ] T026 [US1] Add the local worker start and targeted worker-validation scripts in `package.json`
+- [X] T022 [US1] Implement the Discord Gateway adapter with only the `GuildVoiceStates` intent and lifecycle translation in `src/infrastructure/discord/discord-gateway-event-source.ts`
+- [X] T023 [US1] Implement liveness, readiness, and privacy-safe metrics endpoints per the contract in `src/infrastructure/http/operational-server.ts`
+- [X] T024 [US1] Compose the gateway, handler, observability, and HTTP adapters in `src/composition/root.ts`
+- [X] T025 [US1] Implement worker startup, readiness transitions, and bounded graceful shutdown in `src/main.ts`
+- [X] T026 [US1] Add the local worker start and targeted worker-validation scripts in `package.json`
 
 **Checkpoint**: A developer can run the worker and prove its representative Discord voice-state
 event flow with no real Discord credentials in automated tests.
@@ -99,15 +99,15 @@ per quality category and confirm both the local command and CI reject it.
 
 ### Tests for User Story 2
 
-- [ ] T027 [P] [US2] Add a quality-command integration test that exercises the aggregate check command against the fixture project in `tests/integration/quality-commands.test.ts`
-- [ ] T028 [P] [US2] Add CI workflow validation fixtures for failing format, lint, type, test, and build categories in `tests/support/quality-fixtures/`
+- [X] T027 [P] [US2] Add a quality-command integration test that exercises the aggregate check command against the fixture project in `tests/integration/quality-commands.test.ts`
+- [X] T028 [P] [US2] Add CI workflow validation fixtures for failing format, lint, type, test, and build categories in `tests/support/quality-fixtures/`
 
 ### Implementation for User Story 2
 
-- [ ] T029 [US2] Define formatter, linter, type-check, per-layer test, build, and aggregate `check` scripts in `package.json`
-- [ ] T030 [US2] Implement frozen-lockfile installation and `pnpm check` quality gates in `.github/workflows/ci.yml`
-- [ ] T031 [US2] Add repository secret-detection configuration and CI invocation in `.gitleaks.toml` and `.github/workflows/ci.yml`
-- [ ] T032 [US2] Verify the committed dependency lockfile resolves with the pinned package manager in `pnpm-lock.yaml`
+- [X] T029 [US2] Define formatter, linter, type-check, per-layer test, build, and aggregate `check` scripts in `package.json`
+- [X] T030 [US2] Implement frozen-lockfile installation and `pnpm check` quality gates in `.github/workflows/ci.yml`
+- [X] T031 [US2] Add repository secret-detection configuration and CI invocation in `.gitleaks.toml` and `.github/workflows/ci.yml`
+- [X] T032 [US2] Verify the committed dependency lockfile resolves with the pinned package manager in `pnpm-lock.yaml`
 
 **Checkpoint**: Local and CI quality gates execute the same required checks and reject known bad
 changes without requiring secrets.
@@ -124,16 +124,16 @@ up, start, validate, and prepare a change without oral guidance.
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Add a documentation link and required-command verification test in `tests/integration/documentation.test.ts`
-- [ ] T034 [P] [US3] Add an AI-agent instruction completeness check in `tests/integration/agent-instructions.test.ts`
+- [X] T033 [P] [US3] Add a documentation link and required-command verification test in `tests/integration/documentation.test.ts`
+- [X] T034 [P] [US3] Add an AI-agent instruction completeness check in `tests/integration/agent-instructions.test.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T035 [P] [US3] Document prerequisites, safe environment setup, startup, and common commands in `README.md`
-- [ ] T036 [P] [US3] Document component responsibilities, one-way dependency flow, and operational endpoints in `docs/architecture.md`
-- [ ] T037 [P] [US3] Document unit, integration, end-to-end, simulator, and quality-gate workflows in `docs/testing.md`
-- [ ] T038 [P] [US3] Document contribution, review, CI, and definition-of-done workflow in `CONTRIBUTING.md`
-- [ ] T039 [US3] Add repository-specific AI coding-agent operating and validation instructions in `AGENTS.md`
+- [X] T035 [P] [US3] Document prerequisites, safe environment setup, startup, and common commands in `README.md`
+- [X] T036 [P] [US3] Document component responsibilities, one-way dependency flow, and operational endpoints in `docs/architecture.md`
+- [X] T037 [P] [US3] Document unit, integration, end-to-end, simulator, and quality-gate workflows in `docs/testing.md`
+- [X] T038 [P] [US3] Document contribution, review, CI, and definition-of-done workflow in `CONTRIBUTING.md`
+- [X] T039 [US3] Add repository-specific AI coding-agent operating and validation instructions in `AGENTS.md`
 
 **Checkpoint**: A new contributor and an AI coding agent can perform all required workflows using
 repository documentation alone.
@@ -144,10 +144,10 @@ repository documentation alone.
 
 **Purpose**: Validate the foundation as a releasable whole and keep specifications synchronized.
 
-- [ ] T040 [P] Verify all quality commands and the complete CI-equivalent suite from the repository root in `package.json`
-- [ ] T041 [P] Run and record a timed clean-environment walkthrough of README setup, worker startup, and `/readyz` verification; confirm completion within 15 minutes in `specs/001-engineering-foundation/quickstart.md`
-- [ ] T042 [P] Reconcile implementation documentation with the final architecture and test behavior in `README.md`, `docs/architecture.md`, and `docs/testing.md`
-- [ ] T043 Confirm every functional requirement and constitution quality gate has implementation and test evidence in `specs/001-engineering-foundation/spec.md`
+- [X] T040 [P] Verify all quality commands and the complete CI-equivalent suite from the repository root in `package.json`
+- [X] T041 [P] Run and record a timed clean-environment walkthrough of README setup, worker startup, and `/readyz` verification; confirm completion within 15 minutes in `specs/001-engineering-foundation/quickstart.md`
+- [X] T042 [P] Reconcile implementation documentation with the final architecture and test behavior in `README.md`, `docs/architecture.md`, and `docs/testing.md`
+- [X] T043 Confirm every functional requirement and constitution quality gate has implementation and test evidence in `specs/001-engineering-foundation/spec.md`
 
 ---
 
