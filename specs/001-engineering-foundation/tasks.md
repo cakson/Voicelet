@@ -216,3 +216,11 @@ then implement the adapters and composition needed to make them pass.
 - [X] T048 Exercise representative failing format, lint, type, test, and build fixtures in automated validation per US2/AC2, SC-005, T027, and T028 (partial)
 - [X] T049 Complete voice-state normalization unit coverage for move and malformed channel/session inputs per T011 and Constitution I (partial)
 - [X] T050 CRITICAL Declare least-privilege GitHub Actions token permissions in `.github/workflows/ci.yml` per Constitution VI (missing)
+
+---
+
+## Phase 8: Convergence
+
+- [ ] T051 Restore readiness after a Discord Gateway reconnect using the production shard-ready lifecycle signal, with a simulated recovery integration test per FR-002a and data-model: GatewayReadiness transitions (partial)
+- [ ] T052 Add redaction-safe missing and invalid configuration failure coverage per FR-003, US1/AC3, and T020 (partial)
+- [ ] T053 Replace placeholder quality fixtures with runnable format, lint, type, test, and build defects that each fail their corresponding gate per US2/AC2, SC-005, T027, and T028 (partial)
