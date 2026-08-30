@@ -1,6 +1,4 @@
 import { execFile } from 'node:child_process';
-import { rm, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { describe, expect, it } from 'vitest';
 
@@ -8,17 +6,28 @@ const execute = promisify(execFile);
 
 describe('quality commands', () => {
   it('rejects representative defects for every required quality category', async () => {
-    const fixture = (name: string) => `tests/support/quality-fixtures/${name}.fixture`;
-    const lintFixture = join(process.cwd(), 'tests', '.quality-lint-error.ts');
-    await writeFile(lintFixture, 'const lintError = ;\n', 'utf8');
+    const fixture = (name: string) => `tests/support/quality-fixtures/${name}`;
     const failures = await Promise.allSettled([
-      execute('pnpm', ['exec', 'prettier', '--parser', 'typescript', '--check', fixture('format')]),
-      execute('pnpm', ['exec', 'eslint', '--config', 'eslint.config.mjs', lintFixture]),
-      execute('pnpm', ['exec', 'tsc', '--noEmit', fixture('type')]),
-      execute('pnpm', ['exec', 'vitest', 'run', fixture('test')]),
-      execute('pnpm', ['exec', 'tsc', '--noEmit', fixture('build')]),
+      execute('pnpm', [
+        'exec',
+        'prettier',
+        '--ignore-path',
+        '/dev/null',
+        '--check',
+        fixture('format-error.ts'),
+      ]),
+      execute('pnpm', ['exec', 'eslint', '--no-ignore', fixture('lint-error.ts')]),
+      execute('pnpm', ['exec', 'tsc', '--noEmit', '--skipLibCheck', fixture('type-error.ts')]),
+      execute('pnpm', [
+        'exec',
+        'vitest',
+        'run',
+        '--config',
+        fixture('vitest.config.ts'),
+        fixture('test-failure.test.ts'),
+      ]),
+      execute('pnpm', ['exec', 'tsc', '--noEmit', '--skipLibCheck', fixture('build-error.ts')]),
     ]);
-    await rm(lintFixture, { force: true });
     expect(failures.map((result) => result.status)).toEqual([
       'rejected',
       'rejected',

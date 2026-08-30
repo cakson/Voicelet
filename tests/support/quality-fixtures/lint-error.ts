@@ -1,0 +1,1 @@
+const lintError = 42;
