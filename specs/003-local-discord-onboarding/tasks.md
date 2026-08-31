@@ -131,7 +131,7 @@ safe next actions for every required failure category.
 
 - [X] T012 Reconcile links, configuration names, endpoint semantics, and security language across
   `README.md`, `.env.example`, `docs/local-discord-development.md`, and `docs/testing.md`
-- [ ] T013 Run the manual local-development quickstart and smoke-test checklist using only a
+- [X] T013 Run the manual local-development quickstart and smoke-test checklist using only a
   developer-owned test bot/server, recording no tokens or Discord identifiers in
   `specs/003-local-discord-onboarding/quickstart.md`
 - [X] T014 Run focused documentation integration coverage with `pnpm test:integration` from
