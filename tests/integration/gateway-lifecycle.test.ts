@@ -191,14 +191,9 @@ describe('DiscordGatewayEventSource', () => {
     source.stop();
   });
 
-  it('never schedules deletion for trigger, unmanaged, or unrelated voice resources', async () => {
+  it('leaves trigger and unrelated voice resources outside zombie cleanup', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const scheduler = new ManualScheduler();
-    factory.client.rooms.set('unmanaged-room', {
-      guildId: 'test-guild',
-      categoryId: 'category-id',
-      name: 'unmanaged',
-    });
     factory.client.rooms.set('unrelated-room', {
       guildId: 'test-guild',
       categoryId: 'other-category',
@@ -213,14 +208,53 @@ describe('DiscordGatewayEventSource', () => {
       scheduler,
     );
     await source.start();
-    for (const previousChannelId of ['trigger-channel', 'unmanaged-room', 'unrelated-room']) {
+    for (const previousChannelId of ['trigger-channel', 'unrelated-room']) {
       factory.client.emitVoiceState({ ...temporaryRoomJoin, channelId: null, previousChannelId });
     }
     await settled();
     await scheduler.advanceBy(60_000);
     expect(factory.client.deleteAttempts).toEqual([]);
-    expect(factory.client.rooms.has('unmanaged-room')).toBe(true);
     expect(factory.client.rooms.has('unrelated-room')).toBe(true);
+    source.stop();
+  });
+
+  it('reconciles startup zombies while preserving configured permanent and known managed rooms', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const scheduler = new ManualScheduler();
+    const reconciliationConfig = new Map([
+      [
+        'test-guild',
+        {
+          triggerChannelId: 'trigger-channel',
+          destinationCategoryId: 'category-id',
+          inactivityTimeoutMinutes: 1,
+          reconciliationIntervalMinutes: 1,
+          permanentChannelIds: ['permanent-room'],
+        },
+      ],
+    ]);
+    factory.client.seedRoom('test-guild', 'empty-zombie', 'category-id');
+    factory.client.seedRoom('test-guild', 'occupied-zombie', 'category-id');
+    factory.client.seedRoom('test-guild', 'permanent-room', 'category-id');
+    factory.client.seedRoom('test-guild', 'outside-room', 'other-category');
+    factory.client.setRoomOccupied('test-guild', 'occupied-zombie', true);
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      scheduler,
+      Observability.create('silent'),
+      reconciliationConfig,
+      scheduler,
+    );
+    await source.start();
+    await settled();
+    expect(factory.client.rooms.has('empty-zombie')).toBe(false);
+    expect(factory.client.rooms.has('occupied-zombie')).toBe(true);
+    expect(factory.client.rooms.has('permanent-room')).toBe(true);
+    expect(factory.client.rooms.has('outside-room')).toBe(true);
+    factory.client.setRoomOccupied('test-guild', 'occupied-zombie', false);
+    await scheduler.advanceBy(60_000);
+    expect(factory.client.rooms.has('occupied-zombie')).toBe(false);
     source.stop();
   });
 });

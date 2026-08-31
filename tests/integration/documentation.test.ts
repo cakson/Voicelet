@@ -25,6 +25,8 @@ describe('documentation', () => {
     expect(example).toContain('3000');
     expect(example).toContain('<development-server-id>');
     expect(example).toContain('inactivityTimeoutMinutes');
+    expect(example).toContain('reconciliationIntervalMinutes');
+    expect(example).toContain('permanentChannelIds');
     expect(example).toContain('1-1440');
     expect(example).not.toMatch(/DISCORD_TOKEN=\S+/);
     expect(example).not.toMatch(/\b\d{17,20}\b/);
@@ -42,6 +44,21 @@ describe('documentation', () => {
       expect(document).toContain('1440');
     }
     expect(guide).toContain('automatic deletion');
+  });
+
+  it('documents reconciliation category reservation, interval, and zombie recovery', async () => {
+    const [readme, guide] = await Promise.all([
+      readFile('README.md', 'utf8'),
+      readFile('docs/local-discord-development.md', 'utf8'),
+    ]);
+    for (const document of [readme, guide]) {
+      expect(document).toContain('reconciliationIntervalMinutes');
+      expect(document).toContain('15');
+      expect(document).toContain('permanentChannelIds');
+      expect(document).toContain('zombie');
+    }
+    expect(readme).toContain('dedicated Voicelet-managed territory');
+    expect(guide).toContain('intentionally does');
   });
 
   it('covers the required setup, smoke test, security, and troubleshooting contract', async () => {

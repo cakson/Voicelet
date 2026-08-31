@@ -49,6 +49,8 @@ describe('documented environment configuration', () => {
       triggerChannelId: 'trigger-one',
       destinationCategoryId: 'category-one',
       inactivityTimeoutMinutes: 60,
+      reconciliationIntervalMinutes: 15,
+      permanentChannelIds: [],
     });
     expect(config.temporaryRooms).toHaveLength(2);
     expect(loadConfig({ GATEWAY_MODE: 'simulated' }).temporaryRooms).toHaveLength(0);
@@ -71,6 +73,37 @@ describe('documented environment configuration', () => {
     for (const invalid of [0, 1441, 1.5, '60', null]) {
       expect(() => configuration(invalid)).toThrow('Invalid environment configuration');
     }
+  });
+
+  it('defaults and validates reconciliation settings without retaining duplicate exclusions', () => {
+    const configuration = (reconciliationIntervalMinutes: unknown) =>
+      loadConfig({
+        GATEWAY_MODE: 'simulated',
+        TEMPORARY_ROOM_CONFIG: JSON.stringify({
+          guild: {
+            triggerChannelId: 'trigger',
+            destinationCategoryId: 'category',
+            reconciliationIntervalMinutes,
+            permanentChannelIds: ['permanent', 'permanent'],
+          },
+        }),
+      });
+    expect(
+      loadConfig({
+        GATEWAY_MODE: 'simulated',
+        TEMPORARY_ROOM_CONFIG: JSON.stringify({
+          guild: { triggerChannelId: 'trigger', destinationCategoryId: 'category' },
+        }),
+      }).temporaryRooms.get('guild')?.reconciliationIntervalMinutes,
+    ).toBe(15);
+    expect(configuration(1).temporaryRooms.get('guild')?.permanentChannelIds).toEqual([
+      'permanent',
+    ]);
+    expect(configuration(1440).temporaryRooms.get('guild')?.reconciliationIntervalMinutes).toBe(
+      1440,
+    );
+    for (const invalid of [0, 1441, 1.5, '15', null])
+      expect(() => configuration(invalid)).toThrow('Invalid environment configuration');
   });
 
   it('rejects malformed temporary-room mappings without exposing their contents', () => {

@@ -178,4 +178,74 @@ describe('worker voice-state flow', () => {
     workers.splice(workers.indexOf(worker), 1);
     await rm(directory, { recursive: true, force: true });
   }, 40_000);
+
+  it('reconciles pre-existing zombies after ready without real interval waits', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'voicelet-reconciliation-e2e-'));
+    const socketPath = join(directory, 'worker.sock');
+    const worker = fork('src/main.ts', [], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        GATEWAY_MODE: 'simulated',
+        SIMULATED_AUTO_READY: 'false',
+        SOCKET_PATH: socketPath,
+        LOG_LEVEL: 'silent',
+        TEMPORARY_ROOM_CONFIG: JSON.stringify({
+          'test-guild': {
+            triggerChannelId: 'trigger-channel',
+            destinationCategoryId: 'category-id',
+            inactivityTimeoutMinutes: 1,
+            reconciliationIntervalMinutes: 1,
+            permanentChannelIds: ['permanent-room'],
+          },
+        }),
+      },
+      execArgv: ['--import', 'tsx'],
+      stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+    });
+    workers.push(worker);
+    await waitFor(
+      () => request(socketPath, '/livez'),
+      (response) => response.statusCode === 200,
+      10_000,
+    );
+    for (const roomId of ['empty-zombie', 'occupied-zombie', 'permanent-room'])
+      worker.send({ type: 'seed-room', guildId: 'test-guild', roomId, categoryId: 'category-id' });
+    worker.send({
+      type: 'set-room-occupied',
+      guildId: 'test-guild',
+      roomId: 'occupied-zombie',
+      occupied: true,
+    });
+    worker.send({ type: 'emit-ready' });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes(
+          'voicelet_room_reconciliation_operations_total{outcome="zombie_deleted"} 1',
+        ) &&
+        response.body.includes(
+          'voicelet_room_reconciliation_operations_total{outcome="zombie_occupied"} 1',
+        ),
+      2_000,
+    );
+    worker.send({
+      type: 'set-room-occupied',
+      guildId: 'test-guild',
+      roomId: 'occupied-zombie',
+      occupied: false,
+    });
+    worker.send({ type: 'advance-time', milliseconds: 60_000 });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes(
+          'voicelet_room_reconciliation_operations_total{outcome="zombie_deleted"} 2',
+        ),
+      2_000,
+    );
+    expect((await request(socketPath, '/readyz')).statusCode).toBe(200);
+    worker.kill('SIGTERM');
+    await rm(directory, { recursive: true, force: true });
+  }, 20_000);
 });
