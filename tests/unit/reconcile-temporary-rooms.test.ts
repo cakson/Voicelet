@@ -114,6 +114,37 @@ describe('TemporaryRoomReconciler', () => {
     expect(discord.rooms.has('later-zombie')).toBe(true);
   });
 
+  it('does not reschedule an in-flight scan after pause', async () => {
+    const discord = new SimulatedDiscordClient();
+    const scheduler = new ManualScheduler();
+    discord.seedRoom('guild', 'zombie', 'category');
+    const listCategoryVoiceRooms = discord.listCategoryVoiceRooms.bind(discord);
+    let releaseCategoryInspection: (rooms: string[] | null) => void = () => undefined;
+    discord.listCategoryVoiceRooms = () =>
+      new Promise((resolve: (rooms: string[] | null) => void) => {
+        releaseCategoryInspection = resolve;
+      });
+    const reconciler = new TemporaryRoomReconciler(
+      config,
+      discord,
+      scheduler,
+      () => false,
+      () => undefined,
+    );
+
+    reconciler.start();
+    await settled();
+    reconciler.pause();
+    releaseCategoryInspection(['zombie']);
+    await settled();
+    expect(discord.rooms.has('zombie')).toBe(false);
+
+    discord.listCategoryVoiceRooms = listCategoryVoiceRooms;
+    discord.seedRoom('guild', 'later-zombie', 'category');
+    await scheduler.advanceBy(60_000);
+    expect(discord.rooms.has('later-zombie')).toBe(true);
+  });
+
   it('contains a failed deletion and continues with another eligible zombie', async () => {
     const discord = new SimulatedDiscordClient();
     const scheduler = new ManualScheduler();

@@ -12,6 +12,7 @@ export class TemporaryRoomReconciler {
   private readonly scheduled = new Map<string, ScheduledWork>();
   private readonly running = new Set<string>();
   private readonly queued = new Set<string>();
+  private active = false;
   private disposed = false;
 
   constructor(
@@ -24,10 +25,12 @@ export class TemporaryRoomReconciler {
 
   start(): void {
     if (this.disposed) return;
+    this.active = true;
     for (const guildId of this.configurations.keys()) this.request(guildId);
   }
 
   pause(): void {
+    this.active = false;
     for (const scheduled of this.scheduled.values()) scheduled.cancel();
     this.scheduled.clear();
     this.queued.clear();
@@ -39,7 +42,7 @@ export class TemporaryRoomReconciler {
   }
 
   request(guildId: string): void {
-    if (this.disposed || !this.configurations.has(guildId)) return;
+    if (this.disposed || !this.active || !this.configurations.has(guildId)) return;
     if (this.running.has(guildId)) {
       this.queued.add(guildId);
       return;
@@ -64,8 +67,8 @@ export class TemporaryRoomReconciler {
     } finally {
       this.running.delete(guildId);
       this.observe('reconciliation_completed');
-      if (!this.disposed) this.schedule(guildId, config);
-      if (this.queued.delete(guildId) && !this.disposed) this.request(guildId);
+      if (!this.disposed && this.active) this.schedule(guildId, config);
+      if (this.queued.delete(guildId) && !this.disposed && this.active) this.request(guildId);
     }
   }
 
