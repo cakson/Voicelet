@@ -222,17 +222,17 @@ tasks remain unchanged and retain their original traceability.
 
 ## Phase 9: Convergence
 
-- [ ] T045 Make confirmed external deletion win over an in-flight category restoration by using one
+- [X] T045 Make confirmed external deletion win over an in-flight category restoration by using one
   guild-room operation key and rechecking the active association before restoration or owner-allowance
   reapplication; add a deterministic deletion-race unit test in
   `src/application/manage-temporary-room.ts` and `tests/unit/manage-temporary-room.test.ts`
   (FR-009, FR-010–FR-010a; plan:restoration policy) (partial).
-- [ ] T046 Extend simulated process E2E coverage to demonstrate two-owner room isolation, no owner
+- [X] T046 Extend simulated process E2E coverage to demonstrate two-owner room isolation, no owner
   capability on the trigger channel or category, deletion and replacement without affecting the other
   association, and owner-allowance failure containment without duplicate room creation in
   `tests/e2e/worker-voice-state.test.ts` (FR-005–FR-006, FR-009, FR-012–FR-014, FR-018,
   SC-002, SC-004–SC-005) (partial).
-- [ ] T047 Replace the parallel owner, room, and permission-state maps with one transient
+- [X] T047 Replace the parallel owner, room, and permission-state maps with one transient
   association record and atomic cleanup, with invariant coverage in
   `src/application/manage-temporary-room.ts` and `tests/unit/manage-temporary-room.test.ts`
   (FR-001, FR-006, FR-011; plan:data-model decision) (partial).

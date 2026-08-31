@@ -9,6 +9,16 @@ import type {
 
 const retryDelayMs = 15 * 60 * 1000;
 
+type OwnerPermissionState = 'applied' | 'failed';
+
+interface ManagedRoomAssociation {
+  readonly guildId: string;
+  readonly ownerId: string;
+  readonly roomId: string;
+  readonly destinationCategoryId: string;
+  ownerPermissionState: OwnerPermissionState;
+}
+
 export function temporaryRoomName(displayName: string): string {
   const base = displayName
     .toLowerCase()
@@ -19,15 +29,13 @@ export function temporaryRoomName(displayName: string): string {
 }
 
 export class TemporaryRoomManager {
-  // These maps form one transient association invariant: each guild/user key maps to one room,
-  // and each guild/room key maps back to that same owner key. Permission state is keyed by room and
-  // is cleared together with the reverse association.
-  private readonly associations = new Map<string, string>();
-  private readonly owners = new Map<string, string>();
-  private readonly ownerPermissionState = new Map<string, 'applied' | 'failed'>();
+  // This is the sole ownership authority. It is intentionally transient: reconciliation must not
+  // infer or recreate an owner for a room that is absent from this map.
+  private readonly managedRooms = new Map<string, ManagedRoomAssociation>();
   private readonly work = new Map<string, { generation: number; handle: ScheduledWork }>();
   private readonly locks = new Map<string, Promise<void>>();
   private readonly parentOperations = new Map<string, Promise<void>>();
+  private readonly deletingRooms = new Set<string>();
 
   constructor(
     private readonly configurations: Map<string, TemporaryRoomConfig>,
@@ -62,16 +70,22 @@ export class TemporaryRoomManager {
     )
       await this.createOrReuse(event, config);
     for (const roomId of [event.channelId, event.previousChannelId]) {
-      if (roomId && this.owners.has(`${event.guildId}:${roomId}`))
+      if (roomId && this.managedRooms.has(this.roomKey(event.guildId, roomId)))
         await this.updateLifecycle(event.guildId, roomId, config);
     }
   }
 
   async externalDeleted(guildId: string, roomId: string): Promise<void> {
-    await this.serial(roomId, async () => {
-      this.clear(guildId, roomId);
-      this.observe('temporary_room_external_deleted');
-    });
+    const key = this.roomKey(guildId, roomId);
+    this.deletingRooms.add(key);
+    try {
+      await this.serial(key, async () => {
+        this.clear(guildId, roomId);
+        this.observe('temporary_room_external_deleted');
+      });
+    } finally {
+      this.deletingRooms.delete(key);
+    }
   }
 
   dispose(): void {
@@ -80,35 +94,43 @@ export class TemporaryRoomManager {
   }
 
   isKnownManagedRoom(guildId: string, roomId: string): boolean {
-    return this.owners.has(`${guildId}:${roomId}`);
+    return this.managedRooms.has(this.roomKey(guildId, roomId));
   }
 
   async roomParentChanged(event: RoomParentChanged): Promise<void> {
-    const key = `${event.guildId}:${event.roomId}`;
-    const owner = this.owners.get(key);
+    const key = this.roomKey(event.guildId, event.roomId);
+    const association = this.managedRooms.get(key);
     const config = this.configurations.get(event.guildId);
-    if (!owner || !config || event.parentId === config.destinationCategoryId) return;
+    if (
+      !association ||
+      !config ||
+      this.deletingRooms.has(key) ||
+      event.parentId === association.destinationCategoryId
+    )
+      return;
     const active = this.parentOperations.get(key);
     if (active) return active;
     const operation = this.serial(key, async () => {
-      if (!this.owners.has(key)) return;
+      if (!this.isActive(association)) return;
       const result = await this.discord.restoreRoomCategory(
         event.guildId,
         event.roomId,
-        config.destinationCategoryId,
+        association.destinationCategoryId,
       );
       if (result === 'missing') return this.clear(event.guildId, event.roomId);
       if (result === 'failed') {
         this.observe('temporary_room_category_restore_failed');
         return;
       }
+      if (!this.isActive(association)) return;
       this.observe('temporary_room_category_restored');
       const allowance = await this.discord.applyOwnerAllowance(
         event.guildId,
         event.roomId,
-        owner.split(':')[1] ?? owner,
+        association.ownerId,
       );
-      this.ownerPermissionState.set(key, allowance === 'applied' ? 'applied' : 'failed');
+      if (!this.isActive(association)) return;
+      association.ownerPermissionState = allowance === 'applied' ? 'applied' : 'failed';
       this.observe(
         allowance === 'applied'
           ? 'temporary_room_owner_permission_applied'
@@ -127,15 +149,17 @@ export class TemporaryRoomManager {
     event: VoiceStateChanged,
     config: TemporaryRoomConfig,
   ): Promise<void> {
-    const key = `${event.guildId}:${event.userId}`;
-    await this.serial(key, async () => {
-      let roomId = this.associations.get(key);
+    const ownerKey = `${event.guildId}:${event.userId}`;
+    await this.serial(ownerKey, async () => {
+      let association = this.associationForOwner(event.guildId, event.userId);
+      let roomId = association?.roomId;
       let createdRoom = false;
       if (roomId) {
         const state = await this.discord.roomState(event.guildId, roomId);
         if (state === 'missing') {
           this.clear(event.guildId, roomId);
           this.observe('temporary_room_stale');
+          association = undefined;
           roomId = undefined;
         } else if (state === 'unavailable') return;
       }
@@ -151,15 +175,19 @@ export class TemporaryRoomManager {
         }
         roomId = created;
         createdRoom = true;
-        this.associations.set(key, roomId);
-        this.owners.set(`${event.guildId}:${roomId}`, key);
-        this.ownerPermissionState.set(`${event.guildId}:${roomId}`, 'failed');
+        association = {
+          guildId: event.guildId,
+          ownerId: event.userId,
+          roomId,
+          destinationCategoryId: config.destinationCategoryId,
+          ownerPermissionState: 'failed',
+        };
+        this.managedRooms.set(this.roomKey(event.guildId, roomId), association);
         this.observe('temporary_room_created');
       } else this.observe('temporary_room_reused');
-      const roomKey = `${event.guildId}:${roomId}`;
-      if (createdRoom) {
+      if (createdRoom && association) {
         const result = await this.discord.applyOwnerAllowance(event.guildId, roomId, event.userId);
-        this.ownerPermissionState.set(roomKey, result === 'applied' ? 'applied' : 'failed');
+        association.ownerPermissionState = result === 'applied' ? 'applied' : 'failed';
         this.observe(
           result === 'applied'
             ? 'temporary_room_owner_permission_applied'
@@ -179,7 +207,7 @@ export class TemporaryRoomManager {
     config?: TemporaryRoomConfig,
   ): Promise<void> {
     if (!config) return;
-    await this.serial(roomId, async () => {
+    await this.serial(this.roomKey(guildId, roomId), async () => {
       const state = await this.discord.roomState(guildId, roomId);
       if (state === 'missing') return this.clear(guildId, roomId);
       if (state === 'unavailable') return;
@@ -208,7 +236,7 @@ export class TemporaryRoomManager {
     );
   }
   private async expire(guildId: string, roomId: string, generation: number): Promise<void> {
-    await this.serial(roomId, async () => {
+    await this.serial(this.roomKey(guildId, roomId), async () => {
       if (this.work.get(roomId)?.generation !== generation) return;
       const state = await this.discord.roomState(guildId, roomId);
       if (state === 'missing') return this.clear(guildId, roomId);
@@ -235,10 +263,22 @@ export class TemporaryRoomManager {
   }
   private clear(guildId: string, roomId: string): void {
     this.cancel(roomId);
-    const owner = this.owners.get(`${guildId}:${roomId}`);
-    if (owner) this.associations.delete(owner);
-    this.owners.delete(`${guildId}:${roomId}`);
-    this.ownerPermissionState.delete(`${guildId}:${roomId}`);
+    this.managedRooms.delete(this.roomKey(guildId, roomId));
+  }
+  private associationForOwner(
+    guildId: string,
+    ownerId: string,
+  ): ManagedRoomAssociation | undefined {
+    return [...this.managedRooms.values()].find(
+      (association) => association.guildId === guildId && association.ownerId === ownerId,
+    );
+  }
+  private roomKey(guildId: string, roomId: string): string {
+    return `${guildId}:${roomId}`;
+  }
+  private isActive(association: ManagedRoomAssociation): boolean {
+    const key = this.roomKey(association.guildId, association.roomId);
+    return this.managedRooms.get(key) === association && !this.deletingRooms.has(key);
   }
   private cancel(roomId: string): void {
     const item = this.work.get(roomId);

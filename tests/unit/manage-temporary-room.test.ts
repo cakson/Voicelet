@@ -97,6 +97,41 @@ describe('TemporaryRoomManager', () => {
     ]);
     expect(applications).toBe(1);
   });
+  it('does not reapply an owner allowance after confirmed deletion races restoration', async () => {
+    const discord = new SimulatedDiscordClient();
+    const manager = new TemporaryRoomManager(config, discord, () => undefined);
+    await manager.handle(event);
+    let releaseRestore!: () => void;
+    const restorationStarted = new Promise<void>((resolve) => {
+      const restore = discord.restoreRoomCategory.bind(discord);
+      discord.restoreRoomCategory = async (...args) => {
+        resolve();
+        await new Promise<void>((release) => {
+          releaseRestore = release;
+        });
+        return restore(...args);
+      };
+    });
+    let applications = 0;
+    const apply = discord.applyOwnerAllowance.bind(discord);
+    discord.applyOwnerAllowance = async (...args) => {
+      applications += 1;
+      return apply(...args);
+    };
+
+    const restoration = manager.roomParentChanged({
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      parentId: 'elsewhere',
+    });
+    await restorationStarted;
+    const deletion = manager.externalDeleted('test-guild', 'sim-room-1');
+    releaseRestore();
+    await Promise.all([restoration, deletion]);
+
+    expect(applications).toBe(0);
+    expect(manager.isKnownManagedRoom('test-guild', 'sim-room-1')).toBe(false);
+  });
   it('ignores bots and replaces a stale room', async () => {
     const discord = new SimulatedDiscordClient();
     const manager = new TemporaryRoomManager(config, discord, () => undefined);
