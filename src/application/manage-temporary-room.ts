@@ -103,8 +103,10 @@ export class TemporaryRoomManager {
         this.owners.set(`${event.guildId}:${roomId}`, key);
         this.observe('temporary_room_created');
       } else this.observe('temporary_room_reused');
-      if (!(await this.discord.moveMember(event.guildId, event.userId, roomId)))
+      if (!(await this.discord.moveMember(event.guildId, event.userId, roomId))) {
         this.observe('temporary_room_move_failed');
+        await this.updateLifecycle(event.guildId, roomId, config);
+      }
     });
   }
 

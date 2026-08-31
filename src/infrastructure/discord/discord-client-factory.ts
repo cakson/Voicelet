@@ -7,8 +7,10 @@ import type {
   RoomState,
 } from '../../ports/index.js';
 
-class DiscordJsClient implements DiscordClient {
-  private readonly client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates] });
+export class DiscordJsClient implements DiscordClient {
+  constructor(
+    private readonly client: Client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates] }),
+  ) {}
 
   onReady(listener: () => void): void {
     this.client.once('clientReady', listener);
@@ -29,7 +31,9 @@ class DiscordJsClient implements DiscordClient {
   }
   async roomState(guildId: string, roomId: string): Promise<RoomState> {
     try {
-      const channel = await this.client.guilds.cache.get(guildId)?.channels.fetch(roomId);
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'unavailable';
+      const channel = await guild.channels.fetch(roomId);
       if (!channel || channel.type !== ChannelType.GuildVoice) return 'missing';
       return channel.members.size === 0 ? 'empty' : 'occupied';
     } catch {
@@ -38,7 +42,9 @@ class DiscordJsClient implements DiscordClient {
   }
   async deleteRoom(guildId: string, roomId: string): Promise<DeleteRoomResult> {
     try {
-      const channel = await this.client.guilds.cache.get(guildId)?.channels.fetch(roomId);
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'failed';
+      const channel = await guild.channels.fetch(roomId);
       if (!channel || channel.type !== ChannelType.GuildVoice) return 'missing';
       await channel.delete();
       return 'deleted';

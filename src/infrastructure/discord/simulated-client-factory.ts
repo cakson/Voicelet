@@ -37,6 +37,7 @@ export class SimulatedDiscordClient implements DiscordClient {
   private roomDeletedListeners: Array<(guildId: string, roomId: string) => void> = [];
   readonly rooms = new Map<string, { guildId: string; categoryId: string; name: string }>();
   readonly placements = new Map<string, string>();
+  readonly deleteAttempts: Array<{ guildId: string; roomId: string }> = [];
   failNextCreate = false;
   failNextMove = false;
   failNextDelete = false;
@@ -67,6 +68,7 @@ export class SimulatedDiscordClient implements DiscordClient {
       : 'empty';
   }
   async deleteRoom(guildId: string, roomId: string): Promise<DeleteRoomResult> {
+    this.deleteAttempts.push({ guildId, roomId });
     if (this.failNextDelete) {
       this.failNextDelete = false;
       return 'failed';
