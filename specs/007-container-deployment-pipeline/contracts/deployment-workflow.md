@@ -34,7 +34,7 @@ by an explicitly implemented provenance feature.
 | `NORTHFLANK_PROJECT_ID` | No | Existing target project identifier. |
 | `NORTHFLANK_SERVICE_ID` | No | Existing Voicelet service identifier. |
 | `NORTHFLANK_GHCR_CREDENTIAL_ID` | No | Existing Northflank registry credential ID, required only for a private GHCR package. |
-| `NORTHFLANK_READINESS_URL` | No | Safe URL for the deployed service's `/readyz` endpoint. |
+| `NORTHFLANK_READINESS_URL` | No | Required safe URL for the deployed service's `/readyz` endpoint. |
 
 **Required behavior**:
 
@@ -44,7 +44,8 @@ by an explicitly implemented provenance feature.
 4. Update only the external image reference for the configured service; preserve existing runtime
    environment, runtime files, secrets, resources, networking, and health configuration.
 5. Poll bounded deployment and container status, failing on terminal failure or timeout.
-6. Require an HTTP success response from `/readyz` when `NORTHFLANK_READINESS_URL` is configured.
+6. Require an HTTP success response from `NORTHFLANK_READINESS_URL` after service and container
+   checks; a missing or failed readiness verification fails deployment.
 7. Output the requested tag, resolved digest, prior reference when available, and final outcome; do
    not output tokens, credential identifiers beyond their names, service configuration, or raw API
    responses.

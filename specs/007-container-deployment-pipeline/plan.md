@@ -34,7 +34,8 @@ manual Northflank deployment verification through the workflow.
 **Project Type**: Discord Gateway background worker with operational HTTP endpoints.
 
 **Performance Goals**: A locally started production container exposes `/livez`, `/readyz`, and
-`/metrics` within 60 seconds in simulated mode; deployment verification is bounded to 5 minutes.
+`/metrics` within 60 seconds in simulated mode; deployment verification, including the configured
+Northflank readiness endpoint, is bounded to 5 minutes.
 
 **Constraints**: Frozen lockfile builds; no secrets or environment-specific values in context, image,
 metadata, or logs; runtime image excludes source and development tooling; full immutable source-SHA

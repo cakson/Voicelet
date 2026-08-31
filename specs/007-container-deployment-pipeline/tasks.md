@@ -51,7 +51,7 @@ story relies on.
 - [ ] T005 [P] Exclude `.env` variants, Git metadata, local dependencies, build output, coverage,
   logs, and other non-runtime context in `.dockerignore`.
 - [ ] T006 Add a local Docker build/run and simulated-Gateway endpoint validation command to
-  `package.json` or a focused script under `scripts/` without exposing runtime secrets.
+  `package.json` without exposing runtime secrets.
 - [ ] T007 Make the new container contract and smoke-test coverage pass in
   `tests/integration/deployment-artifacts.test.ts`.
 - [ ] T008 Run `pnpm check` and the documented local Docker smoke scenario; resolve container-related
@@ -117,9 +117,10 @@ reference while preserving Northflank runtime configuration.
 ### Implementation for User Story 2
 
 - [ ] T016 [US2] Create the manually dispatched Northflank deployment workflow with documented
-  repository configuration, strict SHA-tag input rejection, GHCR descriptor inspection, prior-image
-  capture, digest-qualified image update through the current Northflank service deployment API, and
-  least-privilege permissions in `.github/workflows/deploy-northflank.yml`.
+  repository configuration, required readiness URL validation, strict SHA-tag input rejection, GHCR
+  descriptor inspection, prior-image capture, digest-qualified image update through the current
+  Northflank service deployment API, and least-privilege permissions in
+  `.github/workflows/deploy-northflank.yml`.
 - [ ] T017 [US2] Make the User Story 2 workflow contract cases pass in
   `tests/integration/deployment-artifacts.test.ts`.
 
@@ -148,8 +149,8 @@ the rollback case.
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Add bounded Northflank service/container polling, `/readyz` verification, clear
-  failure exits, and safe requested/digest/previous-image/final-state workflow summaries in
+- [ ] T020 [US3] Add bounded Northflank service/container polling, required configured `/readyz`
+  verification, clear failure exits, and safe requested/digest/previous-image/final-state summaries in
   `.github/workflows/deploy-northflank.yml`.
 - [ ] T021 [US3] Make the User Story 3 verification and rollback contract cases pass in
   `tests/integration/deployment-artifacts.test.ts`.

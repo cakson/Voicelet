@@ -10,8 +10,8 @@ This guide validates the feature after implementation. It uses the contracts in
 - Node 24 and pnpm 10 as pinned by the repository.
 - A clean checkout with `pnpm-lock.yaml`.
 - For local smoke testing only: no Discord credential; use the simulated Gateway configuration.
-- For manual deployment: existing Northflank project/service and the configured GitHub secret and
-  variables listed in the deployment workflow contract.
+- For manual deployment: existing Northflank project/service, the configured GitHub secret and
+  variables listed in the deployment workflow contract, and a safe configured `/readyz` URL.
 
 ## Local quality and image validation
 

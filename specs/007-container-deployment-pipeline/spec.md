@@ -137,8 +137,9 @@ select an earlier retained version and verify it can be deployed by the same flo
   from the repository and container, and never be printed in workflow output. Publishing and
   deployment automation MUST use only permissions necessary for their respective responsibilities.
 - **FR-014**: Following a deployment request, the workflow MUST perform bounded verification that
-  the Northflank Voicelet service reaches its expected operational state; where available, readiness
-  MUST distinguish an operational Voicelet instance from one unable to connect to Discord.
+  the Northflank Voicelet service reaches its expected operational state and MUST require a safe,
+  configured readiness endpoint to distinguish an operational Voicelet instance from one unable to
+  connect to Discord.
 - **FR-015**: A failed update or failed verification MUST fail the deployment workflow clearly and
   provide safe operator-facing output identifying the requested version and whether deployment
   succeeded.
