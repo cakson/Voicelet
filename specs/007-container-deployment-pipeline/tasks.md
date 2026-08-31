@@ -267,3 +267,11 @@ tasks remain unchanged and retain their original traceability.
   verify the production container exposes `/livez`, `/readyz`, and `/metrics` with simulated runtime
   configuration, and resolve any failures in `Dockerfile`, `.dockerignore`, or `package.json`
   (FR-001, FR-002, SC-002, US1/AC2, plan: local production-container smoke test) (partial).
+
+## Phase 9: Convergence
+
+- [ ] T031 Add secret-safe failure summaries to `.github/workflows/deploy-northflank.yml` for every
+  deployment failure path, identifying the requested version, resolved digest and prior reference
+  when safely available, and a failed outcome without exposing tokens or raw API responses; add
+  contract coverage in `tests/integration/deployment-artifacts.test.ts` (FR-015, US2/AC3,
+  plan: actionable observability) (partial).
