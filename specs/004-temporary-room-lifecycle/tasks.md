@@ -177,3 +177,10 @@ Each test task targets a distinct file and can proceed in parallel. T015–T017 
 - All 31 tasks use the required checkbox, sequential ID, optional parallel marker, story label where applicable, and exact path format.
 - Tests are mandatory because the specification explicitly requires unit, integration, and E2E coverage.
 - No task authorizes state persistence, restart recovery, raw Discord logging, production credentials, or unrelated channel deletion.
+
+---
+
+## Phase 7: Convergence
+
+- [ ] T032 Return `unavailable` for an uncached live guild during room lookup and `failed` for deletion, with regression coverage for the stale-association and failed-deletion safety paths per FR-012a and FR-010 (contradicts).
+- [ ] T033 Add explicit simulated integration assertions that trigger, unmanaged, and unrelated voice resources are never automatic-deletion targets per SC-003 (partial).
