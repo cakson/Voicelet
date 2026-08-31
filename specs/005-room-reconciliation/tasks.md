@@ -203,3 +203,7 @@ Each task targets a distinct test layer and can be completed in parallel before 
 - All 40 tasks use the required checkbox, sequential ID, optional parallel marker, story label where required, and exact paths.
 - Tests are mandatory because the feature specification explicitly requires unit, integration, and deterministic simulated E2E coverage.
 - No task authorizes persistence, ownership reconstruction, raw Discord logging, production credentials, or deletion outside a configured temporary-room category.
+
+## Phase 8: Convergence
+
+- [X] T041 Prevent an in-flight reconciliation scan from rescheduling after disconnect or pause, and add deterministic regression coverage in `src/application/reconcile-temporary-rooms.ts` and `tests/unit/reconcile-temporary-rooms.test.ts` per FR-001 and plan: Scheduling Contract (partial).
