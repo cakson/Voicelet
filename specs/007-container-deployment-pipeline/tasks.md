@@ -260,3 +260,10 @@ tasks remain unchanged and retain their original traceability.
   containers after deployment, requiring the expected running task state and rejecting failed or
   missing replicas, with safe contract coverage in `tests/integration/deployment-artifacts.test.ts`
   (FR-014, US3/AC1, plan: service/container verification decision) (partial).
+
+## Phase 8: Convergence
+
+- [ ] T030 Execute `pnpm container:build` and `pnpm container:smoke` in a Docker-enabled environment,
+  verify the production container exposes `/livez`, `/readyz`, and `/metrics` with simulated runtime
+  configuration, and resolve any failures in `Dockerfile`, `.dockerignore`, or `package.json`
+  (FR-001, FR-002, SC-002, US1/AC2, plan: local production-container smoke test) (partial).
