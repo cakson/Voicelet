@@ -10,40 +10,40 @@
 
 ## Requirement Completeness
 
-- [ ] CHK001 Are the trigger channel and every configured permanent exclusion explicitly included in the definition of channels that cleanup must preserve? [Completeness, Spec §FR-005–FR-006]
-- [ ] CHK002 Are the predicates for known managed rooms and zombie rooms exhaustive and mutually exclusive within the configured category? [Completeness, Spec §FR-007–FR-008]
-- [ ] CHK003 Does the specification define the cleanup scope so it cannot include the category itself or channels outside the configured temporary-room category? [Completeness, Spec §FR-004]
-- [ ] CHK004 Are requirements defined for the configuration representation, default, unit, accepted range, and invalid-value handling of the reconciliation interval? [Completeness, Spec §FR-002–FR-003]
-- [ ] CHK005 Are requirements defined for administrator-designated permanent channels beyond the trigger channel, including their relation to the reserved category? [Completeness, Spec §FR-006, §FR-016]
+- [x] CHK001 Are the trigger channel and every configured permanent exclusion explicitly included in the definition of channels that cleanup must preserve? [Completeness, Spec §FR-005–FR-006]
+- [x] CHK002 Are the predicates for known managed rooms and zombie rooms exhaustive and mutually exclusive within the configured category? [Completeness, Spec §FR-007–FR-008]
+- [x] CHK003 Does the specification define the cleanup scope so it cannot include the category itself or channels outside the configured temporary-room category? [Completeness, Spec §FR-004]
+- [x] CHK004 Are requirements defined for the configuration representation, default, unit, accepted range, and invalid-value handling of the reconciliation interval? [Completeness, Spec §FR-002–FR-003]
+- [x] CHK005 Are requirements defined for administrator-designated permanent channels beyond the trigger channel, including their relation to the reserved category? [Completeness, Spec §FR-006, §FR-016]
 
 ## Requirement Clarity and Consistency
 
-- [ ] CHK006 Is “immediately” for an empty zombie unambiguously distinguished from the existing inactivity timeout behavior for a known managed room? [Clarity, Spec §FR-009, §FR-011]
-- [ ] CHK007 Are “current transient state,” “known managed room,” and “zombie room” used consistently across requirements, entities, scenarios, and restart assumptions? [Consistency, Spec §FR-007–FR-008, Key Entities, Assumptions]
-- [ ] CHK008 Are the requirements consistent that occupied zombies receive neither ownership reconstruction nor any new active association, including after transient-state loss? [Consistency, Spec §FR-009–FR-010, §FR-015]
-- [ ] CHK009 Is the ready-time scan requirement clearly distinguished from the configured repeating cadence and from duplicate ready notifications? [Clarity, Spec §FR-001, §FR-013]
-- [ ] CHK010 Are the category-reservation guidance and the configured permanent-exclusion rule consistent, without implying unrelated voice channels may be safely left unconfigured in the category? [Consistency, Spec §FR-006, §FR-016]
+- [x] CHK006 Is “immediately” for an empty zombie unambiguously distinguished from the existing inactivity timeout behavior for a known managed room? [Clarity, Spec §FR-009, §FR-011]
+- [x] CHK007 Are “current transient state,” “known managed room,” and “zombie room” used consistently across requirements, entities, scenarios, and restart assumptions? [Consistency, Spec §FR-007–FR-008, Key Entities, Assumptions]
+- [x] CHK008 Are the requirements consistent that occupied zombies receive neither ownership reconstruction nor any new active association, including after transient-state loss? [Consistency, Spec §FR-009–FR-010, §FR-015]
+- [x] CHK009 Is the ready-time scan requirement clearly distinguished from the configured repeating cadence and from duplicate ready notifications? [Clarity, Spec §FR-001, §FR-013]
+- [x] CHK010 Are the category-reservation guidance and the configured permanent-exclusion rule consistent, without implying unrelated voice channels may be safely left unconfigured in the category? [Consistency, Spec §FR-006, §FR-016]
 
 ## Scenario and Edge-Case Coverage
 
-- [ ] CHK011 Are requirements complete for restart or transient-state loss when pre-existing rooms are respectively empty and occupied? [Coverage, Spec §FR-015, Edge Cases]
-- [ ] CHK012 Are requirements complete for a zombie that becomes occupied or empty while reconciliation is considering it? [Coverage, Spec §FR-012, Edge Cases]
-- [ ] CHK013 Are requirements complete for candidate disappearance, unavailable category inspection, and individual deletion failure without expanding cleanup scope? [Exception Flow, Spec §FR-012, Edge Cases]
-- [ ] CHK014 Are duplicate and overlapping reconciliation requests addressed with an unambiguous idempotency outcome for deletion side effects and transient state? [Coverage, Spec §FR-013, SC-003]
-- [ ] CHK015 Are requirements defined for a known managed room that is empty during reconciliation so its existing inactivity tracking remains independently authoritative? [Coverage, Spec §FR-011, User Story 1]
+- [x] CHK011 Are requirements complete for restart or transient-state loss when pre-existing rooms are respectively empty and occupied? [Coverage, Spec §FR-015, Edge Cases]
+- [x] CHK012 Are requirements complete for a zombie that becomes occupied or empty while reconciliation is considering it? [Coverage, Spec §FR-012, Edge Cases]
+- [x] CHK013 Are requirements complete for candidate disappearance, unavailable category inspection, and individual deletion failure without expanding cleanup scope? [Exception Flow, Spec §FR-012, Edge Cases]
+- [x] CHK014 Are duplicate and overlapping reconciliation requests addressed with an unambiguous idempotency outcome for deletion side effects and transient state? [Coverage, Spec §FR-013, SC-003]
+- [x] CHK015 Are requirements defined for a known managed room that is empty during reconciliation so its existing inactivity tracking remains independently authoritative? [Coverage, Spec §FR-011, User Story 1]
 
 ## Acceptance and Non-Functional Quality
 
-- [ ] CHK016 Can the stated 100% preservation and cleanup outcomes be objectively evaluated against the defined classifications and deterministic scenarios? [Measurability, Spec §SC-001–SC-002]
-- [ ] CHK017 Is the “zero duplicate deletion effects” outcome sufficiently defined to distinguish duplicate provider notifications from harmless repeated scans? [Clarity, Spec §SC-003]
-- [ ] CHK018 Are the per-channel failure-containment and worker-availability outcomes specific enough to establish which independent candidates may continue safely? [Clarity, Spec §FR-012, §SC-004]
-- [ ] CHK019 Are privacy-safe observability requirements explicit about the prohibited identifiers and raw Discord data as well as the operational information that remains useful? [Completeness, Spec §FR-014]
-- [ ] CHK020 Are deterministic unit, integration, and simulated end-to-end requirements traceable to startup cleanup, occupied-zombie preservation, later empty cleanup, repeatability, and known-room lifecycle isolation? [Traceability, Spec §FR-018]
+- [x] CHK016 Can the stated 100% preservation and cleanup outcomes be objectively evaluated against the defined classifications and deterministic scenarios? [Measurability, Spec §SC-001–SC-002]
+- [x] CHK017 Is the “zero duplicate deletion effects” outcome sufficiently defined to distinguish duplicate provider notifications from harmless repeated scans? [Clarity, Spec §SC-003]
+- [x] CHK018 Are the per-channel failure-containment and worker-availability outcomes specific enough to establish which independent candidates may continue safely? [Clarity, Spec §FR-012, §SC-004]
+- [x] CHK019 Are privacy-safe observability requirements explicit about the prohibited identifiers and raw Discord data as well as the operational information that remains useful? [Completeness, Spec §FR-014]
+- [x] CHK020 Are deterministic unit, integration, and simulated end-to-end requirements traceable to startup cleanup, occupied-zombie preservation, later empty cleanup, repeatability, and known-room lifecycle isolation? [Traceability, Spec §FR-018]
 
 ## Dependencies and Assumptions
 
-- [ ] CHK021 Are the assumptions about transient state, authoritative occupancy, and controllable simulated time compatible with the no-persistence and no-ownership-reconstruction requirements? [Consistency, Spec §FR-010, §FR-015, Assumptions]
-- [ ] CHK022 Does the specification clearly assign the external Discord dependency a safe failure behavior when category or channel inspection is unavailable? [Dependency, Spec §FR-012, Edge Cases]
+- [x] CHK021 Are the assumptions about transient state, authoritative occupancy, and controllable simulated time compatible with the no-persistence and no-ownership-reconstruction requirements? [Consistency, Spec §FR-010, §FR-015, Assumptions]
+- [x] CHK022 Does the specification clearly assign the external Discord dependency a safe failure behavior when category or channel inspection is unavailable? [Dependency, Spec §FR-012, Edge Cases]
 
 ## Notes
 

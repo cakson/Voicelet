@@ -44,3 +44,7 @@ Use the development-only setup in [Local Discord development](../../docs/local-d
 6. Create a normal Voicelet-managed room, leave it empty, and verify its configured inactivity timeout still governs its deletion independently.
 
 If a check fails, preserve the category and inspect only bounded operational outcome metrics/logs. Do not copy Discord tokens, raw events, channel IDs, or member data into issue reports.
+
+## Validation Record
+
+**2026-08-31** — `pnpm check` passed. The credential-free simulated suites covered interval validation, category-scoped classification, startup cleanup of an empty zombie, preservation and later cleanup of an occupied zombie, permanent exclusion safety, known-room lifecycle isolation, repeatable scheduling, and bounded failure observations.

@@ -30,10 +30,20 @@ The operational endpoints are `GET /livez`, `GET /readyz`, and `GET /metrics`. A
 ## Temporary voice rooms
 
 Set `TEMPORARY_ROOM_CONFIG` to a JSON map keyed by Discord server ID, with `triggerChannelId`,
-`destinationCategoryId`, and an optional `inactivityTimeoutMinutes` in each value. The timeout is a
-whole number of minutes from 1 through 1440 and defaults to 60. A managed room is deleted only after
-it has remained continuously empty for that period; a join starts a fresh period. Servers omitted
-from the map are ignored. The bot requires
+`destinationCategoryId`, optional `inactivityTimeoutMinutes`, optional
+`reconciliationIntervalMinutes`, and optional `permanentChannelIds` in each value. Both minute
+values are whole numbers from 1 through 1440; inactivity defaults to 60 and reconciliation defaults
+to 15. The destination category is dedicated Voicelet-managed territory: do not place unrelated
+permanent voice channels there unless they appear in `permanentChannelIds`. The trigger channel is
+always excluded from zombie cleanup.
+
+A known managed room is present in the current in-memory association and is deleted only after it has
+remained continuously empty for its inactivity timeout; a join starts a fresh period. Any
+non-permanent voice channel in the destination category that lacks a current association is a zombie.
+Reconciliation removes an empty zombie immediately, preserves an occupied zombie, and never rebuilds
+ownership from names or members. After restart, temporary associations are intentionally lost, so
+pre-existing empty rooms may be cleaned up at startup while occupied rooms remain until a later scan
+finds them empty. Servers omitted from the map are ignored. The bot requires
 View Channel, Manage Channels, Move Members, and Connect for the configured voice resources;
 configuration or Discord operation failures are recorded without identifiers or provider details.
 Malformed JSON or mapping entries fail startup with a generic validation error; the invalid value is

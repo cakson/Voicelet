@@ -23,10 +23,10 @@ description: "Dependency-ordered implementation tasks for room reconciliation an
 
 **Purpose**: Establish failing acceptance contracts and deterministic fixtures before changing room behavior.
 
-- [ ] T001 [P] Add reconciliation interval default/range, permanent-exclusion normalization, and redaction-safe invalid-mapping assertions in `tests/integration/configuration-startup.test.ts`.
-- [ ] T002 [P] Add requirements-quality documentation contract assertions for dedicated-category guidance, permanent exclusions, restart behavior, zombie definitions, and reconciliation smoke testing in `tests/integration/documentation.test.ts`.
-- [ ] T003 [P] Add category-enumeration and guarded-empty-deletion adapter contract assertions in `tests/unit/discord-client-factory.test.ts`.
-- [ ] T004 [P] Add reusable simulated category-room seeding, occupancy, inspection-failure, and ready-control helpers in `tests/support/gateway-simulator/index.ts`.
+- [X] T001 [P] Add reconciliation interval default/range, permanent-exclusion normalization, and redaction-safe invalid-mapping assertions in `tests/integration/configuration-startup.test.ts`.
+- [X] T002 [P] Add requirements-quality documentation contract assertions for dedicated-category guidance, permanent exclusions, restart behavior, zombie definitions, and reconciliation smoke testing in `tests/integration/documentation.test.ts`.
+- [X] T003 [P] Add category-enumeration and guarded-empty-deletion adapter contract assertions in `tests/unit/discord-client-factory.test.ts`.
+- [X] T004 [P] Add reusable simulated category-room seeding, occupancy, inspection-failure, and ready-control helpers in `tests/support/gateway-simulator/index.ts`.
 
 ---
 
@@ -36,14 +36,14 @@ description: "Dependency-ordered implementation tasks for room reconciliation an
 
 **⚠️ CRITICAL**: Complete this phase before implementing a user-story reconciliation behavior.
 
-- [ ] T005 Extend `TemporaryRoomConfig` with `reconciliationIntervalMinutes` and normalized `permanentChannelIds` in `src/domain/voice-state.ts`.
-- [ ] T006 Parse the optional 15-minute reconciliation interval and permanent channel exclusions with strict generic-error validation in `src/config/load-config.ts`.
-- [ ] T007 Define category-scoped voice-room enumeration, guarded empty-room deletion outcomes, and bounded reconciliation observation types in `src/ports/index.ts`.
-- [ ] T008 [P] Implement category-only voice enumeration and occupancy-rechecked cleanup deletion in `src/infrastructure/discord/discord-client-factory.ts`.
-- [ ] T009 [P] Implement category enumeration, guarded deletion outcomes, controlled failure/race seams, and optional explicit readiness in `src/infrastructure/discord/simulated-client-factory.ts`.
-- [ ] T010 [P] Add privacy-safe reconciliation metric/log outcome recording with no Discord identifiers or raw provider data in `src/infrastructure/logging/observability.ts`.
-- [ ] T011 Extend simulated-worker IPC for pre-ready room seeding, controlled occupancy, reconciliation invocation/time advancement, and bounded assertions in `src/main.ts`.
-- [ ] T012 Add the read-only managed-room membership query and candidate-safe serialization seam without changing existing lifecycle semantics in `src/application/manage-temporary-room.ts`.
+- [X] T005 Extend `TemporaryRoomConfig` with `reconciliationIntervalMinutes` and normalized `permanentChannelIds` in `src/domain/voice-state.ts`.
+- [X] T006 Parse the optional 15-minute reconciliation interval and permanent channel exclusions with strict generic-error validation in `src/config/load-config.ts`.
+- [X] T007 Define category-scoped voice-room enumeration, guarded empty-room deletion outcomes, and bounded reconciliation observation types in `src/ports/index.ts`.
+- [X] T008 [P] Implement category-only voice enumeration and occupancy-rechecked cleanup deletion in `src/infrastructure/discord/discord-client-factory.ts`.
+- [X] T009 [P] Implement category enumeration, guarded deletion outcomes, controlled failure/race seams, and optional explicit readiness in `src/infrastructure/discord/simulated-client-factory.ts`.
+- [X] T010 [P] Add privacy-safe reconciliation metric/log outcome recording with no Discord identifiers or raw provider data in `src/infrastructure/logging/observability.ts`.
+- [X] T011 Extend simulated-worker IPC for pre-ready room seeding, controlled occupancy, reconciliation invocation/time advancement, and bounded assertions in `src/main.ts`.
+- [X] T012 Add the read-only managed-room membership query and candidate-safe serialization seam without changing existing lifecycle semantics in `src/application/manage-temporary-room.ts`.
 
 **Checkpoint**: Configuration, ports, adapters, simulator, observability, and read-only lifecycle access support deterministic reconciliation without scanning or deleting any channel yet.
 
@@ -57,15 +57,15 @@ description: "Dependency-ordered implementation tasks for room reconciliation an
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Add failing unit classification and empty-zombie cleanup/no-association/lifecycle-isolation scenarios in `tests/unit/reconcile-temporary-rooms.test.ts`.
-- [ ] T014 [P] [US1] Add failing startup integration scenarios for empty zombie deletion, known managed-room preservation, and category-only scope in `tests/integration/gateway-lifecycle.test.ts`.
-- [ ] T015 [P] [US1] Add the failing pre-seeded startup empty-zombie and known-room lifecycle process scenario in `tests/e2e/worker-voice-state.test.ts`.
+- [X] T013 [P] [US1] Add failing unit classification and empty-zombie cleanup/no-association/lifecycle-isolation scenarios in `tests/unit/reconcile-temporary-rooms.test.ts`.
+- [X] T014 [P] [US1] Add failing startup integration scenarios for empty zombie deletion, known managed-room preservation, and category-only scope in `tests/integration/gateway-lifecycle.test.ts`.
+- [X] T015 [P] [US1] Add the failing pre-seeded startup empty-zombie and known-room lifecycle process scenario in `tests/e2e/worker-voice-state.test.ts`.
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Implement category candidate classification, candidate rechecks, immediate guarded empty-zombie cleanup, and no transient-association mutation in `src/application/reconcile-temporary-rooms.ts`.
-- [ ] T017 [US1] Wire one immediate post-ready scan and known-room predicate into `src/infrastructure/discord/discord-gateway-event-source.ts`.
-- [ ] T018 [US1] Make User Story 1 unit, integration, and E2E scenarios pass in `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
+- [X] T016 [US1] Implement category candidate classification, candidate rechecks, immediate guarded empty-zombie cleanup, and no transient-association mutation in `src/application/reconcile-temporary-rooms.ts`.
+- [X] T017 [US1] Wire one immediate post-ready scan and known-room predicate into `src/infrastructure/discord/discord-gateway-event-source.ts`.
+- [X] T018 [US1] Make User Story 1 unit, integration, and E2E scenarios pass in `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
 
 **Checkpoint**: With no persisted state after restart, an empty untracked room in the dedicated category is removed at startup while a tracked room remains governed solely by its inactivity timeout.
 
@@ -79,14 +79,14 @@ description: "Dependency-ordered implementation tasks for room reconciliation an
 
 ### Tests for User Story 2
 
-- [ ] T019 [P] [US2] Add failing unit cases for effective permanent exclusions, occupied/missing/unavailable zombie outcomes, and reclassification before deletion in `tests/unit/reconcile-temporary-rooms.test.ts`.
-- [ ] T020 [P] [US2] Add failing integration cases for trigger/permanent preservation, no deletion outside the category or of the category, occupied-to-empty cleanup, and join/delete races in `tests/integration/gateway-lifecycle.test.ts`.
-- [ ] T021 [P] [US2] Extend the simulated process E2E with configured permanent preservation, occupied zombie preservation, later-empty deletion, and out-of-category preservation in `tests/e2e/worker-voice-state.test.ts`.
+- [X] T019 [P] [US2] Add failing unit cases for effective permanent exclusions, occupied/missing/unavailable zombie outcomes, and reclassification before deletion in `tests/unit/reconcile-temporary-rooms.test.ts`.
+- [X] T020 [P] [US2] Add failing integration cases for trigger/permanent preservation, no deletion outside the category or of the category, occupied-to-empty cleanup, and join/delete races in `tests/integration/gateway-lifecycle.test.ts`.
+- [X] T021 [P] [US2] Extend the simulated process E2E with configured permanent preservation, occupied zombie preservation, later-empty deletion, and out-of-category preservation in `tests/e2e/worker-voice-state.test.ts`.
 
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Extend `src/application/reconcile-temporary-rooms.ts` to apply effective permanent exclusions, preserve occupied/unavailable candidates, and safely handle missing/reclassified/raced candidates.
-- [ ] T023 [US2] Make User Story 2 unit, integration, and E2E preservation/transition scenarios pass in `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
+- [X] T022 [US2] Extend `src/application/reconcile-temporary-rooms.ts` to apply effective permanent exclusions, preserve occupied/unavailable candidates, and safely handle missing/reclassified/raced candidates.
+- [X] T023 [US2] Make User Story 2 unit, integration, and E2E preservation/transition scenarios pass in `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
 
 **Checkpoint**: Permanent and active rooms are never cleanup targets; an untracked occupied room remains untouched and is immediately removed only after a later scan observes it empty.
 
@@ -100,15 +100,15 @@ description: "Dependency-ordered implementation tasks for room reconciliation an
 
 ### Tests for User Story 3
 
-- [ ] T024 [P] [US3] Add failing unit cases for per-server recurrence, coalesced requests, next-scan-after-settlement scheduling, and disposal cancellation in `tests/unit/reconcile-temporary-rooms.test.ts`.
-- [ ] T025 [P] [US3] Add failing gateway integration cases for effective ready transitions, interval scheduling, duplicate-ready coalescing, and repeated idempotent scans in `tests/integration/gateway-lifecycle.test.ts`.
-- [ ] T026 [P] [US3] Add the simulated process E2E sequence that advances the configured interval without wall-clock waiting and proves no duplicate side effects in `tests/e2e/worker-voice-state.test.ts`.
+- [X] T024 [P] [US3] Add failing unit cases for per-server recurrence, coalesced requests, next-scan-after-settlement scheduling, and disposal cancellation in `tests/unit/reconcile-temporary-rooms.test.ts`.
+- [X] T025 [P] [US3] Add failing gateway integration cases for effective ready transitions, interval scheduling, duplicate-ready coalescing, and repeated idempotent scans in `tests/integration/gateway-lifecycle.test.ts`.
+- [X] T026 [P] [US3] Add the simulated process E2E sequence that advances the configured interval without wall-clock waiting and proves no duplicate side effects in `tests/e2e/worker-voice-state.test.ts`.
 
 ### Implementation for User Story 3
 
-- [ ] T027 [US3] Implement one active scan and one recurrence per server, post-settlement rescheduling, ready-transition coalescing, and disposal cancellation in `src/application/reconcile-temporary-rooms.ts`.
-- [ ] T028 [US3] Connect ready/disconnect/stop lifecycle transitions to reconciliation start, pause, and disposal in `src/infrastructure/discord/discord-gateway-event-source.ts`.
-- [ ] T029 [US3] Make User Story 3 unit, integration, and E2E deterministic cadence/idempotency scenarios pass in `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
+- [X] T027 [US3] Implement one active scan and one recurrence per server, post-settlement rescheduling, ready-transition coalescing, and disposal cancellation in `src/application/reconcile-temporary-rooms.ts`.
+- [X] T028 [US3] Connect ready/disconnect/stop lifecycle transitions to reconciliation start, pause, and disposal in `src/infrastructure/discord/discord-gateway-event-source.ts`.
+- [X] T029 [US3] Make User Story 3 unit, integration, and E2E deterministic cadence/idempotency scenarios pass in `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
 
 **Checkpoint**: Reconciliation starts after ready, repeats independently per server through controllable time, and cannot overlap into duplicate cleanup behavior.
 
@@ -122,14 +122,14 @@ description: "Dependency-ordered implementation tasks for room reconciliation an
 
 ### Tests for User Story 4
 
-- [ ] T030 [P] [US4] Add failing unit cases for per-candidate failure containment, bounded reconciliation outcomes, and no transient-state mutation after failure in `tests/unit/reconcile-temporary-rooms.test.ts`.
-- [ ] T031 [P] [US4] Add failing integration cases for category unavailability, inspection/deletion failure continuation, privacy-safe metrics/logging, and readiness retention in `tests/integration/gateway-lifecycle.test.ts`.
-- [ ] T032 [P] [US4] Add simulated process E2E failure-containment and bounded-observation assertions in `tests/e2e/worker-voice-state.test.ts`.
+- [X] T030 [P] [US4] Add failing unit cases for per-candidate failure containment, bounded reconciliation outcomes, and no transient-state mutation after failure in `tests/unit/reconcile-temporary-rooms.test.ts`.
+- [X] T031 [P] [US4] Add failing integration cases for category unavailability, inspection/deletion failure continuation, privacy-safe metrics/logging, and readiness retention in `tests/integration/gateway-lifecycle.test.ts`.
+- [X] T032 [P] [US4] Add simulated process E2E failure-containment and bounded-observation assertions in `tests/e2e/worker-voice-state.test.ts`.
 
 ### Implementation for User Story 4
 
-- [ ] T033 [US4] Implement per-candidate failure containment and bounded reconciliation outcome emission in `src/application/reconcile-temporary-rooms.ts`.
-- [ ] T034 [US4] Make User Story 4 unit, integration, and E2E failure-resilience scenarios pass in `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
+- [X] T033 [US4] Implement per-candidate failure containment and bounded reconciliation outcome emission in `src/application/reconcile-temporary-rooms.ts`.
+- [X] T034 [US4] Make User Story 4 unit, integration, and E2E failure-resilience scenarios pass in `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
 
 **Checkpoint**: A provider failure cannot crash the worker or broaden deletion scope, and safe independent cleanup remains observable without Discord data leakage.
 
@@ -139,12 +139,12 @@ description: "Dependency-ordered implementation tasks for room reconciliation an
 
 **Purpose**: Publish the feature's operational contract, reconcile architecture/test documentation, and record final validation evidence.
 
-- [ ] T035 [P] Update safe mapping examples, interval documentation, permanent exclusions, dedicated category guidance, known-versus-zombie behavior, and restart semantics in `.env.example` and `README.md`.
-- [ ] T036 [P] Add the local reconciliation restart/empty/occupied zombie smoke procedure and configuration troubleshooting to `docs/local-discord-development.md`.
-- [ ] T037 [P] Document reconciliation ownership, category-scoped adapter boundaries, deterministic cadence testing, and privacy-safe observations in `docs/architecture.md` and `docs/testing.md`.
-- [ ] T038 Reconcile documentation-contract assertions in `tests/integration/documentation.test.ts`.
-- [ ] T039 Run every quickstart scenario and record credential-free evidence in `specs/005-room-reconciliation/quickstart.md`.
-- [ ] T040 Run `pnpm check` and resolve feature-related validation failures from `package.json`.
+- [X] T035 [P] Update safe mapping examples, interval documentation, permanent exclusions, dedicated category guidance, known-versus-zombie behavior, and restart semantics in `.env.example` and `README.md`.
+- [X] T036 [P] Add the local reconciliation restart/empty/occupied zombie smoke procedure and configuration troubleshooting to `docs/local-discord-development.md`.
+- [X] T037 [P] Document reconciliation ownership, category-scoped adapter boundaries, deterministic cadence testing, and privacy-safe observations in `docs/architecture.md` and `docs/testing.md`.
+- [X] T038 Reconcile documentation-contract assertions in `tests/integration/documentation.test.ts`.
+- [X] T039 Run every quickstart scenario and record credential-free evidence in `specs/005-room-reconciliation/quickstart.md`.
+- [X] T040 Run `pnpm check` and resolve feature-related validation failures from `package.json`.
 
 ## Dependencies and Execution Order
 
