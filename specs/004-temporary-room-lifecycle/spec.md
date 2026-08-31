@@ -147,6 +147,9 @@ room is created.
 - **FR-012**: Before relying on an existing room association during room creation, Voicelet MUST
   determine whether the associated room still exists; if it does not, Voicelet MUST discard the
   stale association before applying the existing creation behavior.
+- **FR-012a**: If Voicelet cannot determine whether an associated temporary room exists, it MUST
+  retain the association and MUST NOT create a replacement room or treat the room as empty until
+  independent evidence confirms that the room is missing.
 - **FR-013**: A failed attempt to move a user into an existing associated room MUST NOT by itself
   discard that association or create a replacement room.
 - **FR-014**: The feature MUST include deterministic automated unit coverage for inactivity start,

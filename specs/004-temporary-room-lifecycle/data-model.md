@@ -33,8 +33,8 @@ The application maintains a reverse room-to-creator index so deletion or externa
 - Managed occupied → empty: create one pending expiry record.
 - Pending expiry → occupied: cancel/invalidate lifecycle work.
 - Pending expiry → empty at expiry: attempt deletion after final state check.
-- Expiry → missing: clear association; expiry → unavailable: schedule retry.
+- Expiry → missing: clear association; expiry → unavailable: retain the association and schedule only a room-state recheck. A later deletion attempt is eligible only after that recheck authoritatively reports the room empty.
 - Delete attempt → deleted or missing: clear association; failed: schedule retry after 15 minutes.
-- Pending retry → occupied: cancel; still empty at retry: attempt deletion; external deletion: clear association.
+- Pending retry → unavailable: retain association and schedule another room-state recheck; pending retry → empty: attempt deletion; pending retry → occupied: cancel; external deletion: clear association.
 
 All single-room transitions are serialized. Successful or external deletion cancels work and clears both indexes. No record survives restart.

@@ -23,6 +23,10 @@ pnpm test:e2e
 
 The simulator must demonstrate creation, empty-period start, rejoin cancellation, a later fresh empty period, deletion after controlled expiry, association cleanup, and creator recreation. It must also prove a failed deletion retries after exactly 15 simulated minutes only while empty, external deletion cleans state, and failed movement does not invalidate an existing association.
 
+Validation evidence (2026-08-31): the unit and integration suites exercise controlled one-minute
+timeouts and 15-minute retries with injected schedulers; the simulated worker E2E exercises creation,
+rejoin cancellation, fresh expiry, deletion, cleanup, and recreation without a wall-clock wait.
+
 ## Final Gate
 
 Run `pnpm check`. For a live manual check, use `docs/local-discord-development.md`; verify only configured managed rooms are removed after their continuous-empty duration.

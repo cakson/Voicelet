@@ -29,8 +29,11 @@ The operational endpoints are `GET /livez`, `GET /readyz`, and `GET /metrics`. A
 
 ## Temporary voice rooms
 
-Set `TEMPORARY_ROOM_CONFIG` to a JSON map keyed by Discord server ID, with `triggerChannelId` and
-`destinationCategoryId` in each value. Servers omitted from the map are ignored. The bot requires
+Set `TEMPORARY_ROOM_CONFIG` to a JSON map keyed by Discord server ID, with `triggerChannelId`,
+`destinationCategoryId`, and an optional `inactivityTimeoutMinutes` in each value. The timeout is a
+whole number of minutes from 1 through 1440 and defaults to 60. A managed room is deleted only after
+it has remained continuously empty for that period; a join starts a fresh period. Servers omitted
+from the map are ignored. The bot requires
 View Channel, Manage Channels, Move Members, and Connect for the configured voice resources;
 configuration or Discord operation failures are recorded without identifiers or provider details.
 Malformed JSON or mapping entries fail startup with a generic validation error; the invalid value is
