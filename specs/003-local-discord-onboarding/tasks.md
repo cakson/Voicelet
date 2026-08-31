@@ -30,7 +30,7 @@ and validated independently.
 **Purpose**: Establish deterministic documentation-contract coverage before changing tracked
 onboarding material.
 
-- [ ] T001 Add failing integration assertions for the local development guide, README entry point,
+- [X] T001 Add failing integration assertions for the local development guide, README entry point,
   safe `.env.example`, required configuration mapping, and no-token examples in
   `tests/integration/documentation.test.ts`
 
@@ -60,11 +60,11 @@ steps with a non-bot user without a public endpoint.
 
 ### Implementation for User Story 1
 
-- [ ] T002 [US1] Create the start-to-finish local Discord onboarding and numbered temporary-room
+- [X] T002 [US1] Create the start-to-finish local Discord onboarding and numbered temporary-room
   smoke-test guide in `docs/local-discord-development.md`
-- [ ] T003 [US1] Add a discoverable Local Discord development entry point and link to the dedicated
+- [X] T003 [US1] Add a discoverable Local Discord development entry point and link to the dedicated
   guide in `README.md`
-- [ ] T004 [US1] Document the boundary between simulated automated tests and the manual real-Discord
+- [X] T004 [US1] Document the boundary between simulated automated tests and the manual real-Discord
   smoke test in `docs/testing.md`
 
 **Checkpoint**: The documentation alone takes a new developer from checkout to a real local
@@ -83,15 +83,15 @@ production identifier is needed or tracked.
 
 ### Implementation for User Story 2
 
-- [ ] T005 [US2] Replace the empty room-mapping example with a complete fictional real-mode example
+- [X] T005 [US2] Replace the empty room-mapping example with a complete fictional real-mode example
   and secret/non-secret comments in `.env.example`
-- [ ] T006 [US2] Extend `docs/local-discord-development.md` with Developer Portal application/bot
+- [X] T006 [US2] Extend `docs/local-discord-development.md` with Developer Portal application/bot
   setup, token-regeneration guidance, developer-mode identifier collection, guild installation, and
   the exact `TEMPORARY_ROOM_CONFIG` mapping
-- [ ] T007 [US2] Extend `docs/local-discord-development.md` with least-privilege View Channel,
+- [X] T007 [US2] Extend `docs/local-discord-development.md` with least-privilege View Channel,
   Manage Channels, Move Members, and Connect access; category/channel overrides; the standard
   `GuildVoiceStates` capability; and the no-privileged-toggle requirement
-- [ ] T008 [US2] Extend `tests/integration/documentation.test.ts` with assertions that the safe
+- [X] T008 [US2] Extend `tests/integration/documentation.test.ts` with assertions that the safe
   example and guide expose every required setting, distinguish secrets from identifiers, prohibit
   user credentials, and require guild installation without Administrator access
 
@@ -112,12 +112,12 @@ troubleshooting branch without exposing an endpoint publicly.
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] Extend `docs/local-discord-development.md` with loopback liveness, readiness, and
+- [X] T009 [US3] Extend `docs/local-discord-development.md` with loopback liveness, readiness, and
   metrics inspection; outbound-Gateway/no-public-endpoint rationale; and clean-stop evidence
-- [ ] T010 [US3] Add symptom-to-remedy troubleshooting for all required credential, installation,
+- [X] T010 [US3] Add symptom-to-remedy troubleshooting for all required credential, installation,
   mapping, permission, voice-state, room-creation, member-movement, and readiness failures in
   `docs/local-discord-development.md`
-- [ ] T011 [US3] Extend `tests/integration/documentation.test.ts` with assertions for local health
+- [X] T011 [US3] Extend `tests/integration/documentation.test.ts` with assertions for local health
   endpoints, no-tunnel/public-callback guidance, and all required troubleshooting categories
 
 **Checkpoint**: The guide distinguishes a locally live worker from a Discord-ready worker and gives
@@ -129,14 +129,14 @@ safe next actions for every required failure category.
 
 **Purpose**: Reconcile the documentation surface and capture final validation evidence.
 
-- [ ] T012 Reconcile links, configuration names, endpoint semantics, and security language across
+- [X] T012 Reconcile links, configuration names, endpoint semantics, and security language across
   `README.md`, `.env.example`, `docs/local-discord-development.md`, and `docs/testing.md`
 - [ ] T013 Run the manual local-development quickstart and smoke-test checklist using only a
   developer-owned test bot/server, recording no tokens or Discord identifiers in
   `specs/003-local-discord-onboarding/quickstart.md`
-- [ ] T014 Run focused documentation integration coverage with `pnpm test:integration` from
+- [X] T014 Run focused documentation integration coverage with `pnpm test:integration` from
   `tests/integration/documentation.test.ts`
-- [ ] T015 Run the complete repository quality gate with `pnpm check` from `package.json` and resolve
+- [X] T015 Run the complete repository quality gate with `pnpm check` from `package.json` and resolve
   any feature-related failure in its affected file
 
 ---
