@@ -34,12 +34,12 @@ description: "Dependency-ordered implementation tasks for temporary room owner p
 
 **⚠️ CRITICAL**: Complete this phase before implementing any user-story behavior.
 
-- [ ] T004 Define owner-allowance and room-category-restoration result unions, parent-change listener, and bounded temporary-room observation names in `src/ports/index.ts`.
+- [X] T004 Define owner-allowance and room-category-restoration result unions, parent-change listener, and bounded temporary-room observation names in `src/ports/index.ts`.
 - [ ] T005 [P] Add failing production-adapter unit coverage for member-only permission overwrites, voice-room type/guild guards, parent restoration, bounded provider failures, and parent-change filtering in `tests/unit/discord-client-factory.test.ts`.
 - [ ] T006 [P] Add privacy-safe owner-permission and category-restoration metric/log outcome support with identifier-free assertions in `src/infrastructure/logging/observability.ts` and `tests/integration/gateway-lifecycle.test.ts`.
-- [ ] T007 Implement member-only owner overwrite application, voice-room parent restoration, and filtered voice-channel parent-change events in `src/infrastructure/discord/discord-client-factory.ts`.
-- [ ] T008 Implement room-level owner allowance storage, native-capability query helpers, controlled allowance/restoration failures, parent moves, and parent-change notifications in `src/infrastructure/discord/simulated-client-factory.ts`.
-- [ ] T009 Extend bounded simulated-worker IPC controls and assertions for owner allowance failures, room moves, and owner-permission outcomes in `src/main.ts` and `tests/e2e/worker-voice-state.test.ts`.
+- [X] T007 Implement member-only owner overwrite application, voice-room parent restoration, and filtered voice-channel parent-change events in `src/infrastructure/discord/discord-client-factory.ts`.
+- [X] T008 Implement room-level owner allowance storage, native-capability query helpers, controlled allowance/restoration failures, parent moves, and parent-change notifications in `src/infrastructure/discord/simulated-client-factory.ts`.
+- [X] T009 Extend bounded simulated-worker IPC controls and assertions for owner allowance failures, room moves, and owner-permission outcomes in `src/main.ts` and `tests/e2e/worker-voice-state.test.ts`.
 
 **Checkpoint**: The port, production adapter, simulator, observability, and simulated process can represent only room-scoped owner allowances and category restoration without changing creation flow.
 
@@ -61,8 +61,8 @@ description: "Dependency-ordered implementation tasks for temporary room owner p
 ### Implementation for User Story 1
 
 - [ ] T014 [US1] Replace parallel owner/room maps with a transient association record that retains exactly one owner and permission state per room in `src/application/manage-temporary-room.ts`.
-- [ ] T015 [US1] Apply the member-specific owner allowance after creating and associating a room, record bounded success outcomes, and preserve the existing member-move and inactivity lifecycle in `src/application/manage-temporary-room.ts`.
-- [ ] T016 [US1] Handle known-room parent changes by coalescing duplicate events, serially restoring the configured category, making confirmed deletion win over restoration, idempotently reapplying the owner allowance after restoration, and keeping reconciliation category-scoped in `src/application/manage-temporary-room.ts` and `src/infrastructure/discord/discord-gateway-event-source.ts`.
+- [X] T015 [US1] Apply the member-specific owner allowance after creating and associating a room, record bounded success outcomes, and preserve the existing member-move and inactivity lifecycle in `src/application/manage-temporary-room.ts`.
+- [X] T016 [US1] Handle known-room parent changes by coalescing duplicate events, serially restoring the configured category, making confirmed deletion win over restoration, idempotently reapplying the owner allowance after restoration, and keeping reconciliation category-scoped in `src/application/manage-temporary-room.ts` and `src/infrastructure/discord/discord-gateway-event-source.ts`.
 - [ ] T017 [US1] Make the User Story 1 unit, integration, and simulated E2E scenarios pass in `tests/unit/manage-temporary-room.test.ts`, `tests/unit/reconcile-temporary-rooms.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
 
 **Checkpoint**: An owner can use Discord-native management on only their room; no owner grant is present on another room, trigger, category, permanent channel, or unrelated channel, and moves are restored without widening reconciliation.
@@ -83,7 +83,7 @@ description: "Dependency-ordered implementation tasks for temporary room owner p
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Clear owner-permission state and inactivity work together with only the matching association on confirmed external deletion or stale-room discovery in `src/application/manage-temporary-room.ts`.
+- [X] T021 [US2] Clear owner-permission state and inactivity work together with only the matching association on confirmed external deletion or stale-room discovery in `src/application/manage-temporary-room.ts`.
 - [ ] T022 [US2] Make the User Story 2 unit, integration, and simulated E2E deletion/replacement scenarios pass in `tests/unit/manage-temporary-room.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
 
 **Checkpoint**: Deleting one owned room never corrupts another association, and the deleted room's former owner receives a room-scoped allowance only on their normal replacement room.
@@ -104,8 +104,8 @@ description: "Dependency-ordered implementation tasks for temporary room owner p
 
 ### Implementation for User Story 3
 
-- [ ] T026 [US3] Persist only transient `applied`/`failed` owner-permission state (mapping `missing` to `failed`), contain failed/missing allowance outcomes, retain lifecycle state, prohibit background or failure-triggered retries while allowing only restoration-induced idempotent reapplication, and prevent duplicate or conflicting allowance attempts in `src/application/manage-temporary-room.ts`.
-- [ ] T027 [US3] Contain restoration failures and missing-room races without clearing an association unless existing stale-state handling independently confirms deletion in `src/application/manage-temporary-room.ts` and `src/infrastructure/discord/discord-gateway-event-source.ts`.
+- [X] T026 [US3] Persist only transient `applied`/`failed` owner-permission state (mapping `missing` to `failed`), contain failed/missing allowance outcomes, retain lifecycle state, prohibit background or failure-triggered retries while allowing only restoration-induced idempotent reapplication, and prevent duplicate or conflicting allowance attempts in `src/application/manage-temporary-room.ts`.
+- [X] T027 [US3] Contain restoration failures and missing-room races without clearing an association unless existing stale-state handling independently confirms deletion in `src/application/manage-temporary-room.ts` and `src/infrastructure/discord/discord-gateway-event-source.ts`.
 - [ ] T028 [US3] Make the User Story 3 unit, integration, and simulated E2E failure-containment scenarios pass in `tests/unit/manage-temporary-room.test.ts`, `tests/integration/gateway-lifecycle.test.ts`, and `tests/e2e/worker-voice-state.test.ts`.
 
 **Checkpoint**: Owner setup and restoration failures are private, observable, non-fatal, and cannot create duplicate rooms or falsely represent a room as owner-configured.
@@ -116,12 +116,12 @@ description: "Dependency-ordered implementation tasks for temporary room owner p
 
 **Purpose**: Document the security trade-off and operation, finalize review evidence, and prove the repository quality gate.
 
-- [ ] T029 [P] Update native owner capability scope, server-wide exclusions, bot Administrator prerequisite, and dedicated-category restoration guidance in `README.md` and `.env.example`.
-- [ ] T030 [P] Update bot role guidance, two-owner native permission smoke testing, deletion/replacement, category-move restoration, and safe diagnostics in `docs/local-discord-development.md`.
-- [ ] T031 [P] Document transient owner-permission state, channel-scoped port ownership, restoration events, reconciliation boundaries, and privacy-safe observations in `docs/architecture.md` and `docs/testing.md`.
+- [X] T029 [P] Update native owner capability scope, server-wide exclusions, bot Administrator prerequisite, and dedicated-category restoration guidance in `README.md` and `.env.example`.
+- [X] T030 [P] Update bot role guidance, two-owner native permission smoke testing, deletion/replacement, category-move restoration, and safe diagnostics in `docs/local-discord-development.md`.
+- [X] T031 [P] Document transient owner-permission state, channel-scoped port ownership, restoration events, reconciliation boundaries, and privacy-safe observations in `docs/architecture.md` and `docs/testing.md`.
 - [ ] T032 Update feature-documentation assertions for all owner-permission documentation requirements in `tests/integration/documentation.test.ts`.
-- [ ] T033 Complete the credential-free quickstart scenarios and record validation evidence in `specs/006-temporary-room-owner-permissions/quickstart.md`.
-- [ ] T034 Run `pnpm check` and resolve feature-related validation failures in `package.json` and the affected feature files.
+- [X] T033 Complete the credential-free quickstart scenarios and record validation evidence in `specs/006-temporary-room-owner-permissions/quickstart.md`.
+- [X] T034 Run `pnpm check` and resolve feature-related validation failures in `package.json` and the affected feature files.
 
 ## Dependencies and Execution Order
 

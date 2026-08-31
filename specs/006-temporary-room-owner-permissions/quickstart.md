@@ -51,7 +51,8 @@ Follow [Local Discord development](../../docs/local-discord-development.md) usin
 members, one development-only temporary-room category, and a Voicelet bot that satisfies the
 documented bot Administrator prerequisite.
 
-1. Start Voicelet and wait for `/readyz`.
+1. Start Voicelet and wait for `/readyz`; verify the bot has the documented bot-only effective
+   Administrator prerequisite before testing native access editing.
 2. Have test member A join the creation trigger. Verify their created room has a member-specific
    native management override and that they can change its name, region, or user limit.
 3. Have test member B create another room. Verify A cannot manage B's room, the trigger, the

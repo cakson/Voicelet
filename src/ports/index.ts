@@ -22,11 +22,31 @@ export interface DiscordClient {
   listCategoryVoiceRooms(guildId: string, categoryId: string): Promise<string[] | null>;
   deleteEmptyRoom(guildId: string, roomId: string): Promise<DeleteEmptyRoomResult>;
   onRoomDeleted(listener: (guildId: string, roomId: string) => void): void;
+  onRoomParentChanged(listener: (event: RoomParentChanged) => void): void;
+  applyOwnerAllowance(
+    guildId: string,
+    roomId: string,
+    ownerId: string,
+  ): Promise<OwnerAllowanceResult>;
+  restoreRoomCategory(
+    guildId: string,
+    roomId: string,
+    categoryId: string,
+  ): Promise<RoomCategoryRestorationResult>;
   createRoom(guildId: string, categoryId: string, name: string): Promise<string | null>;
   moveMember(guildId: string, userId: string, roomId: string): Promise<boolean>;
   login(token: string): Promise<void>;
   destroy(): void;
 }
+
+export type OwnerAllowanceResult = 'applied' | 'missing' | 'failed';
+export type RoomCategoryRestorationResult =
+  'restored' | 'already_in_category' | 'missing' | 'failed';
+export type RoomParentChanged = {
+  guildId: string;
+  roomId: string;
+  parentId?: string;
+};
 
 export type RoomState = 'empty' | 'occupied' | 'missing' | 'unavailable';
 export type DeleteRoomResult = 'deleted' | 'missing' | 'failed';
@@ -66,7 +86,11 @@ export type TemporaryRoomObservation =
   | 'temporary_room_deleted'
   | 'temporary_room_delete_failed'
   | 'temporary_room_retry_scheduled'
-  | 'temporary_room_external_deleted';
+  | 'temporary_room_external_deleted'
+  | 'temporary_room_owner_permission_applied'
+  | 'temporary_room_owner_permission_failed'
+  | 'temporary_room_category_restored'
+  | 'temporary_room_category_restore_failed';
 
 export type ReconciliationObservation =
   | 'reconciliation_started'

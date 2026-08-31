@@ -16,6 +16,9 @@ documented 30-second and 5-second bounds.
 Temporary-room coverage includes per-server configuration, creation, reuse, stale rooms, duplicate
 deliveries, concurrent members, safe failures, continuous-empty lifecycle deletion, and readiness
 after failure. Lifecycle timing is controlled in simulation; tests never wait for the 60-minute default.
+Owner-permission tests assert the two member-specific native permissions, two-owner isolation,
+absence of server-wide privileges, allowance-failure containment, category restoration, and
+deletion/replacement without affecting another association.
 
 Reconciliation coverage uses the same deterministic scheduler: startup scans classify known rooms,
 permanent exclusions, empty zombies, and occupied zombies; later controlled scans remove zombies that

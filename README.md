@@ -46,6 +46,13 @@ pre-existing empty rooms may be cleaned up at startup while occupied rooms remai
 finds them empty. Servers omitted from the map are ignored. The bot requires
 View Channel, Manage Channels, Move Members, and Connect for the configured voice resources;
 configuration or Discord operation failures are recorded without identifiers or provider details.
+Room owners receive member-specific `Manage Channels` and `Manage Roles` overwrites only on their
+own temporary room. Discord groups these capabilities, so owners may rename, change region or user
+limit, manage access, move, or delete that room where permitted. Voicelet grants no owner role,
+Administrator, server management, or moderation privilege. Native access editing requires effective
+Administrator on the Voicelet bot as a bot-only prerequisite so lifecycle authority survives owner
+overwrite changes; it is never granted to owners. A tracked room moved outside the category is
+restored, and reconciliation never expands beyond the configured category.
 Malformed JSON or mapping entries fail startup with a generic validation error; the invalid value is
 not echoed. Development credentials and identifiers belong in the ignored `.env`; do not use
 production credentials for local testing.

@@ -6,6 +6,9 @@ import type {
   DiscordClientFactory,
   RawVoiceState,
   RoomState,
+  OwnerAllowanceResult,
+  RoomCategoryRestorationResult,
+  RoomParentChanged,
 } from '../../ports/index.js';
 
 export class DiscordJsClient implements DiscordClient {
@@ -85,6 +88,59 @@ export class DiscordJsClient implements DiscordClient {
     this.client.on('channelDelete', (channel) => {
       if (channel.type === ChannelType.GuildVoice) listener(channel.guild.id, channel.id);
     });
+  }
+  onRoomParentChanged(listener: (event: RoomParentChanged) => void): void {
+    this.client.on('channelUpdate', (oldChannel, newChannel) => {
+      if (
+        newChannel.type !== ChannelType.GuildVoice ||
+        !('parentId' in oldChannel) ||
+        oldChannel.parentId === newChannel.parentId
+      )
+        return;
+      listener({
+        guildId: newChannel.guild.id,
+        roomId: newChannel.id,
+        parentId: newChannel.parentId ?? undefined,
+      });
+    });
+  }
+  async applyOwnerAllowance(
+    guildId: string,
+    roomId: string,
+    ownerId: string,
+  ): Promise<OwnerAllowanceResult> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'missing';
+      const channel = await guild.channels.fetch(roomId);
+      if (!channel || channel.type !== ChannelType.GuildVoice || channel.guild.id !== guildId)
+        return 'missing';
+      await channel.permissionOverwrites.edit(ownerId, {
+        ManageChannels: true,
+        ManageRoles: true,
+      });
+      return 'applied';
+    } catch {
+      return 'failed';
+    }
+  }
+  async restoreRoomCategory(
+    guildId: string,
+    roomId: string,
+    categoryId: string,
+  ): Promise<RoomCategoryRestorationResult> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'failed';
+      const channel = await guild.channels.fetch(roomId);
+      if (!channel || channel.type !== ChannelType.GuildVoice || channel.guild.id !== guildId)
+        return 'missing';
+      if (channel.parentId === categoryId) return 'already_in_category';
+      await channel.setParent(categoryId);
+      return 'restored';
+    } catch {
+      return 'failed';
+    }
   }
   async createRoom(guildId: string, categoryId: string, name: string): Promise<string | null> {
     try {

@@ -7,6 +7,9 @@ import type {
   RoomState,
   ScheduledWork,
   Scheduler,
+  OwnerAllowanceResult,
+  RoomCategoryRestorationResult,
+  RoomParentChanged,
 } from '../../ports/index.js';
 
 export class SimulatedScheduler implements Scheduler {
@@ -36,7 +39,12 @@ export class SimulatedDiscordClient implements DiscordClient {
   private reconnectListeners: Array<() => void> = [];
   private errorListeners: Array<() => void> = [];
   private roomDeletedListeners: Array<(guildId: string, roomId: string) => void> = [];
+  private roomParentListeners: Array<(event: RoomParentChanged) => void> = [];
   readonly rooms = new Map<string, { guildId: string; categoryId: string; name: string }>();
+  readonly ownerAllowances = new Map<
+    string,
+    { ownerId: string; manageChannels: boolean; manageRoles: boolean }
+  >();
   readonly placements = new Map<string, string>();
   readonly deleteAttempts: Array<{ guildId: string; roomId: string }> = [];
   failNextCreate = false;
@@ -44,6 +52,8 @@ export class SimulatedDiscordClient implements DiscordClient {
   failNextDelete = false;
   failNextCategoryInspection = false;
   failNextRoomInspection = false;
+  failNextOwnerAllowance = false;
+  failNextCategoryRestore = false;
   autoReady = true;
   private roomSequence = 0;
 
@@ -110,8 +120,44 @@ export class SimulatedDiscordClient implements DiscordClient {
   onRoomDeleted(listener: (guildId: string, roomId: string) => void): void {
     this.roomDeletedListeners.push(listener);
   }
+  onRoomParentChanged(listener: (event: RoomParentChanged) => void): void {
+    this.roomParentListeners.push(listener);
+  }
+  async applyOwnerAllowance(
+    guildId: string,
+    roomId: string,
+    ownerId: string,
+  ): Promise<OwnerAllowanceResult> {
+    if (this.failNextOwnerAllowance) {
+      this.failNextOwnerAllowance = false;
+      return 'failed';
+    }
+    const room = this.rooms.get(roomId);
+    if (!room || room.guildId !== guildId) return 'missing';
+    this.ownerAllowances.set(roomId, { ownerId, manageChannels: true, manageRoles: true });
+    return 'applied';
+  }
+  async restoreRoomCategory(
+    guildId: string,
+    roomId: string,
+    categoryId: string,
+  ): Promise<RoomCategoryRestorationResult> {
+    if (this.failNextCategoryRestore) {
+      this.failNextCategoryRestore = false;
+      return 'failed';
+    }
+    const room = this.rooms.get(roomId);
+    if (!room || room.guildId !== guildId) return 'missing';
+    if (room.categoryId === categoryId) return 'already_in_category';
+    room.categoryId = categoryId;
+    this.roomParentListeners.forEach((listener) =>
+      listener({ guildId, roomId, parentId: categoryId }),
+    );
+    return 'restored';
+  }
   externalDelete(guildId: string, roomId: string): void {
     if (!this.rooms.delete(roomId)) return;
+    this.ownerAllowances.delete(roomId);
     for (const [key, value] of this.placements) if (value === roomId) this.placements.delete(key);
     this.roomDeletedListeners.forEach((listener) => listener(guildId, roomId));
   }
@@ -143,6 +189,18 @@ export class SimulatedDiscordClient implements DiscordClient {
   }
   seedRoom(guildId: string, roomId: string, categoryId: string, name = 'seeded-room'): void {
     this.rooms.set(roomId, { guildId, categoryId, name });
+  }
+  moveRoom(guildId: string, roomId: string, categoryId?: string): void {
+    const room = this.rooms.get(roomId);
+    if (!room || room.guildId !== guildId) return;
+    room.categoryId = categoryId ?? '';
+    this.roomParentListeners.forEach((listener) =>
+      listener({ guildId, roomId, parentId: categoryId }),
+    );
+  }
+  canManageRoom(roomId: string, userId: string): boolean {
+    const allowance = this.ownerAllowances.get(roomId);
+    return allowance?.ownerId === userId && allowance.manageChannels && allowance.manageRoles;
   }
   setRoomOccupied(guildId: string, roomId: string, occupied: boolean): void {
     const key = `${guildId}:seeded-occupant`;

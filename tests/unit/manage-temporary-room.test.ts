@@ -30,6 +30,33 @@ describe('TemporaryRoomManager', () => {
     expect(discord.rooms).toHaveLength(1);
     expect([...discord.rooms.values()][0]?.name).toBe('ada-lovelace-room');
     expect(discord.placements.get('test-guild:user')).toBe('sim-room-1');
+    expect(discord.canManageRoom('sim-room-1', 'user')).toBe(true);
+    expect(discord.canManageRoom('sim-room-1', 'other')).toBe(false);
+  });
+  it('contains owner allowance failures without retrying on reuse', async () => {
+    const discord = new SimulatedDiscordClient();
+    const observations: string[] = [];
+    const manager = new TemporaryRoomManager(config, discord, (event) => observations.push(event));
+    discord.failNextOwnerAllowance = true;
+    await manager.handle(event);
+    expect(discord.ownerAllowances.has('sim-room-1')).toBe(false);
+    expect(observations).toContain('temporary_room_owner_permission_failed');
+    await manager.handle(event);
+    expect(discord.ownerAllowances.has('sim-room-1')).toBe(false);
+    expect(discord.rooms).toHaveLength(1);
+  });
+  it('restores a moved room and reapplies its owner allowance', async () => {
+    const discord = new SimulatedDiscordClient();
+    const manager = new TemporaryRoomManager(config, discord, () => undefined);
+    await manager.handle(event);
+    discord.moveRoom('test-guild', 'sim-room-1', 'elsewhere');
+    await manager.roomParentChanged({
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      parentId: 'elsewhere',
+    });
+    expect(discord.rooms.get('sim-room-1')?.categoryId).toBe('category');
+    expect(discord.canManageRoom('sim-room-1', 'user')).toBe(true);
   });
   it('ignores bots and replaces a stale room', async () => {
     const discord = new SimulatedDiscordClient();

@@ -1,6 +1,7 @@
 import type { VoiceStateChanged, TemporaryRoomConfig } from '../domain/voice-state.js';
 import type {
   DiscordClient,
+  RoomParentChanged,
   Scheduler,
   ScheduledWork,
   TemporaryRoomObservation,
@@ -20,6 +21,7 @@ export function temporaryRoomName(displayName: string): string {
 export class TemporaryRoomManager {
   private readonly associations = new Map<string, string>();
   private readonly owners = new Map<string, string>();
+  private readonly ownerPermissionState = new Map<string, 'applied' | 'failed'>();
   private readonly work = new Map<string, { generation: number; handle: ScheduledWork }>();
   private readonly locks = new Map<string, Promise<void>>();
 
@@ -77,6 +79,38 @@ export class TemporaryRoomManager {
     return this.owners.has(`${guildId}:${roomId}`);
   }
 
+  async roomParentChanged(event: RoomParentChanged): Promise<void> {
+    const key = `${event.guildId}:${event.roomId}`;
+    const owner = this.owners.get(key);
+    const config = this.configurations.get(event.guildId);
+    if (!owner || !config || event.parentId === config.destinationCategoryId) return;
+    await this.serial(key, async () => {
+      if (!this.owners.has(key)) return;
+      const result = await this.discord.restoreRoomCategory(
+        event.guildId,
+        event.roomId,
+        config.destinationCategoryId,
+      );
+      if (result === 'missing') return this.clear(event.guildId, event.roomId);
+      if (result === 'failed') {
+        this.observe('temporary_room_category_restore_failed');
+        return;
+      }
+      this.observe('temporary_room_category_restored');
+      const allowance = await this.discord.applyOwnerAllowance(
+        event.guildId,
+        event.roomId,
+        owner.split(':')[1] ?? owner,
+      );
+      this.ownerPermissionState.set(key, allowance === 'applied' ? 'applied' : 'failed');
+      this.observe(
+        allowance === 'applied'
+          ? 'temporary_room_owner_permission_applied'
+          : 'temporary_room_owner_permission_failed',
+      );
+    });
+  }
+
   private async createOrReuse(
     event: VoiceStateChanged,
     config: TemporaryRoomConfig,
@@ -84,6 +118,7 @@ export class TemporaryRoomManager {
     const key = `${event.guildId}:${event.userId}`;
     await this.serial(key, async () => {
       let roomId = this.associations.get(key);
+      let createdRoom = false;
       if (roomId) {
         const state = await this.discord.roomState(event.guildId, roomId);
         if (state === 'missing') {
@@ -103,10 +138,22 @@ export class TemporaryRoomManager {
           return;
         }
         roomId = created;
+        createdRoom = true;
         this.associations.set(key, roomId);
         this.owners.set(`${event.guildId}:${roomId}`, key);
+        this.ownerPermissionState.set(`${event.guildId}:${roomId}`, 'failed');
         this.observe('temporary_room_created');
       } else this.observe('temporary_room_reused');
+      const roomKey = `${event.guildId}:${roomId}`;
+      if (createdRoom) {
+        const result = await this.discord.applyOwnerAllowance(event.guildId, roomId, event.userId);
+        this.ownerPermissionState.set(roomKey, result === 'applied' ? 'applied' : 'failed');
+        this.observe(
+          result === 'applied'
+            ? 'temporary_room_owner_permission_applied'
+            : 'temporary_room_owner_permission_failed',
+        );
+      }
       if (!(await this.discord.moveMember(event.guildId, event.userId, roomId))) {
         this.observe('temporary_room_move_failed');
         await this.updateLifecycle(event.guildId, roomId, config);
@@ -179,6 +226,7 @@ export class TemporaryRoomManager {
     const owner = this.owners.get(`${guildId}:${roomId}`);
     if (owner) this.associations.delete(owner);
     this.owners.delete(`${guildId}:${roomId}`);
+    this.ownerPermissionState.delete(`${guildId}:${roomId}`);
   }
   private cancel(roomId: string): void {
     const item = this.work.get(roomId);
