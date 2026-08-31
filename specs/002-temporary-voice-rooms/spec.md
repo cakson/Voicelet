@@ -109,8 +109,8 @@ rooms, movements, safe failure evidence, and worker readiness.
 ### Functional Requirements
 
 - **FR-001**: Administrators MUST be able to configure a designated trigger voice channel and
-  destination category for each Discord server served by the worker; each server's configuration
-  applies only to voice-state events from that server.
+  destination category for each configured Discord server served by the worker; each server's
+  configuration applies only to voice-state events from that server.
 - **FR-002**: When a non-bot member enters the configured trigger channel, the system MUST evaluate
   whether that member already has an active temporary-room association.
 - **FR-003**: For an eligible member without an active existing room, the system MUST create exactly
@@ -173,8 +173,8 @@ rooms, movements, safe failure evidence, and worker readiness.
 - **SC-003**: In a simulated concurrent-entry test involving at least 10 eligible members, every
   member independently receives an eligible room and no member receives another member's room.
 - **SC-004**: In all simulated room-creation and member-movement failure cases, the worker remains
-  ready to process a subsequent valid event and the emitted operational evidence contains no tokens,
-  raw event payloads, or member-identifying values beyond what is essential for safe diagnosis.
+  ready to process a subsequent valid event and emitted operational evidence contains no tokens, raw
+  event payloads, Discord identifiers, display names, or provider error details.
 - **SC-005**: A developer following the project documentation can configure the trigger channel and
   destination category and complete the primary simulated flow without undocumented steps.
 
