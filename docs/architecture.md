@@ -17,3 +17,8 @@ payloads must not be logged or emitted as metric labels.
 
 Temporary-room associations and per-member operation locks live in the application layer only and
 are discarded at restart. The Discord adapter owns channel creation and member movement.
+
+Temporary-room lifecycle scheduling and occupancy policy also live in the application layer. The
+Discord adapter supplies current room state, deletion, and external-deletion notification; timers are
+injected through a port so simulated tests can control time. Lifecycle observations use bounded
+outcomes without Discord identifiers or raw Gateway data.

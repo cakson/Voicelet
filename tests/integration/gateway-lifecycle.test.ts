@@ -7,9 +7,17 @@ import {
   temporaryRoomJoin,
   unconfiguredTemporaryRoomJoin,
 } from '../support/fixtures/voice-state.js';
+import { ManualScheduler } from '../support/manual-scheduler.js';
 
 const configurations = new Map([
-  ['test-guild', { triggerChannelId: 'trigger-channel', destinationCategoryId: 'category-id' }],
+  [
+    'test-guild',
+    {
+      triggerChannelId: 'trigger-channel',
+      destinationCategoryId: 'category-id',
+      inactivityTimeoutMinutes: 1,
+    },
+  ],
 ]);
 
 async function settled(): Promise<void> {
@@ -112,5 +120,107 @@ describe('DiscordGatewayEventSource', () => {
     await settled();
     expect(factory.client.rooms).toHaveLength(11);
     expect(factory.client.placements).toHaveLength(11);
+  });
+
+  it('deletes managed rooms after controlled continuous emptiness and preserves occupied rooms', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const observability = Observability.create('silent');
+    const scheduler = new ManualScheduler();
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      scheduler,
+      observability,
+      configurations,
+      scheduler,
+    );
+    await source.start();
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    factory.client.emitVoiceState({
+      ...temporaryRoomJoin,
+      channelId: null,
+      previousChannelId: 'sim-room-1',
+    });
+    await settled();
+    await scheduler.advanceBy(59_000);
+    expect(factory.client.rooms.has('sim-room-1')).toBe(true);
+
+    factory.client.emitVoiceState({
+      ...temporaryRoomJoin,
+      userId: 'guest',
+      channelId: 'sim-room-1',
+      previousChannelId: null,
+    });
+    await settled();
+    await scheduler.advanceBy(1_000);
+    expect(factory.client.rooms.has('sim-room-1')).toBe(true);
+
+    factory.client.emitVoiceState({
+      ...temporaryRoomJoin,
+      userId: 'guest',
+      channelId: null,
+      previousChannelId: 'sim-room-1',
+    });
+    await settled();
+    await scheduler.advanceBy(60_000);
+    expect(factory.client.rooms.has('sim-room-1')).toBe(false);
+    expect(await observability.registry.metrics()).toContain(
+      'voicelet_temporary_room_operations_total{outcome="deleted"} 1',
+    );
+    source.stop();
+  });
+
+  it('cleans an externally deleted room association and allows a replacement', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      Observability.create('silent'),
+      configurations,
+    );
+    await source.start();
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    factory.client.externalDelete('test-guild', 'sim-room-1');
+    await settled();
+    factory.client.emitVoiceState({ ...temporaryRoomJoin, previousChannelId: 'elsewhere' });
+    await settled();
+    expect(factory.client.rooms.has('sim-room-2')).toBe(true);
+    source.stop();
+  });
+
+  it('never schedules deletion for trigger, unmanaged, or unrelated voice resources', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const scheduler = new ManualScheduler();
+    factory.client.rooms.set('unmanaged-room', {
+      guildId: 'test-guild',
+      categoryId: 'category-id',
+      name: 'unmanaged',
+    });
+    factory.client.rooms.set('unrelated-room', {
+      guildId: 'test-guild',
+      categoryId: 'other-category',
+      name: 'unrelated',
+    });
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      scheduler,
+      Observability.create('silent'),
+      configurations,
+      scheduler,
+    );
+    await source.start();
+    for (const previousChannelId of ['trigger-channel', 'unmanaged-room', 'unrelated-room']) {
+      factory.client.emitVoiceState({ ...temporaryRoomJoin, channelId: null, previousChannelId });
+    }
+    await settled();
+    await scheduler.advanceBy(60_000);
+    expect(factory.client.deleteAttempts).toEqual([]);
+    expect(factory.client.rooms.has('unmanaged-room')).toBe(true);
+    expect(factory.client.rooms.has('unrelated-room')).toBe(true);
+    source.stop();
   });
 });

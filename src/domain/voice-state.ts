@@ -11,7 +11,11 @@ export type VoiceStateChanged = {
   receivedAt: Date;
 };
 
-export type TemporaryRoomConfig = { triggerChannelId: string; destinationCategoryId: string };
+export type TemporaryRoomConfig = {
+  triggerChannelId: string;
+  destinationCategoryId: string;
+  inactivityTimeoutMinutes: number;
+};
 
 export type VoiceStateOutcome = {
   eventType: 'voice_state';

@@ -14,7 +14,8 @@ the `DiscordClientFactory` port. The E2E path enforces readiness and event handl
 documented 30-second and 5-second bounds.
 
 Temporary-room coverage includes per-server configuration, creation, reuse, stale rooms, duplicate
-deliveries, concurrent members, safe failures, and readiness after failure.
+deliveries, concurrent members, safe failures, continuous-empty lifecycle deletion, and readiness
+after failure. Lifecycle timing is controlled in simulation; tests never wait for the 60-minute default.
 
 Automated tests use the simulated Gateway and never require a Discord credential or live server.
 For a real Discord connection, use the manual [Local Discord development onboarding guide](local-discord-development.md),

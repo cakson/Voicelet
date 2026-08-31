@@ -66,7 +66,9 @@ PORT=3000
 LOG_LEVEL=info
 
 # Non-secret development IDs: server ID -> trigger and destination category.
-TEMPORARY_ROOM_CONFIG='{"<development-server-id>":{"triggerChannelId":"<room-creation-voice-channel-id>","destinationCategoryId":"<temporary-rooms-category-id>"}}'
+# inactivityTimeoutMinutes is optional (default 60), must be a whole number from 1 through 1440.
+# Use 1 for this local automatic deletion smoke test.
+TEMPORARY_ROOM_CONFIG='{"<development-server-id>":{"triggerChannelId":"<room-creation-voice-channel-id>","destinationCategoryId":"<temporary-rooms-category-id>","inactivityTimeoutMinutes":1}}'
 ```
 
 Start with the repository example, which contains every setting and safe placeholders:
@@ -114,8 +116,12 @@ confirm the development bot shows **online** in the dedicated test server.
 5. Verify Voicelet moves the member into that newly created room.
 6. Move the same member back to the trigger channel while the temporary room still exists.
 7. Verify no second room is created and the member is returned to the existing room.
-8. Stop Voicelet with Ctrl-C (SIGINT). Confirm the process exits cleanly and the local endpoints stop
-   responding. This test does not cover automatic deletion, inactivity cleanup, or restart recovery.
+8. Leave the temporary room empty for its configured `inactivityTimeoutMinutes` (one minute with the
+   safe local value above). Verify automatic deletion happens only after it stays continuously empty.
+   Rejoin before the minute expires to confirm that deletion is cancelled; after leaving again, a full
+   new minute is required.
+9. Stop Voicelet with Ctrl-C (SIGINT). Confirm the process exits cleanly and the local endpoints stop
+   responding. This test does not cover restart recovery.
 
 ## Troubleshooting
 
@@ -134,7 +140,8 @@ bot appears online in that server. A user-only installation does not grant the r
 
 Enable Developer Mode and copy each ID again. The server ID must own both the category and trigger
 channel, the trigger must be a voice channel, and `TEMPORARY_ROOM_CONFIG` must use the exact JSON
-property names `triggerChannelId` and `destinationCategoryId`. Malformed configuration prevents
+property names `triggerChannelId`, `destinationCategoryId`, and optional `inactivityTimeoutMinutes`.
+The timeout is a whole number from 1 through 1440 and defaults to 60. Malformed configuration prevents
 startup with a generic validation error and is not echoed by the worker.
 
 ### Missing Discord permissions

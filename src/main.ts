@@ -23,6 +23,23 @@ export async function bootstrap(): Promise<void> {
         simulatedFactory.client.emitVoiceState(message.event as RawVoiceState);
       if (message.type === 'fail-next-room-create') simulatedFactory.client.failNextCreate = true;
       if (message.type === 'fail-next-member-move') simulatedFactory.client.failNextMove = true;
+      if (message.type === 'fail-next-room-delete') simulatedFactory.client.failNextDelete = true;
+      if (
+        message.type === 'advance-time' &&
+        'milliseconds' in message &&
+        typeof message.milliseconds === 'number' &&
+        Number.isFinite(message.milliseconds) &&
+        message.milliseconds >= 0
+      )
+        void worker.simulatedScheduler?.advanceBy(message.milliseconds);
+      if (
+        message.type === 'external-room-delete' &&
+        'guildId' in message &&
+        'roomId' in message &&
+        typeof message.guildId === 'string' &&
+        typeof message.roomId === 'string'
+      )
+        simulatedFactory.client.externalDelete(message.guildId, message.roomId);
     });
   }
   const shutdown = async () => {

@@ -57,6 +57,7 @@ describe('worker voice-state flow', () => {
           'test-guild': {
             triggerChannelId: 'trigger-channel',
             destinationCategoryId: 'category-id',
+            inactivityTimeoutMinutes: 1,
           },
         }),
       },
@@ -86,30 +87,88 @@ describe('worker voice-state flow', () => {
     );
     worker.send({
       type: 'voice-state',
+      event: { ...triggerEvent, channelId: null, previousChannelId: 'sim-room-1' },
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="inactivity_started"} 1',
+        ),
+      1_000,
+    );
+    worker.send({ type: 'advance-time', milliseconds: 59_000 });
+    worker.send({
+      type: 'voice-state',
+      event: { ...triggerEvent, userId: 'guest', channelId: 'sim-room-1', previousChannelId: null },
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="inactivity_cancelled"} 1',
+        ),
+      1_000,
+    );
+    worker.send({
+      type: 'voice-state',
+      event: { ...triggerEvent, userId: 'guest', channelId: null, previousChannelId: 'sim-room-1' },
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="inactivity_started"} 2',
+        ),
+      1_000,
+    );
+    worker.send({ type: 'advance-time', milliseconds: 60_000 });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="deleted"} 1'),
+      1_000,
+    );
+    worker.send({
+      type: 'voice-state',
       event: { ...triggerEvent, previousChannelId: 'elsewhere' },
     });
     await waitFor(
       () => request(socketPath, '/metrics'),
       (response) =>
-        response.body.includes('voicelet_temporary_room_operations_total{outcome="reused"} 1'),
-      1_000,
-    );
-    worker.send({ type: 'fail-next-member-move' });
-    worker.send({ type: 'voice-state', event: { ...triggerEvent, userId: 'retry-user' } });
-    await waitFor(
-      () => request(socketPath, '/metrics'),
-      (response) =>
-        response.body.includes('voicelet_temporary_room_operations_total{outcome="move_failed"} 1'),
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 2'),
       1_000,
     );
     worker.send({
       type: 'voice-state',
-      event: { ...triggerEvent, userId: 'retry-user', previousChannelId: 'elsewhere' },
+      event: { ...triggerEvent, channelId: null, previousChannelId: 'sim-room-2' },
     });
     await waitFor(
       () => request(socketPath, '/metrics'),
       (response) =>
-        response.body.includes('voicelet_temporary_room_operations_total{outcome="reused"} 2'),
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="inactivity_started"} 3',
+        ),
+      1_000,
+    );
+    worker.send({ type: 'fail-next-room-delete' });
+    worker.send({ type: 'advance-time', milliseconds: 60_000 });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="delete_failed"} 1',
+        ) &&
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="retry_scheduled"} 1',
+        ),
+      1_000,
+    );
+    worker.send({ type: 'advance-time', milliseconds: 15 * 60_000 });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="deleted"} 2'),
       1_000,
     );
     expect((await request(socketPath, '/readyz')).statusCode).toBe(200);

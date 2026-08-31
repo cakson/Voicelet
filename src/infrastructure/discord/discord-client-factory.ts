@@ -1,8 +1,16 @@
 import { ChannelType, Client, GatewayIntentBits } from 'discord.js';
-import type { DiscordClient, DiscordClientFactory, RawVoiceState } from '../../ports/index.js';
+import type {
+  DeleteRoomResult,
+  DiscordClient,
+  DiscordClientFactory,
+  RawVoiceState,
+  RoomState,
+} from '../../ports/index.js';
 
-class DiscordJsClient implements DiscordClient {
-  private readonly client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates] });
+export class DiscordJsClient implements DiscordClient {
+  constructor(
+    private readonly client: Client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates] }),
+  ) {}
 
   onReady(listener: () => void): void {
     this.client.once('clientReady', listener);
@@ -21,13 +29,33 @@ class DiscordJsClient implements DiscordClient {
       });
     });
   }
-  async roomExists(guildId: string, roomId: string): Promise<boolean> {
+  async roomState(guildId: string, roomId: string): Promise<RoomState> {
     try {
-      const channel = await this.client.guilds.cache.get(guildId)?.channels.fetch(roomId);
-      return channel?.type === ChannelType.GuildVoice;
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'unavailable';
+      const channel = await guild.channels.fetch(roomId);
+      if (!channel || channel.type !== ChannelType.GuildVoice) return 'missing';
+      return channel.members.size === 0 ? 'empty' : 'occupied';
     } catch {
-      return false;
+      return 'unavailable';
     }
+  }
+  async deleteRoom(guildId: string, roomId: string): Promise<DeleteRoomResult> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'failed';
+      const channel = await guild.channels.fetch(roomId);
+      if (!channel || channel.type !== ChannelType.GuildVoice) return 'missing';
+      await channel.delete();
+      return 'deleted';
+    } catch {
+      return 'failed';
+    }
+  }
+  onRoomDeleted(listener: (guildId: string, roomId: string) => void): void {
+    this.client.on('channelDelete', (channel) => {
+      if (channel.type === ChannelType.GuildVoice) listener(channel.guild.id, channel.id);
+    });
   }
   async createRoom(guildId: string, categoryId: string, name: string): Promise<string | null> {
     try {
