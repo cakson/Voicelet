@@ -101,4 +101,20 @@ describe('documentation', () => {
     expect(guide).not.toContain('user token');
     expect(guide).not.toMatch(/(?:DISCORD_TOKEN|token)\s*[:=]\s*[A-Za-z0-9._-]{20,}/i);
   });
+
+  it('documents room-owner scope and bot-only authority', async () => {
+    const [readme, guide] = await Promise.all([
+      readFile('README.md', 'utf8'),
+      readFile('docs/local-discord-development.md', 'utf8'),
+    ]);
+    for (const phrase of [
+      'Manage Roles',
+      'member-specific',
+      'Administrator',
+      'two ordinary test members',
+    ]) {
+      expect(`${readme}\n${guide}`).toContain(phrase);
+    }
+    expect(readme).toContain('reconciliation never expands');
+  });
 });

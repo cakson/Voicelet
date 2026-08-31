@@ -119,7 +119,7 @@ description: "Dependency-ordered implementation tasks for temporary room owner p
 - [X] T029 [P] Update native owner capability scope, server-wide exclusions, bot Administrator prerequisite, and dedicated-category restoration guidance in `README.md` and `.env.example`.
 - [X] T030 [P] Update bot role guidance, two-owner native permission smoke testing, deletion/replacement, category-move restoration, and safe diagnostics in `docs/local-discord-development.md`.
 - [X] T031 [P] Document transient owner-permission state, channel-scoped port ownership, restoration events, reconciliation boundaries, and privacy-safe observations in `docs/architecture.md` and `docs/testing.md`.
-- [ ] T032 Update feature-documentation assertions for all owner-permission documentation requirements in `tests/integration/documentation.test.ts`.
+- [X] T032 Update feature-documentation assertions for all owner-permission documentation requirements in `tests/integration/documentation.test.ts`.
 - [X] T033 Complete the credential-free quickstart scenarios and record validation evidence in `specs/006-temporary-room-owner-permissions/quickstart.md`.
 - [X] T034 Run `pnpm check` and resolve feature-related validation failures in `package.json` and the affected feature files.
 
@@ -177,3 +177,28 @@ T011 follows T010 because both modify `tests/unit/manage-temporary-room.test.ts`
 - All 34 tasks use the required checkbox, sequential ID, optional parallel marker, story label where required, and exact target paths.
 - Tests are mandatory because the specification explicitly requires unit, integration, and simulated E2E coverage and the constitution requires layered evidence.
 - No task authorizes an owner role, owner Administrator permission, owner server-wide capability, ownership persistence/reconstruction, raw Discord logging, or reconciliation beyond the configured temporary-room category.
+
+## Phase 7: Convergence
+
+These follow-up tasks capture work still missing after the initial implementation pass. Existing
+tasks remain unchanged and retain their original traceability.
+
+- [ ] T035 Complete the production-adapter unit coverage from T005 for member-only overwrite flags,
+  voice-room/guild guards, parent restoration outcomes, provider failures, and parent-change event
+  filtering (FR-002, FR-010, FR-012).
+- [ ] T036 Complete the simulator helper and documentation-contract coverage from T002, T003, and
+  T032, including bounded owner/restoration observations, administrator prerequisite wording, and
+  two-owner smoke-test assertions (FR-014, FR-015–FR-017, SC-006).
+- [ ] T037 Complete User Story 1 evidence from T010–T013 and T017: verify exact owner association,
+  two-owner and protected-channel isolation, native capability assertions, duplicate parent-event
+  handling, deletion-wins restoration races, and category-only reconciliation (FR-001–FR-008,
+  FR-010–FR-011, FR-018, SC-001–SC-003).
+- [ ] T038 Complete User Story 2 unit, integration, and simulated E2E evidence from T018–T020 and
+  T022 for owner/administrator deletion, matching-association cleanup, replacement creation, and
+  preservation of every other room allowance (FR-006, FR-009, SC-005).
+- [ ] T039 Complete User Story 3 unit, integration, and simulated E2E evidence from T023–T025 and
+  T028 for `failed`/`missing` allowance outcomes, no false success, no failure-triggered retry,
+  bounded observations, lifecycle continuity, and no duplicate room (FR-012–FR-014, SC-004).
+- [X] T040 Replace the remaining parallel owner/room maps with a single transient association record
+  carrying owner identity and permission state, or document and test the equivalent invariant if the
+  current maps are intentionally retained (FR-001, FR-006, FR-011; plan:data-model decision).

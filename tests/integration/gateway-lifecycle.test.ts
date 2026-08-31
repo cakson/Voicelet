@@ -218,6 +218,29 @@ describe('DiscordGatewayEventSource', () => {
     source.stop();
   });
 
+  it('applies isolated owner allowances and restores moved rooms', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      Observability.create('silent'),
+      configurations,
+    );
+    await source.start();
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    factory.client.emitVoiceState({ ...temporaryRoomJoin, userId: 'second-user' });
+    await settled();
+    expect(factory.client.canManageRoom('sim-room-1', 'test-user')).toBe(true);
+    expect(factory.client.canManageRoom('sim-room-1', 'second-user')).toBe(false);
+    expect(factory.client.canManageRoom('sim-room-2', 'second-user')).toBe(true);
+    factory.client.moveRoom('test-guild', 'sim-room-1', 'outside-category');
+    await settled();
+    expect(factory.client.rooms.get('sim-room-1')?.categoryId).toBe('category-id');
+    source.stop();
+  });
+
   it('reconciles startup zombies while preserving configured permanent and known managed rooms', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const scheduler = new ManualScheduler();

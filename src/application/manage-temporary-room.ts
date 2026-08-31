@@ -19,6 +19,9 @@ export function temporaryRoomName(displayName: string): string {
 }
 
 export class TemporaryRoomManager {
+  // These maps form one transient association invariant: each guild/user key maps to one room,
+  // and each guild/room key maps back to that same owner key. Permission state is keyed by room and
+  // is cleared together with the reverse association.
   private readonly associations = new Map<string, string>();
   private readonly owners = new Map<string, string>();
   private readonly ownerPermissionState = new Map<string, 'applied' | 'failed'>();
