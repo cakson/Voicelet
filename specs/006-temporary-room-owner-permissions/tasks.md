@@ -211,7 +211,7 @@ tasks remain unchanged and retain their original traceability.
 - [X] T042 Add unit coverage for duplicate parent-event coalescing, deletion-wins restoration races,
   and idempotent restoration-induced allowance reapplication in
   `tests/unit/manage-temporary-room.test.ts` (FR-010, FR-013).
-- [ ] T043 Extend simulated process E2E coverage to assert two-owner room isolation, trigger/category
+- [X] T043 Extend simulated process E2E coverage to assert two-owner room isolation, trigger/category
   exclusion, owner deletion and replacement, allowance failure containment, and unaffected second-room
   associations in `tests/e2e/worker-voice-state.test.ts` (FR-005–FR-006, FR-009, FR-012–FR-013,
   FR-018, SC-002, SC-004–SC-005).

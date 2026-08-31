@@ -19,6 +19,26 @@ function request(socketPath: string, path: string): Promise<Response> {
   });
 }
 
+function capability(worker: ChildProcess, roomId: string, ownerId: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const listener = (message: unknown) => {
+      if (
+        typeof message === 'object' &&
+        message !== null &&
+        'type' in message &&
+        message.type === 'owner-capability-result' &&
+        'allowed' in message &&
+        typeof message.allowed === 'boolean'
+      ) {
+        worker.off('message', listener);
+        resolve(message.allowed);
+      }
+    };
+    worker.on('message', listener);
+    worker.send({ type: 'owner-capability', roomId, ownerId });
+  });
+}
+
 async function waitFor<T>(
   action: () => Promise<T>,
   predicate: (value: T) => boolean,
@@ -88,6 +108,8 @@ describe('worker voice-state flow', () => {
         ),
       1_000,
     );
+    await expect(capability(worker, 'sim-room-1', validVoiceState.userId)).resolves.toBe(true);
+    await expect(capability(worker, 'sim-room-1', 'other-user')).resolves.toBe(false);
     worker.send({
       type: 'move-room',
       guildId: 'test-guild',

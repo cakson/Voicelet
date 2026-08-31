@@ -54,6 +54,17 @@ export async function bootstrap(): Promise<void> {
         simulatedFactory.client.setRoomOccupied(message.guildId, message.roomId, message.occupied);
       if (message.type === 'emit-ready') simulatedFactory.client.emitReady();
       if (
+        message.type === 'owner-capability' &&
+        'roomId' in message &&
+        'ownerId' in message &&
+        typeof message.roomId === 'string' &&
+        typeof message.ownerId === 'string'
+      )
+        process.send?.({
+          type: 'owner-capability-result',
+          allowed: simulatedFactory.client.canManageRoom(message.roomId, message.ownerId),
+        });
+      if (
         message.type === 'move-room' &&
         'guildId' in message &&
         'roomId' in message &&
