@@ -8,6 +8,15 @@
 
 **Input**: User description: "Create the Temporary Room Lifecycle feature."
 
+## Clarifications
+
+### Session 2026-08-31
+
+- Q: After an automatic deletion attempt fails for a room that is still empty, what should Voicelet do next? → A: Retry automatically on a fixed short interval while the room remains empty.
+- Q: How long should Voicelet wait between failed deletion retries for a room that remains empty? → A: 15 minutes between retries.
+- Q: What whole-minute range should Voicelet accept for the configurable inactivity timeout? → A: 1 to 1,440 minutes inclusive.
+- Q: Should the inactivity timeout be configured separately for each server's temporary-room mapping, or be one shared value for all servers? → A: A timeout is set per server temporary-room mapping.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Remove Continuously Empty Temporary Rooms (Priority: P1)
@@ -59,8 +68,9 @@ and safe failure evidence is available.
    Voicelet considers deletion, **Then** it does not intentionally delete the room if it is
    occupied at the final emptiness check.
 3. **Given** automatic deletion of a still-empty managed room fails, **When** the failure is
-   handled, **Then** the worker continues operating, the association remains active, and a
-   privacy-safe observable failure is recorded.
+   handled, **Then** the worker continues operating, the association remains active, a privacy-safe
+   observable failure is recorded, and deletion is retried every 15 minutes while the room remains
+   empty.
 
 ---
 
@@ -100,7 +110,8 @@ room is created.
 - External deletion may be observed late or not at all; a later creator request checks the associated
   room's existence before relying on it.
 - A deletion failure leaves the room association active; a move failure alone is not evidence that
-  an associated room was externally deleted.
+  an associated room was externally deleted. Each deletion retry confirms the room is still empty
+  before attempting deletion.
 
 ## Requirements *(mandatory)*
 
@@ -119,17 +130,18 @@ room is created.
 - **FR-006**: Voicelet MUST only automatically delete rooms it recognizes as managed temporary
   rooms; it MUST NOT delete the configured creation channel, destination category, or unrelated
   channels.
-- **FR-007**: The inactivity timeout MUST use the existing configuration pattern for Discord
-  channel/category settings, default to 60 minutes, accept only whole minutes from 1 through 1,440
-  inclusive, and reject absent-or-invalid values with a clear configuration error rather than
-  ambiguous lifecycle behavior.
+- **FR-007**: Each server's temporary-room mapping MUST configure its own inactivity timeout using
+  the existing configuration pattern for Discord channel/category settings. The timeout MUST default
+  to 60 minutes, accept only whole minutes from 1 through 1,440 inclusive, and reject
+  absent-or-invalid values with a clear configuration error rather than ambiguous lifecycle behavior.
 - **FR-008**: Documentation and a credential-free example configuration MUST explain the inactivity
   timeout's setting, default, whole-minute unit, accepted range, and a safe value for local testing.
 - **FR-009**: After successful automatic deletion, Voicelet MUST remove the deleted room's active
   creator association so it no longer counts toward the one-active-temporary-room rule.
 - **FR-010**: If automatic deletion fails, Voicelet MUST remain running, retain the association, and
   record an observable privacy-safe failure without logging Discord tokens, raw event data, or
-  unnecessary personal identifiers.
+  unnecessary personal identifiers. While the room remains empty, Voicelet MUST retry deletion every
+  15 minutes and verify that the room is still empty before every retry.
 - **FR-011**: When Voicelet observes external deletion of a managed room, it MUST discard any active
   association for that room.
 - **FR-012**: Before relying on an existing room association during room creation, Voicelet MUST
@@ -155,8 +167,8 @@ room is created.
   ending when it is occupied, deleted, or reaches the configured expiry while still empty.
 - **Active-room association**: The current relationship between a creator and one managed temporary
   room that enforces the one-active-room rule during the process lifetime.
-- **Inactivity timeout**: The configured duration in whole minutes that a managed room must remain
-  continuously empty before automatic deletion is eligible.
+- **Inactivity timeout**: The configured per-server-mapping duration in whole minutes that a managed
+  room must remain continuously empty before automatic deletion is eligible.
 - **Stale association**: An active-room association that refers to a room no longer present in
   Discord because of external or manual deletion.
 
@@ -181,9 +193,9 @@ room is created.
 
 ## Assumptions
 
-- The timeout is expressed as a whole number of minutes, with 60 minutes as the default and 1 to
-  1,440 minutes inclusive as the accepted range; this limits accidental immediate deletion while
-  permitting an explicit short local-test duration.
+- Each server mapping supplies its own timeout as a whole number of minutes, with 60 minutes as the
+  default and 1 to 1,440 minutes inclusive as the accepted range; this limits accidental immediate
+  deletion while permitting an explicit short local-test duration.
 - Existing in-memory managed-room associations remain authoritative only while Voicelet is running;
   no state is reconstructed after restart.
 - Existing room-creation behavior continues to enforce one active temporary room per creator, and
