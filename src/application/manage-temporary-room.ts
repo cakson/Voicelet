@@ -73,6 +73,10 @@ export class TemporaryRoomManager {
     this.work.clear();
   }
 
+  isKnownManagedRoom(guildId: string, roomId: string): boolean {
+    return this.owners.has(`${guildId}:${roomId}`);
+  }
+
   private async createOrReuse(
     event: VoiceStateChanged,
     config: TemporaryRoomConfig,

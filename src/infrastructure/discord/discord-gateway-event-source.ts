@@ -7,6 +7,7 @@ import type {
 } from '../../ports/index.js';
 import { normalizeVoiceState } from '../../domain/normalize-voice-state.js';
 import { TemporaryRoomManager } from '../../application/manage-temporary-room.js';
+import { TemporaryRoomReconciler } from '../../application/reconcile-temporary-rooms.js';
 import type { TemporaryRoomConfig } from '../../domain/voice-state.js';
 import type { Observability } from '../logging/observability.js';
 
@@ -31,8 +32,16 @@ export class DiscordGatewayEventSource {
     this.rooms = new TemporaryRoomManager(configurations, this.client, scheduler, (event) =>
       this.observability.recordTemporaryRoom(event),
     );
+    this.reconciler = new TemporaryRoomReconciler(
+      configurations,
+      this.client,
+      scheduler,
+      (guildId, roomId) => this.rooms.isKnownManagedRoom(guildId, roomId),
+      (event) => this.observability.recordReconciliation(event),
+    );
   }
   private readonly rooms: TemporaryRoomManager;
+  private readonly reconciler: TemporaryRoomReconciler;
 
   get readiness(): GatewayState {
     return this.state;
@@ -46,7 +55,9 @@ export class DiscordGatewayEventSource {
   async start(): Promise<void> {
     this.setState('connecting');
     this.client.onReady(() => {
+      if (this.state === 'ready') return;
       this.setState('ready');
+      this.reconciler.start();
     });
     this.client.onVoiceState((event) => {
       const normalized = normalizeVoiceState(event, this.clock);
@@ -70,6 +81,7 @@ export class DiscordGatewayEventSource {
     });
     this.client.onDisconnect(() => {
       this.setState('disconnected');
+      this.reconciler.pause();
     });
     this.client.onReconnect(() => {
       this.setState('reconnecting');
@@ -77,6 +89,7 @@ export class DiscordGatewayEventSource {
     });
     this.client.onError(() => {
       this.setState('disconnected');
+      this.reconciler.pause();
       this.observability.recordGatewayFailure();
     });
     try {
@@ -91,5 +104,6 @@ export class DiscordGatewayEventSource {
     this.setState('stopped');
     this.client.destroy();
     this.rooms.dispose();
+    this.reconciler.dispose();
   }
 }

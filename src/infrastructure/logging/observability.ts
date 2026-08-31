@@ -1,6 +1,11 @@
 import pino, { type Logger } from 'pino';
 import { Counter, Gauge, Registry } from 'prom-client';
-import type { GatewayState, ObservationSink, TemporaryRoomObservation } from '../../ports/index.js';
+import type {
+  GatewayState,
+  ObservationSink,
+  ReconciliationObservation,
+  TemporaryRoomObservation,
+} from '../../ports/index.js';
 
 export class Observability implements ObservationSink {
   readonly registry = new Registry();
@@ -32,6 +37,12 @@ export class Observability implements ObservationSink {
   readonly roomOperations = new Counter({
     name: 'voicelet_temporary_room_operations_total',
     help: 'Temporary room operation outcomes',
+    labelNames: ['outcome'],
+    registers: [this.registry],
+  });
+  readonly reconciliationOperations = new Counter({
+    name: 'voicelet_room_reconciliation_operations_total',
+    help: 'Room reconciliation outcomes without Discord identifiers',
     labelNames: ['outcome'],
     registers: [this.registry],
   });
@@ -67,5 +78,10 @@ export class Observability implements ObservationSink {
   recordTemporaryRoom(event: TemporaryRoomObservation): void {
     this.roomOperations.inc({ outcome: event.replace('temporary_room_', '') });
     this.logger.info({ outcome: event.replace('temporary_room_', '') }, 'temporary_room_operation');
+  }
+  recordReconciliation(event: ReconciliationObservation): void {
+    const outcome = event.replace('reconciliation_', '');
+    this.reconciliationOperations.inc({ outcome });
+    this.logger.info({ outcome }, 'room_reconciliation_operation');
   }
 }

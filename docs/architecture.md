@@ -22,3 +22,8 @@ Temporary-room lifecycle scheduling and occupancy policy also live in the applic
 Discord adapter supplies current room state, deletion, and external-deletion notification; timers are
 injected through a port so simulated tests can control time. Lifecycle observations use bounded
 outcomes without Discord identifiers or raw Gateway data.
+
+Room reconciliation is a separate application policy. It receives category-scoped voice-room IDs and
+guarded empty-room deletion outcomes through the Discord port, compares them with the manager's
+read-only transient association view, and never mutates associations for zombies. The gateway source
+starts one coalesced per-server scan schedule after ready and cancels it on disconnect or stop.

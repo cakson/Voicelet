@@ -24,6 +24,31 @@ export async function bootstrap(): Promise<void> {
       if (message.type === 'fail-next-room-create') simulatedFactory.client.failNextCreate = true;
       if (message.type === 'fail-next-member-move') simulatedFactory.client.failNextMove = true;
       if (message.type === 'fail-next-room-delete') simulatedFactory.client.failNextDelete = true;
+      if (message.type === 'fail-next-category-inspection')
+        simulatedFactory.client.failNextCategoryInspection = true;
+      if (message.type === 'fail-next-room-inspection')
+        simulatedFactory.client.failNextRoomInspection = true;
+      if (
+        message.type === 'seed-room' &&
+        'guildId' in message &&
+        'roomId' in message &&
+        'categoryId' in message &&
+        typeof message.guildId === 'string' &&
+        typeof message.roomId === 'string' &&
+        typeof message.categoryId === 'string'
+      )
+        simulatedFactory.client.seedRoom(message.guildId, message.roomId, message.categoryId);
+      if (
+        message.type === 'set-room-occupied' &&
+        'guildId' in message &&
+        'roomId' in message &&
+        'occupied' in message &&
+        typeof message.guildId === 'string' &&
+        typeof message.roomId === 'string' &&
+        typeof message.occupied === 'boolean'
+      )
+        simulatedFactory.client.setRoomOccupied(message.guildId, message.roomId, message.occupied);
+      if (message.type === 'emit-ready') simulatedFactory.client.emitReady();
       if (
         message.type === 'advance-time' &&
         'milliseconds' in message &&

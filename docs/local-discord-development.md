@@ -46,7 +46,8 @@ privileged capabilities disabled; this flow does not use them.
 In the dedicated test server:
 
 1. Create or select a category named something like `Voicelet Development Rooms` for temporary
-   rooms.
+   rooms. This category is reserved for Voicelet-managed voice channels; keep unrelated permanent
+   channels outside it unless you configure them as explicit exclusions.
 2. Create or select one voice channel named something like `Create a room`; entering this channel
    is the trigger. Keep it outside the destination category if that makes the test easier to see.
 3. In Discord **User Settings → Advanced**, enable **Developer Mode**. Right-click the test server,
@@ -66,9 +67,10 @@ PORT=3000
 LOG_LEVEL=info
 
 # Non-secret development IDs: server ID -> trigger and destination category.
-# inactivityTimeoutMinutes is optional (default 60), must be a whole number from 1 through 1440.
-# Use 1 for this local automatic deletion smoke test.
-TEMPORARY_ROOM_CONFIG='{"<development-server-id>":{"triggerChannelId":"<room-creation-voice-channel-id>","destinationCategoryId":"<temporary-rooms-category-id>","inactivityTimeoutMinutes":1}}'
+# inactivityTimeoutMinutes defaults to 60 and reconciliationIntervalMinutes defaults to 15.
+# Both must be whole numbers from 1 through 1440. Use 1 for this local smoke test.
+# permanentChannelIds lists category channels that must never be zombie-cleanup targets.
+TEMPORARY_ROOM_CONFIG='{"<development-server-id>":{"triggerChannelId":"<room-creation-voice-channel-id>","destinationCategoryId":"<temporary-rooms-category-id>","inactivityTimeoutMinutes":1,"reconciliationIntervalMinutes":1,"permanentChannelIds":[]}}'
 ```
 
 Start with the repository example, which contains every setting and safe placeholders:
@@ -120,8 +122,14 @@ confirm the development bot shows **online** in the dedicated test server.
    safe local value above). Verify automatic deletion happens only after it stays continuously empty.
    Rejoin before the minute expires to confirm that deletion is cancelled; after leaving again, a full
    new minute is required.
-9. Stop Voicelet with Ctrl-C (SIGINT). Confirm the process exits cleanly and the local endpoints stop
-   responding. This test does not cover restart recovery.
+9. Create one empty unconfigured voice channel and one occupied unconfigured voice channel in the
+   dedicated category, then restart Voicelet. The empty channel is a zombie and is removed by startup
+   reconciliation; the occupied zombie remains. Leave that room and wait for the next
+   `reconciliationIntervalMinutes` scan to see it removed immediately. Voicelet intentionally does
+   not reconstruct ownership after restart, so an occupied prior temporary room remains available but
+   is no longer a known managed room.
+10. Stop Voicelet with Ctrl-C (SIGINT). Confirm the process exits cleanly and the local endpoints stop
+    responding.
 
 ## Troubleshooting
 
@@ -140,8 +148,9 @@ bot appears online in that server. A user-only installation does not grant the r
 
 Enable Developer Mode and copy each ID again. The server ID must own both the category and trigger
 channel, the trigger must be a voice channel, and `TEMPORARY_ROOM_CONFIG` must use the exact JSON
-property names `triggerChannelId`, `destinationCategoryId`, and optional `inactivityTimeoutMinutes`.
-The timeout is a whole number from 1 through 1440 and defaults to 60. Malformed configuration prevents
+property names `triggerChannelId`, `destinationCategoryId`, optional `inactivityTimeoutMinutes`,
+optional `reconciliationIntervalMinutes`, and optional `permanentChannelIds`. Both minute values are
+whole numbers from 1 through 1440; inactivity defaults to 60 and reconciliation defaults to 15. Malformed configuration prevents
 startup with a generic validation error and is not echoed by the worker.
 
 ### Missing Discord permissions

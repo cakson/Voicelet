@@ -1,5 +1,6 @@
 import { ChannelType, Client, GatewayIntentBits } from 'discord.js';
 import type {
+  DeleteEmptyRoomResult,
   DeleteRoomResult,
   DiscordClient,
   DiscordClientFactory,
@@ -46,6 +47,34 @@ export class DiscordJsClient implements DiscordClient {
       if (!guild) return 'failed';
       const channel = await guild.channels.fetch(roomId);
       if (!channel || channel.type !== ChannelType.GuildVoice) return 'missing';
+      await channel.delete();
+      return 'deleted';
+    } catch {
+      return 'failed';
+    }
+  }
+  async listCategoryVoiceRooms(guildId: string, categoryId: string): Promise<string[] | null> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return null;
+      const channels = await guild.channels.fetch();
+      const roomIds: string[] = [];
+      channels.forEach((channel) => {
+        if (channel?.type === ChannelType.GuildVoice && channel.parentId === categoryId)
+          roomIds.push(channel.id);
+      });
+      return roomIds;
+    } catch {
+      return null;
+    }
+  }
+  async deleteEmptyRoom(guildId: string, roomId: string): Promise<DeleteEmptyRoomResult> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'failed';
+      const channel = await guild.channels.fetch(roomId);
+      if (!channel || channel.type !== ChannelType.GuildVoice) return 'missing';
+      if (channel.members.size > 0) return 'occupied';
       await channel.delete();
       return 'deleted';
     } catch {

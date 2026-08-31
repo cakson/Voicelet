@@ -15,6 +15,8 @@ export type TemporaryRoomConfig = {
   triggerChannelId: string;
   destinationCategoryId: string;
   inactivityTimeoutMinutes: number;
+  reconciliationIntervalMinutes?: number;
+  permanentChannelIds?: string[];
 };
 
 export type VoiceStateOutcome = {

@@ -23,6 +23,8 @@ export function createWorker(config: AppConfig, simulatedFactory?: DiscordClient
     config.gatewayMode === 'simulated'
       ? (simulatedFactory ?? new SimulatedDiscordClientFactory())
       : new DiscordJsClientFactory();
+  if (factory instanceof SimulatedDiscordClientFactory)
+    factory.client.autoReady = config.simulatedAutoReady;
   const simulatedScheduler =
     config.gatewayMode === 'simulated' ? new SimulatedScheduler() : undefined;
   const source = new DiscordGatewayEventSource(

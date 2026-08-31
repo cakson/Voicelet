@@ -17,6 +17,11 @@ Temporary-room coverage includes per-server configuration, creation, reuse, stal
 deliveries, concurrent members, safe failures, continuous-empty lifecycle deletion, and readiness
 after failure. Lifecycle timing is controlled in simulation; tests never wait for the 60-minute default.
 
+Reconciliation coverage uses the same deterministic scheduler: startup scans classify known rooms,
+permanent exclusions, empty zombies, and occupied zombies; later controlled scans remove zombies that
+become empty. The suite also covers repeatability, guarded deletion races, contained provider failures,
+and restart/state-loss behavior without real interval waits.
+
 Automated tests use the simulated Gateway and never require a Discord credential or live server.
 For a real Discord connection, use the manual [Local Discord development onboarding guide](local-discord-development.md),
 which keeps the bot token in an ignored local `.env`, checks loopback `/livez` and `/readyz`, and
