@@ -52,6 +52,12 @@ describe('container and deployment artifacts', () => {
     }
   });
 
+  it('grants Gitleaks only the pull-request read access it requires', async () => {
+    const workflow = await read('.github/workflows/ci.yml');
+    expect(workflow).toContain('pull-requests: read');
+    expect(workflow).not.toContain('pull-requests: write');
+  });
+
   it('requires explicit immutable deployment selection and readiness verification', async () => {
     const workflow = await read('.github/workflows/deploy-northflank.yml');
     expect(workflow).toContain('workflow_dispatch:');
