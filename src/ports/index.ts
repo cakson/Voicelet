@@ -19,6 +19,8 @@ export interface DiscordClient {
   onError(listener: () => void): void;
   roomState(guildId: string, roomId: string): Promise<RoomState>;
   deleteRoom(guildId: string, roomId: string): Promise<DeleteRoomResult>;
+  listCategoryVoiceRooms(guildId: string, categoryId: string): Promise<string[] | null>;
+  deleteEmptyRoom(guildId: string, roomId: string): Promise<DeleteEmptyRoomResult>;
   onRoomDeleted(listener: (guildId: string, roomId: string) => void): void;
   createRoom(guildId: string, categoryId: string, name: string): Promise<string | null>;
   moveMember(guildId: string, userId: string, roomId: string): Promise<boolean>;
@@ -28,6 +30,7 @@ export interface DiscordClient {
 
 export type RoomState = 'empty' | 'occupied' | 'missing' | 'unavailable';
 export type DeleteRoomResult = 'deleted' | 'missing' | 'failed';
+export type DeleteEmptyRoomResult = DeleteRoomResult | 'occupied';
 
 export interface ScheduledWork {
   cancel(): void;
@@ -64,3 +67,14 @@ export type TemporaryRoomObservation =
   | 'temporary_room_delete_failed'
   | 'temporary_room_retry_scheduled'
   | 'temporary_room_external_deleted';
+
+export type ReconciliationObservation =
+  | 'reconciliation_started'
+  | 'reconciliation_completed'
+  | 'reconciliation_category_unavailable'
+  | 'reconciliation_permanent_preserved'
+  | 'reconciliation_known_preserved'
+  | 'reconciliation_zombie_occupied'
+  | 'reconciliation_zombie_deleted'
+  | 'reconciliation_inspection_failed'
+  | 'reconciliation_delete_failed';

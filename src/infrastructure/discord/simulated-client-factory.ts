@@ -1,4 +1,5 @@
 import type {
+  DeleteEmptyRoomResult,
   DeleteRoomResult,
   DiscordClient,
   DiscordClientFactory,
@@ -41,6 +42,9 @@ export class SimulatedDiscordClient implements DiscordClient {
   failNextCreate = false;
   failNextMove = false;
   failNextDelete = false;
+  failNextCategoryInspection = false;
+  failNextRoomInspection = false;
+  autoReady = true;
   private roomSequence = 0;
 
   onReady(listener: () => void): void {
@@ -59,6 +63,10 @@ export class SimulatedDiscordClient implements DiscordClient {
     this.errorListeners.push(listener);
   }
   async roomState(guildId: string, roomId: string): Promise<RoomState> {
+    if (this.failNextRoomInspection) {
+      this.failNextRoomInspection = false;
+      return 'unavailable';
+    }
     const room = this.rooms.get(roomId);
     if (!room || room.guildId !== guildId) return 'missing';
     return [...this.placements.entries()].some(
@@ -74,6 +82,28 @@ export class SimulatedDiscordClient implements DiscordClient {
       return 'failed';
     }
     if ((await this.roomState(guildId, roomId)) === 'missing') return 'missing';
+    this.externalDelete(guildId, roomId);
+    return 'deleted';
+  }
+  async listCategoryVoiceRooms(guildId: string, categoryId: string): Promise<string[] | null> {
+    if (this.failNextCategoryInspection) {
+      this.failNextCategoryInspection = false;
+      return null;
+    }
+    return [...this.rooms.entries()]
+      .filter(([, room]) => room.guildId === guildId && room.categoryId === categoryId)
+      .map(([roomId]) => roomId);
+  }
+  async deleteEmptyRoom(guildId: string, roomId: string): Promise<DeleteEmptyRoomResult> {
+    this.deleteAttempts.push({ guildId, roomId });
+    if (this.failNextDelete) {
+      this.failNextDelete = false;
+      return 'failed';
+    }
+    const state = await this.roomState(guildId, roomId);
+    if (state === 'occupied') return 'occupied';
+    if (state === 'missing') return 'missing';
+    if (state === 'unavailable') return 'failed';
     this.externalDelete(guildId, roomId);
     return 'deleted';
   }
@@ -105,11 +135,19 @@ export class SimulatedDiscordClient implements DiscordClient {
   }
   async login(token: string): Promise<void> {
     void token;
-    queueMicrotask(() => this.emitReady());
+    if (this.autoReady) queueMicrotask(() => this.emitReady());
   }
   destroy(): void {}
   emitReady(): void {
     this.readyListeners.forEach((listener) => listener());
+  }
+  seedRoom(guildId: string, roomId: string, categoryId: string, name = 'seeded-room'): void {
+    this.rooms.set(roomId, { guildId, categoryId, name });
+  }
+  setRoomOccupied(guildId: string, roomId: string, occupied: boolean): void {
+    const key = `${guildId}:seeded-occupant`;
+    if (occupied) this.placements.set(key, roomId);
+    else this.placements.delete(key);
   }
   emitVoiceState(event: RawVoiceState): void {
     if (typeof event.guildId === 'string' && typeof event.userId === 'string') {

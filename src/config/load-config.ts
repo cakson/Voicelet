@@ -9,6 +9,7 @@ const configSchema = z.object({
   SOCKET_PATH: z.string().min(1).optional(),
   LOG_LEVEL: z.enum(['silent', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   GATEWAY_MODE: z.enum(['discord', 'simulated']).default('discord'),
+  SIMULATED_AUTO_READY: z.enum(['true', 'false']).default('true'),
   TEMPORARY_ROOM_CONFIG: z.string().default('{}'),
 });
 
@@ -19,6 +20,7 @@ export type AppConfig = {
   socketPath?: string;
   logLevel: z.infer<typeof configSchema>['LOG_LEVEL'];
   gatewayMode: 'discord' | 'simulated';
+  simulatedAutoReady: boolean;
   temporaryRooms: Map<string, TemporaryRoomConfig>;
 };
 
@@ -28,6 +30,11 @@ const roomConfigSchema = z.record(
     triggerChannelId: z.string().min(1),
     destinationCategoryId: z.string().min(1),
     inactivityTimeoutMinutes: z.number().int().min(1).max(1440).default(60),
+    reconciliationIntervalMinutes: z.number().int().min(1).max(1440).default(15),
+    permanentChannelIds: z
+      .array(z.string().min(1))
+      .default([])
+      .transform((ids) => [...new Set(ids)]),
   }),
 );
 
@@ -53,6 +60,7 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     socketPath: parsed.data.SOCKET_PATH,
     logLevel: parsed.data.LOG_LEVEL,
     gatewayMode: parsed.data.GATEWAY_MODE,
+    simulatedAutoReady: parsed.data.SIMULATED_AUTO_READY === 'true',
     temporaryRooms,
   };
 }
