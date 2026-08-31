@@ -263,7 +263,7 @@ tasks remain unchanged and retain their original traceability.
 
 ## Phase 8: Convergence
 
-- [ ] T030 Execute `pnpm container:build` and `pnpm container:smoke` in a Docker-enabled environment,
+- [X] T030 Execute `pnpm container:build` and `pnpm container:smoke` in a Docker-enabled environment,
   verify the production container exposes `/livez`, `/readyz`, and `/metrics` with simulated runtime
   configuration, and resolve any failures in `Dockerfile`, `.dockerignore`, or `package.json`
   (FR-001, FR-002, SC-002, US1/AC2, plan: local production-container smoke test) (partial).

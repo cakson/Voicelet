@@ -17,6 +17,9 @@ describe('container and deployment artifacts', () => {
     expect(dockerfile).toMatch(
       /^FROM node:24\.20\.0-bookworm-slim@sha256:[0-9a-f]{64} AS (build|runtime)$/gm,
     );
+    expect(dockerfile).toContain(
+      'node:24.20.0-bookworm-slim@sha256:ba849c60be29959425b8734d57b8b4b7d56f98edd9504c9af091d5281095a71e',
+    );
     expect([...dockerfile.matchAll(/^FROM /gm)]).toHaveLength(2);
     for (const entry of ['.env*', '.git', 'node_modules', 'dist', 'coverage'])
       expect(dockerignore).toContain(entry);
