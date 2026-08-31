@@ -1,6 +1,6 @@
 import pino, { type Logger } from 'pino';
 import { Counter, Gauge, Registry } from 'prom-client';
-import type { GatewayState, ObservationSink } from '../../ports/index.js';
+import type { GatewayState, ObservationSink, TemporaryRoomObservation } from '../../ports/index.js';
 
 export class Observability implements ObservationSink {
   readonly registry = new Registry();
@@ -27,6 +27,12 @@ export class Observability implements ObservationSink {
   readonly gatewayFailures = new Counter({
     name: 'voicelet_gateway_failures_total',
     help: 'Gateway failures recorded without provider error details',
+    registers: [this.registry],
+  });
+  readonly roomOperations = new Counter({
+    name: 'voicelet_temporary_room_operations_total',
+    help: 'Temporary room operation outcomes',
+    labelNames: ['outcome'],
     registers: [this.registry],
   });
 
@@ -57,5 +63,9 @@ export class Observability implements ObservationSink {
   recordGatewayFailure(): void {
     this.gatewayFailures.inc();
     this.logger.error({ failureClass: 'gateway' }, 'gateway_failure');
+  }
+  recordTemporaryRoom(event: TemporaryRoomObservation): void {
+    this.roomOperations.inc({ outcome: event.replace('temporary_room_', '') });
+    this.logger.info({ outcome: event.replace('temporary_room_', '') }, 'temporary_room_operation');
   }
 }

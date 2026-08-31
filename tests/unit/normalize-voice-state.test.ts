@@ -11,6 +11,22 @@ describe('normalizeVoiceState', () => {
     expect(
       normalizeVoiceState({ ...validVoiceState, channelId: 'test-channel-next' }, clock)?.channelId,
     ).toBe('test-channel-next'));
+  it('preserves temporary-room transition details', () =>
+    expect(
+      normalizeVoiceState(
+        {
+          ...validVoiceState,
+          previousChannelId: 'previous-channel',
+          isBot: true,
+          displayName: 'Ada Lovelace',
+        },
+        clock,
+      ),
+    ).toMatchObject({
+      previousChannelId: 'previous-channel',
+      isBot: true,
+      displayName: 'Ada Lovelace',
+    }));
   it('normalizes a leave event', () =>
     expect(
       normalizeVoiceState({ ...validVoiceState, channelId: null }, clock)?.channelId,
@@ -20,5 +36,7 @@ describe('normalizeVoiceState', () => {
   it('rejects malformed optional fields', () => {
     expect(normalizeVoiceState({ ...validVoiceState, channelId: 1 }, clock)).toBeNull();
     expect(normalizeVoiceState({ ...validVoiceState, sessionId: 1 }, clock)).toBeNull();
+    expect(normalizeVoiceState({ ...validVoiceState, isBot: 'false' }, clock)).toBeNull();
+    expect(normalizeVoiceState({ ...validVoiceState, displayName: 1 }, clock)).toBeNull();
   });
 });

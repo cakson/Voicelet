@@ -14,3 +14,6 @@ Voicelet is a single background-worker process. Dependencies flow in one directi
 
 No data is persisted in this foundation. Tokens, production Discord identifiers, and raw event
 payloads must not be logged or emitted as metric labels.
+
+Temporary-room associations and per-member operation locks live in the application layer only and
+are discarded at restart. The Discord adapter owns channel creation and member movement.

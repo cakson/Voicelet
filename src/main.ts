@@ -18,15 +18,11 @@ export async function bootstrap(): Promise<void> {
     worker.factory instanceof SimulatedDiscordClientFactory ? worker.factory : undefined;
   if (config.gatewayMode === 'simulated' && simulatedFactory) {
     process.on('message', (message: unknown) => {
-      if (
-        typeof message === 'object' &&
-        message !== null &&
-        'type' in message &&
-        message.type === 'voice-state' &&
-        'event' in message
-      ) {
+      if (typeof message !== 'object' || message === null || !('type' in message)) return;
+      if (message.type === 'voice-state' && 'event' in message)
         simulatedFactory.client.emitVoiceState(message.event as RawVoiceState);
-      }
+      if (message.type === 'fail-next-room-create') simulatedFactory.client.failNextCreate = true;
+      if (message.type === 'fail-next-member-move') simulatedFactory.client.failNextMove = true;
     });
   }
   const shutdown = async () => {
@@ -38,6 +34,7 @@ export async function bootstrap(): Promise<void> {
     await Promise.race([worker.server.close(), timeoutReached]);
     clearTimeout(timeout!);
     if (process.connected) process.disconnect();
+    process.exit(0);
   };
   process.once('SIGINT', () => {
     void shutdown();
