@@ -27,6 +27,7 @@ export class TemporaryRoomManager {
   private readonly ownerPermissionState = new Map<string, 'applied' | 'failed'>();
   private readonly work = new Map<string, { generation: number; handle: ScheduledWork }>();
   private readonly locks = new Map<string, Promise<void>>();
+  private readonly parentOperations = new Map<string, Promise<void>>();
 
   constructor(
     private readonly configurations: Map<string, TemporaryRoomConfig>,
@@ -87,7 +88,9 @@ export class TemporaryRoomManager {
     const owner = this.owners.get(key);
     const config = this.configurations.get(event.guildId);
     if (!owner || !config || event.parentId === config.destinationCategoryId) return;
-    await this.serial(key, async () => {
+    const active = this.parentOperations.get(key);
+    if (active) return active;
+    const operation = this.serial(key, async () => {
       if (!this.owners.has(key)) return;
       const result = await this.discord.restoreRoomCategory(
         event.guildId,
@@ -112,6 +115,12 @@ export class TemporaryRoomManager {
           : 'temporary_room_owner_permission_failed',
       );
     });
+    this.parentOperations.set(key, operation);
+    try {
+      await operation;
+    } finally {
+      if (this.parentOperations.get(key) === operation) this.parentOperations.delete(key);
+    }
   }
 
   private async createOrReuse(

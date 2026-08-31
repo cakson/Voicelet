@@ -72,6 +72,31 @@ describe('TemporaryRoomManager', () => {
     expect(manager.isKnownManagedRoom('test-guild', 'sim-room-1')).toBe(true);
     expect(observations).toContain('temporary_room_category_restore_failed');
   });
+  it('coalesces duplicate parent-change notifications', async () => {
+    const discord = new SimulatedDiscordClient();
+    const manager = new TemporaryRoomManager(config, discord, () => undefined);
+    await manager.handle(event);
+    let applications = 0;
+    const apply = discord.applyOwnerAllowance.bind(discord);
+    discord.applyOwnerAllowance = async (...args) => {
+      applications += 1;
+      return apply(...args);
+    };
+    discord.moveRoom('test-guild', 'sim-room-1', 'elsewhere');
+    await Promise.all([
+      manager.roomParentChanged({
+        guildId: 'test-guild',
+        roomId: 'sim-room-1',
+        parentId: 'elsewhere',
+      }),
+      manager.roomParentChanged({
+        guildId: 'test-guild',
+        roomId: 'sim-room-1',
+        parentId: 'elsewhere',
+      }),
+    ]);
+    expect(applications).toBe(1);
+  });
   it('ignores bots and replaces a stale room', async () => {
     const discord = new SimulatedDiscordClient();
     const manager = new TemporaryRoomManager(config, discord, () => undefined);

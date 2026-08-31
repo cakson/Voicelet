@@ -208,7 +208,7 @@ tasks remain unchanged and retain their original traceability.
 - [X] T041 Add identifier-free assertions for owner-permission and category-restoration success and
   failure observations, including restoration failure, in `tests/integration/gateway-lifecycle.test.ts`
   and `src/infrastructure/logging/observability.ts` (FR-010a, FR-014).
-- [ ] T042 Add unit coverage for duplicate parent-event coalescing, deletion-wins restoration races,
+- [X] T042 Add unit coverage for duplicate parent-event coalescing, deletion-wins restoration races,
   and idempotent restoration-induced allowance reapplication in
   `tests/unit/manage-temporary-room.test.ts` (FR-010, FR-013).
 - [ ] T043 Extend simulated process E2E coverage to assert two-owner room isolation, trigger/category
