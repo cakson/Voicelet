@@ -270,7 +270,7 @@ tasks remain unchanged and retain their original traceability.
 
 ## Phase 9: Convergence
 
-- [ ] T031 Add secret-safe failure summaries to `.github/workflows/deploy-northflank.yml` for every
+- [X] T031 Add secret-safe failure summaries to `.github/workflows/deploy-northflank.yml` for every
   deployment failure path, identifying the requested version, resolved digest and prior reference
   when safely available, and a failed outcome without exposing tokens or raw API responses; add
   contract coverage in `tests/integration/deployment-artifacts.test.ts` (FR-015, US2/AC3,

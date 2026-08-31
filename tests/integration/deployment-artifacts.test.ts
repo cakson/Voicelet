@@ -63,6 +63,11 @@ describe('container and deployment artifacts', () => {
     expect(workflow).toContain('/containers');
     expect(workflow).toContain('TASK_RUNNING');
     expect(workflow).toContain('no running service containers');
+    expect(workflow).toContain('Summarize failed deployment');
+    expect(workflow).toContain('if: failure()');
+    expect(workflow).toContain("requested='unavailable (invalid image_version)'");
+    expect(workflow).toContain('- Outcome: `failed`');
+    expect(workflow).toContain('- Outcome: `succeeded`');
     expect(workflow).not.toMatch(/image(?:_ref|Reference)?\s*=.*:latest/);
   });
 

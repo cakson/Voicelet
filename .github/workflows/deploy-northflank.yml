@@ -68,7 +68,7 @@ jobs:
             --header 'Content-Type: application/json' \
             --data "$payload" \
             "$api/services/deployment/$NORTHFLANK_SERVICE_ID" >/dev/null
-          if printf '%s' "$previous" | grep -Eq '^ghcr.io/[^[:space:]]+$'; then
+          if [[ "$previous" =~ ^ghcr\.io/[a-z0-9._/-]+(@sha256:[0-9a-f]{64}|:[a-z0-9._-]+)$ ]]; then
             echo "previous_reference=$previous" >> "$GITHUB_OUTPUT"
           else
             echo 'previous_reference=unavailable' >> "$GITHUB_OUTPUT"
@@ -124,4 +124,35 @@ jobs:
             echo "- Previous image: \`$PREVIOUS_REFERENCE\`"
             echo "- Northflank deployment status: \`$status\`"
             echo '- Readiness verification: passed'
+            echo '- Outcome: `succeeded`'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summarize failed deployment
+        if: failure()
+        shell: bash
+        env:
+          REQUESTED_INPUT: ${{ inputs.image_version }}
+          RESOLVED_IMAGE: ${{ steps.resolve.outputs.image_reference }}
+          PREVIOUS_IMAGE: ${{ steps.update.outputs.previous_reference }}
+        run: |
+          set -euo pipefail
+          requested='unavailable (invalid image_version)'
+          if [[ "$REQUESTED_INPUT" =~ ^sha-[0-9a-f]{40}$ ]]; then
+            requested="$REQUESTED_INPUT"
+          fi
+          resolved='unavailable'
+          if [[ "$RESOLVED_IMAGE" =~ ^ghcr\.io/[a-z0-9._/-]+@sha256:[0-9a-f]{64}$ ]]; then
+            resolved="$RESOLVED_IMAGE"
+          fi
+          previous='unavailable'
+          if [[ "$PREVIOUS_IMAGE" =~ ^ghcr\.io/[a-z0-9._/-]+(@sha256:[0-9a-f]{64}|:[a-z0-9._-]+)$ ]]; then
+            previous="$PREVIOUS_IMAGE"
+          fi
+          {
+            echo '### Northflank deployment result'
+            echo "- Requested version: \`$requested\`"
+            echo "- Resolved image: \`$resolved\`"
+            echo "- Previous image: \`$previous\`"
+            echo '- Outcome: `failed`'
+            echo '- See the failed step above for the safe error message.'
           } >> "$GITHUB_STEP_SUMMARY"

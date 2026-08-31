@@ -76,7 +76,9 @@ present in the image. `pnpm container:smoke` automates the credential-free local
 
 The workflow fails before changing Northflank for malformed or missing versions. Update failures,
 container failures, readiness failures, and the five-minute verification timeout also fail the
-workflow; acceptance of an update alone is not success.
+workflow; acceptance of an update alone is not success. Whether it succeeds or fails, the workflow
+summary identifies the safely validated requested version, resolved and prior image references when
+available, and the final outcome without exposing credentials or raw platform responses.
 
 ## Rollback
 
