@@ -1,0 +1,15 @@
+.env*
+.git/
+.github/
+.specify/
+.agents/
+node_modules/
+dist/
+coverage/
+*.log
+*.tmp
+Dockerfile*
+docker-compose*.yml
+tests/
+specs/
+docs/

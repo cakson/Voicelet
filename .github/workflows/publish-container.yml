@@ -1,0 +1,61 @@
+name: Publish container
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Run repository quality gates
+        run: >-
+          docker run --rm
+          --volume "$PWD:/workspace"
+          --workdir /workspace
+          --env CI=true
+          node:24.20.0-bookworm-slim
+          sh -lc 'corepack enable && pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && pnpm check'
+      - name: Build production image
+        run: docker build --tag voicelet:ci .
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: quality-and-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Log in to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+      - name: Build and publish immutable image
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+          IMAGE_TAG: sha-${{ github.sha }}
+          SOURCE_URL: https://github.com/${{ github.repository }}
+        run: |
+          set -eu
+          image="$(printf '%s' "$IMAGE" | tr '[:upper:]' '[:lower:]')"
+          docker build \
+            --label "org.opencontainers.image.source=$SOURCE_URL" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --tag "$image:$IMAGE_TAG" \
+            --tag "$image:main" \
+            .
+          docker push "$image:$IMAGE_TAG"
+          docker push "$image:main"

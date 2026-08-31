@@ -68,3 +68,37 @@ production credentials for local testing.
 | `pnpm test`      | Run unit, integration, and end-to-end tests. |
 | `pnpm build`     | Compile the worker to `dist/`.               |
 | `pnpm check`     | Run the CI-equivalent quality gate.          |
+
+## Production container and deployment
+
+Build the production Docker image from the repository and lockfile with:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm check
+pnpm container:build
+```
+
+Run it with runtime values supplied separately (the image contains no `.env` or credentials):
+
+```sh
+docker run --rm --publish 3000:3000 \
+  --env HOST=0.0.0.0 \
+  --env GATEWAY_MODE=simulated \
+  --env TEMPORARY_ROOM_CONFIG='{}' \
+  voicelet:local
+```
+
+The container starts the normal production entrypoint and serves `/livez`, `/readyz`, and `/metrics`.
+`pnpm container:smoke` runs the credential-free endpoint check when Docker is available.
+
+Merges to `main` run quality checks and publish the image to GitHub Container Registry (GHCR) only
+after they pass. Each published image uses the immutable tag
+`ghcr.io/<owner>/<repository>:sha-<40-character-git-commit>`; its OCI revision metadata identifies
+the source Git commit. A mutable `main` convenience tag may exist, but it is never deployed.
+
+To deploy, open GitHub Actions, select **Deploy Northflank**, choose **Run workflow**, and enter the
+retained `sha-` version in `image_version`. The workflow validates the version, resolves its digest,
+updates the existing Northflank service, and requires `/readyz` readiness within five minutes. Runtime
+configuration and secrets remain Northflank-managed; build-time content never includes them. See
+[the deployment guide](docs/deployment.md) for required secret/configuration names and rollback.
