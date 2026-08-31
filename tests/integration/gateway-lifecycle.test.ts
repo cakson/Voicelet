@@ -266,6 +266,29 @@ describe('DiscordGatewayEventSource', () => {
     source.stop();
   });
 
+  it('observes restoration failures without losing the owner association', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const observability = Observability.create('silent');
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      observability,
+      configurations,
+    );
+    await source.start();
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    factory.client.failNextCategoryRestore = true;
+    factory.client.moveRoom('test-guild', 'sim-room-1', 'outside-category');
+    await settled();
+    expect(factory.client.rooms.has('sim-room-1')).toBe(true);
+    expect(await observability.registry.metrics()).toContain(
+      'voicelet_temporary_room_operations_total{outcome="category_restore_failed"} 1',
+    );
+    source.stop();
+  });
+
   it('reconciles startup zombies while preserving configured permanent and known managed rooms', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const scheduler = new ManualScheduler();

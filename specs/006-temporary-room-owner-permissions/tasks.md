@@ -186,7 +186,7 @@ tasks remain unchanged and retain their original traceability.
 - [X] T035 Complete the production-adapter unit coverage from T005 for member-only overwrite flags,
   voice-room/guild guards, parent restoration outcomes, provider failures, and parent-change event
   filtering (FR-002, FR-010, FR-012).
-- [ ] T036 Complete the simulator helper and documentation-contract coverage from T002, T003, and
+- [X] T036 Complete the simulator helper and documentation-contract coverage from T002, T003, and
   T032, including bounded owner/restoration observations, administrator prerequisite wording, and
   two-owner smoke-test assertions (FR-014, FR-015–FR-017, SC-006).
 - [ ] T037 Complete User Story 1 evidence from T010–T013 and T017: verify exact owner association,
@@ -205,7 +205,7 @@ tasks remain unchanged and retain their original traceability.
 
 ## Phase 8: Convergence
 
-- [ ] T041 Add identifier-free assertions for owner-permission and category-restoration success and
+- [X] T041 Add identifier-free assertions for owner-permission and category-restoration success and
   failure observations, including restoration failure, in `tests/integration/gateway-lifecycle.test.ts`
   and `src/infrastructure/logging/observability.ts` (FR-010a, FR-014).
 - [ ] T042 Add unit coverage for duplicate parent-event coalescing, deletion-wins restoration races,

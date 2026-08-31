@@ -58,6 +58,20 @@ describe('TemporaryRoomManager', () => {
     expect(discord.rooms.get('sim-room-1')?.categoryId).toBe('category');
     expect(discord.canManageRoom('sim-room-1', 'user')).toBe(true);
   });
+  it('retains the association when category restoration fails', async () => {
+    const discord = new SimulatedDiscordClient();
+    const observations: string[] = [];
+    const manager = new TemporaryRoomManager(config, discord, (event) => observations.push(event));
+    await manager.handle(event);
+    discord.failNextCategoryRestore = true;
+    await manager.roomParentChanged({
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      parentId: 'elsewhere',
+    });
+    expect(manager.isKnownManagedRoom('test-guild', 'sim-room-1')).toBe(true);
+    expect(observations).toContain('temporary_room_category_restore_failed');
+  });
   it('ignores bots and replaces a stale room', async () => {
     const discord = new SimulatedDiscordClient();
     const manager = new TemporaryRoomManager(config, discord, () => undefined);
