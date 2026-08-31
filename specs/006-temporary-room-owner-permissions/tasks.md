@@ -202,3 +202,20 @@ tasks remain unchanged and retain their original traceability.
 - [X] T040 Replace the remaining parallel owner/room maps with a single transient association record
   carrying owner identity and permission state, or document and test the equivalent invariant if the
   current maps are intentionally retained (FR-001, FR-006, FR-011; plan:data-model decision).
+
+## Phase 8: Convergence
+
+- [ ] T041 Add identifier-free assertions for owner-permission and category-restoration success and
+  failure observations, including restoration failure, in `tests/integration/gateway-lifecycle.test.ts`
+  and `src/infrastructure/logging/observability.ts` (FR-010a, FR-014).
+- [ ] T042 Add unit coverage for duplicate parent-event coalescing, deletion-wins restoration races,
+  and idempotent restoration-induced allowance reapplication in
+  `tests/unit/manage-temporary-room.test.ts` (FR-010, FR-013).
+- [ ] T043 Extend simulated process E2E coverage to assert two-owner room isolation, trigger/category
+  exclusion, owner deletion and replacement, allowance failure containment, and unaffected second-room
+  associations in `tests/e2e/worker-voice-state.test.ts` (FR-005–FR-006, FR-009, FR-012–FR-013,
+  FR-018, SC-002, SC-004–SC-005).
+- [ ] T044 Replace the parallel owner/room maps with one transient association record, or add an
+  explicit invariant test covering atomic owner, room, category, and permission-state updates in
+  `src/application/manage-temporary-room.ts` and `tests/unit/manage-temporary-room.test.ts`
+  (FR-001, FR-006, FR-011; plan:data-model decision).
