@@ -191,6 +191,31 @@ describe('DiscordGatewayEventSource', () => {
     source.stop();
   });
 
+  it('contains owner allowance failure without duplicate creation', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const observability = Observability.create('silent');
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      observability,
+      configurations,
+    );
+    await source.start();
+    factory.client.failNextOwnerAllowance = true;
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    expect(factory.client.rooms).toHaveLength(1);
+    expect(factory.client.ownerAllowances).toHaveLength(0);
+    expect(await observability.registry.metrics()).toContain(
+      'voicelet_temporary_room_operations_total{outcome="owner_permission_failed"} 1',
+    );
+    factory.client.emitVoiceState({ ...temporaryRoomJoin, previousChannelId: 'other-channel' });
+    await settled();
+    expect(factory.client.rooms).toHaveLength(1);
+    source.stop();
+  });
+
   it('leaves trigger and unrelated voice resources outside zombie cleanup', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const scheduler = new ManualScheduler();
