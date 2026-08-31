@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { ChannelType } from 'discord.js';
-import { DiscordJsClient } from '../../src/infrastructure/discord/discord-client-factory.js';
+import { ChannelType, GatewayIntentBits } from 'discord.js';
+import {
+  DiscordJsClient,
+  requiredGatewayIntents,
+} from '../../src/infrastructure/discord/discord-client-factory.js';
 
 describe('DiscordJsClient room lifecycle boundary', () => {
+  it('requests guild and voice-state Gateway intents for channel lifecycle events', () => {
+    expect(requiredGatewayIntents).toEqual(
+      expect.arrayContaining([GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates]),
+    );
+  });
+
   it('does not treat an uncached guild as a missing room or successful deletion', async () => {
     const client = new DiscordJsClient({
       guilds: { cache: { get: () => undefined } },
@@ -10,6 +19,30 @@ describe('DiscordJsClient room lifecycle boundary', () => {
 
     await expect(client.roomState('guild', 'room')).resolves.toBe('unavailable');
     await expect(client.deleteRoom('guild', 'room')).resolves.toBe('failed');
+  });
+
+  it('treats Discord unknown-channel responses as missing but retains transient failures', async () => {
+    const unknownChannel = new DiscordJsClient({
+      guilds: {
+        cache: {
+          get: () => ({
+            channels: { fetch: async () => Promise.reject({ code: 10_003 }) },
+          }),
+        },
+      },
+    } as never);
+    const unavailable = new DiscordJsClient({
+      guilds: {
+        cache: {
+          get: () => ({
+            channels: { fetch: async () => Promise.reject(new Error('network failure')) },
+          }),
+        },
+      },
+    } as never);
+
+    await expect(unknownChannel.roomState('guild', 'room')).resolves.toBe('missing');
+    await expect(unavailable.roomState('guild', 'room')).resolves.toBe('unavailable');
   });
 
   it('lists only category voice rooms and rechecks occupancy before cleanup deletion', async () => {

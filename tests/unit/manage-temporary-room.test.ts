@@ -132,7 +132,7 @@ describe('TemporaryRoomManager', () => {
     expect(applications).toBe(0);
     expect(manager.isKnownManagedRoom('test-guild', 'sim-room-1')).toBe(false);
   });
-  it('ignores bots and replaces a stale room', async () => {
+  it('ignores bots and replaces a missing stale room without a deletion callback', async () => {
     const discord = new SimulatedDiscordClient();
     const manager = new TemporaryRoomManager(config, discord, () => undefined);
     await manager.handle({ ...event, isBot: true });
@@ -141,6 +141,8 @@ describe('TemporaryRoomManager', () => {
     discord.rooms.delete('sim-room-1');
     await manager.handle({ ...event, previousChannelId: 'elsewhere' });
     expect(discord.rooms).toHaveLength(1);
+    expect(discord.rooms.has('sim-room-2')).toBe(true);
+    expect(discord.placements.get('test-guild:user')).toBe('sim-room-2');
   });
   it('ignores voice-state events outside the configured trigger', async () => {
     const discord = new SimulatedDiscordClient();

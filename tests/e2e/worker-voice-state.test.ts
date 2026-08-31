@@ -380,7 +380,12 @@ describe('worker voice-state flow', () => {
       1_000,
     );
 
-    worker.send({ type: 'external-room-delete', guildId: 'test-guild', roomId: 'sim-room-1' });
+    worker.send({
+      type: 'external-room-delete',
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      suppressCallback: true,
+    });
     await waitFor(
       () => capability(worker, 'sim-room-1', validVoiceState.userId),
       (allowed) => !allowed,

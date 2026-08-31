@@ -11,10 +11,17 @@ import type {
   RoomParentChanged,
 } from '../../ports/index.js';
 
+export const requiredGatewayIntents = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildVoiceStates,
+];
+
+function isUnknownChannel(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 10_003;
+}
+
 export class DiscordJsClient implements DiscordClient {
-  constructor(
-    private readonly client: Client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates] }),
-  ) {}
+  constructor(private readonly client: Client = new Client({ intents: requiredGatewayIntents })) {}
 
   onReady(listener: () => void): void {
     this.client.once('clientReady', listener);
@@ -40,8 +47,8 @@ export class DiscordJsClient implements DiscordClient {
       const channel = await guild.channels.fetch(roomId);
       if (!channel || channel.type !== ChannelType.GuildVoice) return 'missing';
       return channel.members.size === 0 ? 'empty' : 'occupied';
-    } catch {
-      return 'unavailable';
+    } catch (error) {
+      return isUnknownChannel(error) ? 'missing' : 'unavailable';
     }
   }
   async deleteRoom(guildId: string, roomId: string): Promise<DeleteRoomResult> {

@@ -93,7 +93,11 @@ export async function bootstrap(): Promise<void> {
         typeof message.guildId === 'string' &&
         typeof message.roomId === 'string'
       )
-        simulatedFactory.client.externalDelete(message.guildId, message.roomId);
+        simulatedFactory.client.externalDelete(
+          message.guildId,
+          message.roomId,
+          !('suppressCallback' in message && message.suppressCallback === true),
+        );
     });
   }
   const shutdown = async () => {

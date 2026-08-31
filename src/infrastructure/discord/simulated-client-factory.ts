@@ -155,11 +155,11 @@ export class SimulatedDiscordClient implements DiscordClient {
     );
     return 'restored';
   }
-  externalDelete(guildId: string, roomId: string): void {
+  externalDelete(guildId: string, roomId: string, notify = true): void {
     if (!this.rooms.delete(roomId)) return;
     this.ownerAllowances.delete(roomId);
     for (const [key, value] of this.placements) if (value === roomId) this.placements.delete(key);
-    this.roomDeletedListeners.forEach((listener) => listener(guildId, roomId));
+    if (notify) this.roomDeletedListeners.forEach((listener) => listener(guildId, roomId));
   }
   async createRoom(guildId: string, categoryId: string, name: string): Promise<string | null> {
     if (this.failNextCreate) {
