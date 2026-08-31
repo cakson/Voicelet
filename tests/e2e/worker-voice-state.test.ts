@@ -82,7 +82,10 @@ describe('worker voice-state flow', () => {
       () => request(socketPath, '/metrics'),
       (response) =>
         response.body.includes('voicelet_voice_state_events_handled_total 1') &&
-        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 1'),
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 1') &&
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="owner_permission_applied"} 1',
+        ),
       1_000,
     );
     worker.send({

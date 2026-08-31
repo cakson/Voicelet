@@ -23,8 +23,8 @@ description: "Dependency-ordered implementation tasks for temporary room owner p
 **Purpose**: Record the security exception and reviewer-facing acceptance evidence before changing permission behavior.
 
 - [X] T001 Obtain maintainer approval for the bot Administrator exception and record the approved owner, risk acceptance, remediation plan, and expiry in `specs/006-temporary-room-owner-permissions/plan.md`; provide the evidence to reviewers without changing `specs/006-temporary-room-owner-permissions/checklists/ownership-boundaries.md` markers.
-- [ ] T002 [P] Add documentation-contract assertions for native owner scope, owner privilege exclusions, bot Administrator prerequisite, category restoration, and the two-owner smoke test in `tests/integration/documentation.test.ts`.
-- [ ] T003 [P] Add reusable two-owner, room-parent-move, owner-allowance failure, and bounded-observation helpers in `tests/support/gateway-simulator/index.ts`.
+- [X] T002 [P] Add documentation-contract assertions for native owner scope, owner privilege exclusions, bot Administrator prerequisite, category restoration, and the two-owner smoke test in `tests/integration/documentation.test.ts`.
+- [X] T003 [P] Add reusable two-owner, room-parent-move, owner-allowance failure, and bounded-observation helpers in `tests/support/gateway-simulator/index.ts`.
 
 ---
 
@@ -35,7 +35,7 @@ description: "Dependency-ordered implementation tasks for temporary room owner p
 **⚠️ CRITICAL**: Complete this phase before implementing any user-story behavior.
 
 - [X] T004 Define owner-allowance and room-category-restoration result unions, parent-change listener, and bounded temporary-room observation names in `src/ports/index.ts`.
-- [ ] T005 [P] Add failing production-adapter unit coverage for member-only permission overwrites, voice-room type/guild guards, parent restoration, bounded provider failures, and parent-change filtering in `tests/unit/discord-client-factory.test.ts`.
+- [X] T005 [P] Add failing production-adapter unit coverage for member-only permission overwrites, voice-room type/guild guards, parent restoration, bounded provider failures, and parent-change filtering in `tests/unit/discord-client-factory.test.ts`.
 - [ ] T006 [P] Add privacy-safe owner-permission and category-restoration metric/log outcome support with identifier-free assertions in `src/infrastructure/logging/observability.ts` and `tests/integration/gateway-lifecycle.test.ts`.
 - [X] T007 Implement member-only owner overwrite application, voice-room parent restoration, and filtered voice-channel parent-change events in `src/infrastructure/discord/discord-client-factory.ts`.
 - [X] T008 Implement room-level owner allowance storage, native-capability query helpers, controlled allowance/restoration failures, parent moves, and parent-change notifications in `src/infrastructure/discord/simulated-client-factory.ts`.
@@ -183,7 +183,7 @@ T011 follows T010 because both modify `tests/unit/manage-temporary-room.test.ts`
 These follow-up tasks capture work still missing after the initial implementation pass. Existing
 tasks remain unchanged and retain their original traceability.
 
-- [ ] T035 Complete the production-adapter unit coverage from T005 for member-only overwrite flags,
+- [X] T035 Complete the production-adapter unit coverage from T005 for member-only overwrite flags,
   voice-room/guild guards, parent restoration outcomes, provider failures, and parent-change event
   filtering (FR-002, FR-010, FR-012).
 - [ ] T036 Complete the simulator helper and documentation-contract coverage from T002, T003, and
