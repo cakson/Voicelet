@@ -67,4 +67,9 @@ describe('TemporaryRoomManager', () => {
   });
   it('uses a deterministic fallback name', () =>
     expect(temporaryRoomName('***')).toBe('temporary-room'));
+  it('preserves the room suffix when enforcing the channel-name limit', () => {
+    const name = temporaryRoomName('a'.repeat(200));
+    expect(name).toHaveLength(100);
+    expect(name.endsWith('-room')).toBe(true);
+  });
 });

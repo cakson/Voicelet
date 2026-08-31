@@ -6,7 +6,8 @@ export function temporaryRoomName(displayName: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
-  return `${base || 'temporary'}-room`.slice(0, 100);
+  const suffix = '-room';
+  return `${(base || 'temporary').slice(0, 100 - suffix.length)}${suffix}`;
 }
 
 export class TemporaryRoomManager {

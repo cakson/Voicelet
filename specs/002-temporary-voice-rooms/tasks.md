@@ -198,5 +198,5 @@ the feature flow that makes them pass.
 
 ## Phase 7: Convergence
 
-- [ ] T035 Preserve the `-room` suffix when capping derived room names at Discord's maximum length, with unit coverage, per plan: channel-name rule (partial)
-- [ ] T036 Document that malformed `TEMPORARY_ROOM_CONFIG` values prevent startup with a generic safe validation error, per FR-014 (partial)
+- [X] T035 Preserve the `-room` suffix when capping derived room names at Discord's maximum length, with unit coverage, per plan: channel-name rule (partial)
+- [X] T036 Document that malformed `TEMPORARY_ROOM_CONFIG` values prevent startup with a generic safe validation error, per FR-014 (partial)

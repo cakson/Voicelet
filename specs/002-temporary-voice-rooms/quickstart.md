@@ -26,7 +26,9 @@ Set `TEMPORARY_ROOM_CONFIG` to a JSON object keyed by Discord server ID. Each va
 }
 ```
 
-Servers omitted from this mapping are intentionally ignored. For a credential-free local readiness run, also set `GATEWAY_MODE=simulated`. Do not commit `.env` or a Discord token.
+Servers omitted from this mapping are intentionally ignored. Malformed JSON or mapping entries stop
+startup with a generic validation error and do not echo the invalid value. For a credential-free
+local readiness run, also set `GATEWAY_MODE=simulated`. Do not commit `.env` or a Discord token.
 
 ## Validate the Automated Feature Journey
 

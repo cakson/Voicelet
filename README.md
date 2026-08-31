@@ -30,7 +30,8 @@ The operational endpoints are `GET /livez`, `GET /readyz`, and `GET /metrics`. A
 Set `TEMPORARY_ROOM_CONFIG` to a JSON map keyed by Discord server ID, with `triggerChannelId` and
 `destinationCategoryId` in each value. Servers omitted from the map are ignored. The bot requires
 Manage Channels, Move Members, and access to the destination category; configuration or Discord
-operation failures are recorded without identifiers or provider details.
+operation failures are recorded without identifiers or provider details. Malformed JSON or mapping
+entries fail startup with a generic validation error; the invalid value is not echoed.
 
 ## Common commands
 
