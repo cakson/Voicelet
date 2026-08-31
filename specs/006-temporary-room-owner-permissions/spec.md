@@ -89,8 +89,9 @@ second room is created for the same attempt, and the failure is observable witho
    lifecycle association, records a bounded privacy-safe failure, and does not mark the room as
    successfully owner-configured.
 2. **Given** a prior owner-allowance application failed, **When** Voicelet processes the same
-   creation request or a supported later retry, **Then** it does not create a duplicate room or
-   conflicting allowance for that association.
+   creation request or performs the sole supported automatic reapplication after a successful
+   category restoration, **Then** it does not create a duplicate room or conflicting allowance for
+   that association.
 3. **Given** an owner changes permissions in their own room, **When** Voicelet requires lifecycle
    or reconciliation access, **Then** Voicelet retains the effective access needed to perform those
    operations; an owner cannot use this feature to remove it.
@@ -103,6 +104,10 @@ second room is created for the same attempt, and the failure is observable witho
   avoids duplicate creation, and leaves stale-state handling to the existing lifecycle rules.
 - A temporary room is deleted before or after its allowance is applied; external-deletion handling
   removes only the matching association, and a missing-room notification is safe to repeat.
+- Duplicate parent-change notifications for the same tracked room are coalesced so at most one
+  restoration is active at a time. A confirmed external deletion wins over a pending restoration:
+  Voicelet clears only that association and performs neither a later restoration nor owner-allowance
+  reapplication for the deleted room.
 - A member-specific allowance cannot be applied because the bot role is insufficiently positioned
   or lacks required channel-management authority; the worker remains available and emits only
   bounded, privacy-safe operational evidence.
@@ -157,10 +162,14 @@ second room is created for the same attempt, and the failure is observable witho
   allowance for a room that has lost its current tracked ownership association.
 - **FR-012**: If application of the required owner-specific allowance fails after room creation,
   Voicelet MUST not crash, falsely report the room as successfully owner-configured, or create a
-  duplicate room solely because that allowance failed.
+  duplicate room solely because that allowance failed. A `missing` provider result MUST be recorded
+  as the `failed` owner-configuration state while existing stale-deletion handling determines
+  whether the room was deleted.
 - **FR-013**: A contained owner-allowance failure MUST leave existing room lifecycle and
-  reconciliation behavior operational. Any supported retry MUST be idempotent and MUST NOT result
-  in duplicate or conflicting member-specific allowances.
+  reconciliation behavior operational. No background or failure-triggered owner-allowance retry is
+  introduced by this feature. The sole automatic repeat application is an idempotent reapplication
+  after a successful category restoration, because Discord category synchronization can replace
+  channel overwrites; it MUST NOT result in duplicate or conflicting member-specific allowances.
 - **FR-014**: Permission-related failures MUST be observable through bounded, privacy-safe signals
   and MUST NOT log Discord tokens, raw Discord event payloads, or unnecessary personal identifiers.
 - **FR-015**: Documentation MUST explain the native room settings and access controls owners may
@@ -168,8 +177,11 @@ second room is created for the same attempt, and the failure is observable witho
   and that native management can permit renaming, changing region or user limit, and deletion where
   Discord allows it.
 - **FR-016**: Documentation MUST state that Voicelet grants no server-wide management privileges to
-  owners and MUST instruct administrators to grant and position Voicelet's bot role so it retains
-  the channel authority needed for room lifecycle, reconciliation, and deletion.
+  owners. To enable native owner access-permission editing, an administrator MUST grant Voicelet's
+  bot role effective Administrator permission as a bot-only, explicitly approved governance
+  exception; this permission MUST NOT be granted to an owner. Documentation MUST explain that this
+  prerequisite preserves Voicelet's lifecycle, reconciliation, restoration, and deletion authority
+  after owner-managed channel-permission changes.
 - **FR-017**: Local development documentation MUST include a manual smoke test that creates two
   temporary rooms and verifies each owner can manage only their own room, cannot manage the trigger
   or category, and can safely exercise owner-room deletion and replacement where Discord permits it.
@@ -196,8 +208,9 @@ second room is created for the same attempt, and the failure is observable witho
 
 ### Measurable Outcomes
 
-- **SC-001**: In deterministic creation scenarios, 100% of newly created tracked rooms receive the
-  expected member-specific owner allowance, and each allowance appears on exactly one room.
+- **SC-001**: In deterministic successful owner-configuration scenarios, 100% of newly created
+  tracked rooms receive the expected member-specific owner allowance, and each allowance appears on
+  exactly one room. Provider-failure scenarios are governed by SC-004.
 - **SC-002**: In automated isolation scenarios with at least two owners, 100% of owners have the
   expected native management capability on their own room and 0% receive that capability on another
   temporary room, the trigger channel, the category, or an unrelated channel.

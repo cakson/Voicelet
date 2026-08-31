@@ -74,9 +74,11 @@ out-of-category room as a zombie or expanding reconciliation scope.
 ## Decision: Contain permission setup failures without duplicate creation
 
 Record owner-permission application state in the transient association after the room is created.
-If the provider returns `failed` or `missing`, keep the association and ordinary lifecycle state,
-emit a bounded failure observation, and do not automatically retry in this feature. A subsequent
-trigger reuses the associated room rather than creating another.
+If the provider returns `failed` or `missing`, record the configuration as failed, keep the
+association and ordinary lifecycle state, emit a bounded failure observation, and do not add a
+background or failure-triggered retry in this feature. A subsequent trigger reuses the associated
+room rather than creating another. An idempotent reapplication after successful category
+restoration is separately required because category synchronization can replace overwrites.
 
 **Rationale**: A created room must remain lifecycle-managed even if its owner allowance could not be
 applied, and the one-active-room rule must remain authoritative.

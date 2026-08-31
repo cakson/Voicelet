@@ -62,8 +62,8 @@ ownership transfer, multiple owners, or ownership reconstruction after restart.
 | Actionable observability | Pass | New bounded owner-permission and category-restoration outcome metrics/logs contain no identifiers or provider details. |
 | Reproducible repository / Definition of done | Pass | Simulated tests avoid credentials and wall-clock waits; documentation and `pnpm check` are required. |
 
-**Post-design re-check**: Pass with the documented bot-permission prerequisite. There are no unresolved
-technical clarifications.
+**Post-design re-check**: Pass. The documented exception has an approved named owner, risk,
+remediation plan, and expiration date; T001 records that approval.
 
 ## Project Structure
 
@@ -124,14 +124,17 @@ application policy.
    privacy-safe owner-permission and restoration observations.
 2. Extend the temporary-room manager's association record with `ownerPermissionState`. After room
    creation and association creation, attempt the overwrite exactly once before the normal member
-   move. On `failed` or `missing`, retain the association and lifecycle behavior, record a failure,
-   and never create another room for that creation attempt. Clear the state with its association on
-   deletion. No automatic retry is introduced in this feature.
+   move. On `failed` or `missing`, record `failed`, retain the association and lifecycle behavior,
+   record a failure, and never create another room for that creation attempt. Clear the state with
+   its association on deletion. No background or failure-triggered retry is introduced in this
+   feature.
 3. In the Discord adapter, create a member overwrite on only the created voice channel allowing
    `ManageChannels` and `ManageRoles`; never create or edit an owner role. Translate provider errors
    to `failed`, validate guild/channel type, and subscribe to voice-channel update events. On a
-   tracked room parent change away from its configured category, restore the parent; reapply the
-   required owner overwrite after restoration in case category synchronization replaced it.
+   tracked room parent change away from its configured category, coalesce duplicate events and
+   restore the parent; reapply the required owner overwrite idempotently after restoration in case
+   category synchronization replaced it. Confirmed deletion wins over restoration and prevents any
+   subsequent restore or reapplication for that association.
 4. Preserve Voicelet's lifecycle authority by documenting and validating the bot Administrator
    prerequisite. Owner-native permission editing is unsupported unless that prerequisite is met;
    no room owner receives Administrator or broader server privileges.
@@ -147,3 +150,17 @@ application policy.
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |---|---|---|
 | Bot Administrator deployment prerequisite | Discord permits an owner with native channel permission-editing authority to alter channel overwrites. Administrator is required for Voicelet to retain lifecycle access regardless of such owner changes. | Granting only `ManageChannels` to the owner would remove native access-management capability; relying on bot role ordering or a normal bot overwrite does not reliably prevent overwrite denial. |
+
+### Required Exception Approval
+
+**Status**: Approved by the Voicelet project maintainer on 2026-08-31. This approval is limited to
+the bot-only deployment prerequisite described below; it does not authorize Administrator or any
+server-wide privilege for room owners.
+
+| Field | Record |
+|---|---|
+| Owner | @cakson |
+| Approval evidence | @cakson's instruction in the feature planning session on 2026-08-31. |
+| Risk acceptance | Voicelet's bot receives effective Administrator permission, increasing its server-wide blast radius, so owners can safely use native channel permission editing without disabling required lifecycle access. |
+| Remediation | Reassess and replace this prerequisite if Discord supplies a narrower channel-scoped mechanism that protects the bot's lifecycle authority from owner overwrite edits. |
+| Expiry | 2026-12-31; reassess before any production Discord onboarding, which remains out of scope for this feature. |

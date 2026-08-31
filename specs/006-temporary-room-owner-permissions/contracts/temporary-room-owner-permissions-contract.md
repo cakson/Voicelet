@@ -16,8 +16,9 @@ provider failures to observability.
 1. Create the room through the existing category-scoped operation.
 2. Create the normal transient owner/room association before applying the owner allowance.
 3. Apply the owner allowance once. On `applied`, record owner configuration as applied. On `missing`
-   or `failed`, retain the association/lifecycle state, record a bounded failure, and do not report
-   successful configuration.
+   or `failed`, record the owner-configuration state as failed, retain the association/lifecycle
+   state, record a bounded failure, and do not report successful configuration. A `missing` result
+   also defers to normal stale-deletion handling to determine whether the room was deleted.
 4. Continue the existing move-member and lifecycle flow. Repeated creator requests reuse the
    associated room; they do not create a replacement solely because owner setup failed.
 5. A confirmed external deletion clears the matching association and any owner-permission state.
@@ -26,12 +27,16 @@ provider failures to observability.
 
 1. On a parent-change event for a known tracked room whose parent differs from its configured
    category, request restoration.
-2. On `restored` or `already_in_category`, retain the association and reapply the owner allowance;
-   category synchronization may have replaced room overwrites.
+2. Coalesce duplicate parent-change notifications for one tracked room so only one restoration is
+   active at a time. On `restored` or `already_in_category`, retain the association and reapply the
+   owner allowance idempotently; category synchronization may have replaced room overwrites. This
+   restoration-induced reapplication is the only automatic repeat application in this feature.
 3. On `missing`, defer to the existing external-deletion handling. On `failed`, retain the
    association and record a bounded restoration failure.
 4. Reconciliation continues to enumerate only the configured category. It does not scan, delete,
    adopt, or reconstruct an owner for the moved room while restoration is pending.
+5. Confirmed external deletion wins over a pending restoration: clear only the matching association
+   and do not subsequently restore or reapply an owner allowance for that deleted room.
 
 ## Permission and Deployment Contract
 
