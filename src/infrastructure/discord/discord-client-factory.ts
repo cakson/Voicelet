@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits } from 'discord.js';
+import { ChannelType, Client, GatewayIntentBits } from 'discord.js';
 import type { DiscordClient, DiscordClientFactory, RawVoiceState } from '../../ports/index.js';
 
 class DiscordJsClient implements DiscordClient {
@@ -9,14 +9,46 @@ class DiscordJsClient implements DiscordClient {
     this.client.on('shardReady', listener);
   }
   onVoiceState(listener: (event: RawVoiceState) => void): void {
-    this.client.on('voiceStateUpdate', (_oldState, state) => {
+    this.client.on('voiceStateUpdate', (oldState, state) => {
       listener({
         guildId: state.guild.id,
         userId: state.id,
         channelId: state.channelId,
+        previousChannelId: oldState.channelId,
         sessionId: state.sessionId,
+        isBot: state.member?.user.bot ?? false,
+        displayName: state.member?.displayName ?? state.member?.user.username ?? 'temporary-room',
       });
     });
+  }
+  async roomExists(guildId: string, roomId: string): Promise<boolean> {
+    try {
+      const channel = await this.client.guilds.cache.get(guildId)?.channels.fetch(roomId);
+      return channel?.type === ChannelType.GuildVoice;
+    } catch {
+      return false;
+    }
+  }
+  async createRoom(guildId: string, categoryId: string, name: string): Promise<string | null> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return null;
+      return (
+        await guild.channels.create({ name, type: ChannelType.GuildVoice, parent: categoryId })
+      ).id;
+    } catch {
+      return null;
+    }
+  }
+  async moveMember(guildId: string, userId: string, roomId: string): Promise<boolean> {
+    try {
+      const member = await this.client.guilds.cache.get(guildId)?.members.fetch(userId);
+      if (!member) return false;
+      await member.voice.setChannel(roomId);
+      return true;
+    } catch {
+      return false;
+    }
   }
   onDisconnect(listener: () => void): void {
     this.client.on('shardDisconnect', listener);

@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { get } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { validVoiceState } from '../support/fixtures/voice-state.js';
 
 type Response = { statusCode: number; body: string };
@@ -43,7 +43,7 @@ describe('worker voice-state flow', () => {
     workers.splice(0).forEach((worker) => worker.kill('SIGTERM'));
   });
 
-  it('starts a worker process and handles a simulated voice-state event within required bounds', async () => {
+  it('starts a worker process and handles temporary rooms within required bounds', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'voicelet-e2e-'));
     const socketPath = join(directory, 'worker.sock');
     const worker = fork('src/main.ts', [], {
@@ -53,6 +53,12 @@ describe('worker voice-state flow', () => {
         GATEWAY_MODE: 'simulated',
         SOCKET_PATH: socketPath,
         LOG_LEVEL: 'silent',
+        TEMPORARY_ROOM_CONFIG: JSON.stringify({
+          'test-guild': {
+            triggerChannelId: 'trigger-channel',
+            destinationCategoryId: 'category-id',
+          },
+        }),
       },
       execArgv: ['--import', 'tsx'],
       stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
@@ -61,14 +67,52 @@ describe('worker voice-state flow', () => {
     await waitFor(
       () => request(socketPath, '/readyz'),
       (response) => response.statusCode === 200,
-      30_000,
+      10_000,
     );
-    worker.send({ type: 'voice-state', event: validVoiceState });
+    const triggerEvent = {
+      ...validVoiceState,
+      channelId: 'trigger-channel',
+      previousChannelId: null,
+      isBot: false,
+      displayName: 'Ada Lovelace',
+    };
+    worker.send({ type: 'voice-state', event: triggerEvent });
     await waitFor(
       () => request(socketPath, '/metrics'),
-      (response) => response.body.includes('voicelet_voice_state_events_handled_total 1'),
-      5_000,
+      (response) =>
+        response.body.includes('voicelet_voice_state_events_handled_total 1') &&
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 1'),
+      1_000,
     );
+    worker.send({
+      type: 'voice-state',
+      event: { ...triggerEvent, previousChannelId: 'elsewhere' },
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="reused"} 1'),
+      1_000,
+    );
+    worker.send({ type: 'fail-next-member-move' });
+    worker.send({ type: 'voice-state', event: { ...triggerEvent, userId: 'retry-user' } });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="move_failed"} 1'),
+      1_000,
+    );
+    worker.send({
+      type: 'voice-state',
+      event: { ...triggerEvent, userId: 'retry-user', previousChannelId: 'elsewhere' },
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="reused"} 2'),
+      1_000,
+    );
+    expect((await request(socketPath, '/readyz')).statusCode).toBe(200);
     const stopped = new Promise<void>((resolve) => worker.once('exit', () => resolve()));
     worker.kill('SIGTERM');
     await stopped;

@@ -19,6 +19,7 @@ export function createWorker(config: AppConfig, simulatedFactory?: DiscordClient
     config.discordToken ?? 'simulated-token',
     systemClock,
     observability,
+    config.temporaryRooms,
   );
   const server = createOperationalServer(() => source.readiness, observability);
   return { source, server, observability, factory };

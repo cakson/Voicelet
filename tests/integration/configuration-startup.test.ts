@@ -36,4 +36,33 @@ describe('documented environment configuration', () => {
       'Invalid environment configuration',
     );
   });
+
+  it('loads independent multi-server temporary-room mappings', () => {
+    const config = loadConfig({
+      GATEWAY_MODE: 'simulated',
+      TEMPORARY_ROOM_CONFIG: JSON.stringify({
+        'guild-one': { triggerChannelId: 'trigger-one', destinationCategoryId: 'category-one' },
+        'guild-two': { triggerChannelId: 'trigger-two', destinationCategoryId: 'category-two' },
+      }),
+    });
+    expect(config.temporaryRooms.get('guild-one')).toEqual({
+      triggerChannelId: 'trigger-one',
+      destinationCategoryId: 'category-one',
+    });
+    expect(config.temporaryRooms).toHaveLength(2);
+    expect(loadConfig({ GATEWAY_MODE: 'simulated' }).temporaryRooms).toHaveLength(0);
+  });
+
+  it('rejects malformed temporary-room mappings without exposing their contents', () => {
+    const secret = 'should-not-be-logged';
+    const malformed = JSON.stringify({ guild: secret });
+    expect(() =>
+      loadConfig({ GATEWAY_MODE: 'simulated', TEMPORARY_ROOM_CONFIG: malformed }),
+    ).toThrow('Invalid environment configuration');
+    try {
+      loadConfig({ GATEWAY_MODE: 'simulated', TEMPORARY_ROOM_CONFIG: malformed });
+    } catch (error) {
+      expect(String(error)).not.toContain(secret);
+    }
+  });
 });

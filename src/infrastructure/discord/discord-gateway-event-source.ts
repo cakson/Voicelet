@@ -4,7 +4,9 @@ import type {
   DiscordClientFactory,
   GatewayState,
 } from '../../ports/index.js';
-import { handleVoiceState } from '../../application/handle-voice-state.js';
+import { normalizeVoiceState } from '../../domain/normalize-voice-state.js';
+import { TemporaryRoomManager } from '../../application/manage-temporary-room.js';
+import type { TemporaryRoomConfig } from '../../domain/voice-state.js';
 import type { Observability } from '../logging/observability.js';
 
 export class DiscordGatewayEventSource {
@@ -16,9 +18,14 @@ export class DiscordGatewayEventSource {
     private readonly token: string,
     private readonly clock: Clock,
     private readonly observability: Observability,
+    configurations: Map<string, TemporaryRoomConfig> = new Map(),
   ) {
     this.client = factory.create();
+    this.rooms = new TemporaryRoomManager(configurations, this.client, (event) =>
+      this.observability.recordTemporaryRoom(event),
+    );
   }
+  private readonly rooms: TemporaryRoomManager;
 
   get readiness(): GatewayState {
     return this.state;
@@ -35,7 +42,19 @@ export class DiscordGatewayEventSource {
       this.setState('ready');
     });
     this.client.onVoiceState((event) => {
-      handleVoiceState(event, this.clock, this.observability);
+      const normalized = normalizeVoiceState(event, this.clock);
+      if (!normalized) {
+        this.observability.record('voice_state_rejected', {
+          eventType: 'voice_state',
+          outcome: 'rejected',
+        });
+        return;
+      }
+      this.observability.record('voice_state_handled', {
+        eventType: 'voice_state',
+        outcome: 'handled',
+      });
+      void this.rooms.handle(normalized);
     });
     this.client.onDisconnect(() => {
       this.setState('disconnected');
