@@ -89,6 +89,20 @@ describe('worker voice-state flow', () => {
       1_000,
     );
     worker.send({
+      type: 'move-room',
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      categoryId: 'other-category',
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="category_restored"} 1',
+        ),
+      1_000,
+    );
+    worker.send({
       type: 'voice-state',
       event: { ...triggerEvent, channelId: null, previousChannelId: 'sim-room-1' },
     });
