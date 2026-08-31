@@ -133,6 +133,26 @@ describe('TemporaryRoomManager', () => {
     expect(discord.rooms.has('sim-room-1')).toBe(true);
   });
 
+  it('tracks a newly created room left empty by an initial move failure', async () => {
+    const discord = new SimulatedDiscordClient();
+    const scheduler = new ManualScheduler();
+    const observations: string[] = [];
+    const manager = new TemporaryRoomManager(config, discord, scheduler, (event) =>
+      observations.push(event),
+    );
+    discord.failNextMove = true;
+    await manager.handle(event);
+    expect(discord.placements.has('test-guild:user')).toBe(false);
+    expect(observations).toContain('temporary_room_inactivity_started');
+
+    discord.failNextDelete = true;
+    await scheduler.advanceBy(60_000);
+    expect(discord.rooms.has('sim-room-1')).toBe(true);
+    expect(observations).toContain('temporary_room_delete_failed');
+    await scheduler.advanceBy(15 * 60_000);
+    expect(discord.rooms.has('sim-room-1')).toBe(false);
+  });
+
   it('clears externally deleted associations but keeps an association after a failed move', async () => {
     const discord = new SimulatedDiscordClient();
     const scheduler = new ManualScheduler();

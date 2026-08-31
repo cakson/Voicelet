@@ -190,4 +190,37 @@ describe('DiscordGatewayEventSource', () => {
     expect(factory.client.rooms.has('sim-room-2')).toBe(true);
     source.stop();
   });
+
+  it('never schedules deletion for trigger, unmanaged, or unrelated voice resources', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const scheduler = new ManualScheduler();
+    factory.client.rooms.set('unmanaged-room', {
+      guildId: 'test-guild',
+      categoryId: 'category-id',
+      name: 'unmanaged',
+    });
+    factory.client.rooms.set('unrelated-room', {
+      guildId: 'test-guild',
+      categoryId: 'other-category',
+      name: 'unrelated',
+    });
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      scheduler,
+      Observability.create('silent'),
+      configurations,
+      scheduler,
+    );
+    await source.start();
+    for (const previousChannelId of ['trigger-channel', 'unmanaged-room', 'unrelated-room']) {
+      factory.client.emitVoiceState({ ...temporaryRoomJoin, channelId: null, previousChannelId });
+    }
+    await settled();
+    await scheduler.advanceBy(60_000);
+    expect(factory.client.deleteAttempts).toEqual([]);
+    expect(factory.client.rooms.has('unmanaged-room')).toBe(true);
+    expect(factory.client.rooms.has('unrelated-room')).toBe(true);
+    source.stop();
+  });
 });
