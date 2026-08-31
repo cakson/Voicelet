@@ -5,6 +5,12 @@
 **Status**: Draft  
 **Input**: User description: "Create the Room Reconciliation & Zombie Cleanup feature."
 
+## Clarifications
+
+### Session 2026-08-31
+
+- Q: What should the default reconciliation interval be? → A: 15 minutes (Option B).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Remove Empty Untracked Rooms (Priority: P1)
@@ -123,7 +129,7 @@ As an operator, I want contained, privacy-safe signals when reconciliation canno
 
 ## Assumptions
 
-- The default 15-minute cadence balances timely cleanup with avoiding unnecessarily frequent category scans; administrators may choose any valid whole-minute value from 1 to 1,440.
+- The selected default 15-minute cadence balances timely cleanup with avoiding unnecessarily frequent category scans; administrators may choose any valid whole-minute value from 1 to 1,440.
 - The existing per-server configuration is the authoritative place for all category-specific identifiers and permanent exclusions.
 - A channel's occupancy at the deletion decision is authoritative; an uninspectable channel is preserved rather than deleted.
 - The existing transient managed-room state remains authoritative only for the running process, and no historical association is reconstructed after restart.
