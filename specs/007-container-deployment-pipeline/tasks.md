@@ -28,12 +28,12 @@ used for its independent validation.
 **Purpose**: Establish the repository guardrails and local validation seam before changing delivery
 artifacts.
 
-- [ ] T001 Add focused container/workflow/documentation contract assertions for immutable SHA tags,
+- [X] T001 Add focused container/workflow/documentation contract assertions for immutable SHA tags,
   least-privilege permissions, PR non-publication, manual deployment input validation, bounded
   verification, and secret-safe documentation in `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T002 Add a credential-free production-container smoke-test helper using the simulated
+- [X] T002 Add a credential-free production-container smoke-test helper using the simulated
   Gateway and endpoint assertions in `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T003 [P] Record the required GitHub secrets, variables, Northflank RBAC scope, existing GHCR
+- [X] T003 [P] Record the required GitHub secrets, variables, Northflank RBAC scope, existing GHCR
   pull-credential prerequisite, and safe operator evidence in `docs/deployment.md`.
 
 ---
@@ -45,16 +45,16 @@ story relies on.
 
 **⚠️ CRITICAL**: Complete this phase before publishing or deployment workflows are enabled.
 
-- [ ] T004 Define the multi-stage Node 24 production build, frozen-lockfile install, compiled
+- [X] T004 Define the multi-stage Node 24 production build, frozen-lockfile install, compiled
   entrypoint, production-only runtime dependencies, non-root user, and operational HTTP healthcheck
   in `Dockerfile`.
-- [ ] T005 [P] Exclude `.env` variants, Git metadata, local dependencies, build output, coverage,
+- [X] T005 [P] Exclude `.env` variants, Git metadata, local dependencies, build output, coverage,
   logs, and other non-runtime context in `.dockerignore`.
-- [ ] T006 Add a local Docker build/run and simulated-Gateway endpoint validation command to
+- [X] T006 Add a local Docker build/run and simulated-Gateway endpoint validation command to
   `package.json` without exposing runtime secrets.
-- [ ] T007 Make the new container contract and smoke-test coverage pass in
+- [X] T007 Make the new container contract and smoke-test coverage pass in
   `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T008 Run `pnpm check` and the documented local Docker smoke scenario; resolve container-related
+- [X] T008 Run `pnpm check` and the documented local Docker smoke scenario; resolve container-related
   failures in `Dockerfile`, `.dockerignore`, `package.json`, and
   `tests/integration/deployment-artifacts.test.ts`.
 
@@ -74,21 +74,21 @@ pull-request publication credentials or publish steps.
 
 ### Tests for User Story 1
 
-- [ ] T009 [US1] Add publisher workflow contract cases for pull-request non-publication,
+- [X] T009 [US1] Add publisher workflow contract cases for pull-request non-publication,
   main-only GHCR publication, full-SHA immutable tags, OCI source/revision labels, pinned actions,
   and minimum permissions in `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T010 [US1] Add a repository contract case confirming documentation distinguishes mutable
+- [X] T010 [US1] Add a repository contract case confirming documentation distinguishes mutable
   convenience tags from immutable deployable versions in `tests/integration/deployment-artifacts.test.ts`.
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Create the pull-request/main GitHub Actions quality, production-image-build, and
+- [X] T011 [US1] Create the pull-request/main GitHub Actions quality, production-image-build, and
   GHCR-publish workflow with `pnpm check`, main-only authenticated publishing, full-SHA tags, OCI
   labels, optional `main` tag, and least-privilege permissions in `.github/workflows/publish-container.yml`.
-- [ ] T012 [US1] Update existing CI trigger/permission behavior only as needed to avoid duplicate
+- [X] T012 [US1] Update existing CI trigger/permission behavior only as needed to avoid duplicate
   conflicting quality enforcement while preserving reproducible PR and main checks in
   `.github/workflows/ci.yml`.
-- [ ] T013 [US1] Make the User Story 1 workflow/documentation contract cases pass in
+- [X] T013 [US1] Make the User Story 1 workflow/documentation contract cases pass in
   `tests/integration/deployment-artifacts.test.ts`.
 
 **Checkpoint**: A passing main revision produces `sha-<40-character-commit-sha>` in GHCR; a pull
@@ -107,21 +107,21 @@ reference while preserving Northflank runtime configuration.
 
 ### Tests for User Story 2
 
-- [ ] T014 [US2] Add deployment workflow contract cases for `workflow_dispatch`, strict
+- [X] T014 [US2] Add deployment workflow contract cases for `workflow_dispatch`, strict
   `image_version` validation, GHCR tag existence/digest resolution, no mutable tag deployment,
   read-only GHCR permissions, and secret-safe output in `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T015 [US2] Add contract assertions that deployment reads the previous Northflank image and
+- [X] T015 [US2] Add contract assertions that deployment reads the previous Northflank image and
   changes only the external image reference while retaining runtime configuration in
   `tests/integration/deployment-artifacts.test.ts`.
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] Create the manually dispatched Northflank deployment workflow with documented
+- [X] T016 [US2] Create the manually dispatched Northflank deployment workflow with documented
   repository configuration, required readiness URL validation, strict SHA-tag input rejection, GHCR
   descriptor inspection, prior-image capture, digest-qualified image update through the current
   Northflank service deployment API, and least-privilege permissions in
   `.github/workflows/deploy-northflank.yml`.
-- [ ] T017 [US2] Make the User Story 2 workflow contract cases pass in
+- [X] T017 [US2] Make the User Story 2 workflow contract cases pass in
   `tests/integration/deployment-artifacts.test.ts`.
 
 **Checkpoint**: The only way to update Northflank is an explicit workflow dispatch selecting a valid
@@ -140,19 +140,19 @@ the rollback case.
 
 ### Tests for User Story 3
 
-- [ ] T018 [US3] Add workflow contract cases for five-minute bounded polling, terminal
+- [X] T018 [US3] Add workflow contract cases for five-minute bounded polling, terminal
   Northflank/container failure, readiness success/failure, safe requested/digest/previous-version
   summaries, and no secret/API-response logging in `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T019 [US3] Add rollback contract cases showing any retained older SHA version follows the
+- [X] T019 [US3] Add rollback contract cases showing any retained older SHA version follows the
   same validation and digest deployment path without a build in
   `tests/integration/deployment-artifacts.test.ts`.
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Add bounded Northflank service/container polling, required configured `/readyz`
+- [X] T020 [US3] Add bounded Northflank service/container polling, required configured `/readyz`
   verification, clear failure exits, and safe requested/digest/previous-image/final-state summaries in
   `.github/workflows/deploy-northflank.yml`.
-- [ ] T021 [US3] Make the User Story 3 verification and rollback contract cases pass in
+- [X] T021 [US3] Make the User Story 3 verification and rollback contract cases pass in
   `tests/integration/deployment-artifacts.test.ts`.
 
 **Checkpoint**: A Northflank update acceptance alone cannot report success; a retained earlier SHA
@@ -164,18 +164,18 @@ version can be selected to roll back through the same workflow.
 
 **Purpose**: Complete operator documentation and final repository evidence.
 
-- [ ] T022 [P] Document production Docker build/run, endpoint checks, immutable SHA versioning,
+- [X] T022 [P] Document production Docker build/run, endpoint checks, immutable SHA versioning,
   GHCR discovery, manual deployment, exact-version selection, Git commit lookup, rollback, and
   build-time versus Northflank runtime configuration in `README.md`.
-- [ ] T023 [P] Finalize secure deployment prerequisites, Northflank configuration boundary,
+- [X] T023 [P] Finalize secure deployment prerequisites, Northflank configuration boundary,
   operator troubleshooting, expected safe workflow output, and rollback instructions in
   `docs/deployment.md`.
-- [ ] T024 Update architecture/testing documentation for the operations boundary and container/
+- [X] T024 Update architecture/testing documentation for the operations boundary and container/
   workflow validation evidence in `docs/architecture.md` and `docs/testing.md`.
-- [ ] T025 Run the complete quickstart validation and resolve documentation-contract gaps in
+- [X] T025 Run the complete quickstart validation and resolve documentation-contract gaps in
   `specs/007-container-deployment-pipeline/quickstart.md`, `README.md`, `docs/deployment.md`, and
   `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T026 Run `pnpm check` and the documented production Docker smoke test; resolve all
+- [X] T026 Run `pnpm check` and the documented production Docker smoke test; resolve all
   feature-related failures in `package.json`, `Dockerfile`, `.dockerignore`, `.github/workflows/`,
   `tests/integration/deployment-artifacts.test.ts`, `README.md`, and `docs/`.
 
@@ -241,3 +241,5 @@ serially in a single worktree despite their logically independent coverage.
   image, repository, or safe workflow output.
 - The tasks intentionally omit automatic deployment, semantic release management, multi-environment
   delivery, infrastructure provisioning, and automatic rollback.
+- Final local `pnpm check` passed with elevated permissions; `pnpm container:smoke` was attempted but
+  Docker is unavailable in the current environment (`docker: command not found`).

@@ -1,0 +1,116 @@
+name: Deploy Northflank
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_version:
+        description: Immutable Voicelet version (sha- followed by 40 lowercase hex characters)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository }}
+      IMAGE_VERSION: ${{ inputs.image_version }}
+      NORTHFLANK_API_TOKEN: ${{ secrets.NORTHFLANK_API_TOKEN }}
+      NORTHFLANK_PROJECT_ID: ${{ vars.NORTHFLANK_PROJECT_ID }}
+      NORTHFLANK_SERVICE_ID: ${{ vars.NORTHFLANK_SERVICE_ID }}
+      NORTHFLANK_GHCR_CREDENTIAL_ID: ${{ vars.NORTHFLANK_GHCR_CREDENTIAL_ID }}
+      NORTHFLANK_READINESS_URL: ${{ vars.NORTHFLANK_READINESS_URL }}
+    steps:
+      - name: Validate configuration and resolve immutable image
+        id: resolve
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$NORTHFLANK_API_TOKEN" || -z "$NORTHFLANK_PROJECT_ID" || -z "$NORTHFLANK_SERVICE_ID" || -z "$NORTHFLANK_READINESS_URL" ]]; then
+            echo 'Required deployment configuration is missing.' >&2
+            exit 1
+          fi
+          if ! printf '%s\n' "$IMAGE_VERSION" | grep -Eq '^sha-[0-9a-f]{40}$'; then
+            echo 'image_version must match sha-<40 lowercase hexadecimal characters>.' >&2
+            exit 1
+          fi
+          image="$(printf '%s' "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
+          echo "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin >/dev/null
+          image_ref="$image:$IMAGE_VERSION"
+          digest="$(docker buildx imagetools inspect "$image_ref" 2>/dev/null | awk '/Digest:/ { print $2; exit }')"
+          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
+            echo 'Requested image version was not found or has no immutable digest.' >&2
+            exit 1
+          fi
+          echo "requested_version=$IMAGE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "image_reference=$image@$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Update Northflank service image
+        id: update
+        shell: bash
+        env:
+          IMAGE_REFERENCE: ${{ steps.resolve.outputs.image_reference }}
+        run: |
+          set -euo pipefail
+          api="https://api.northflank.com/v1/projects/$NORTHFLANK_PROJECT_ID"
+          service_json="$(curl --fail --silent --show-error --header "Authorization: Bearer $NORTHFLANK_API_TOKEN" "$api/services/$NORTHFLANK_SERVICE_ID")"
+          deployment="$(printf '%s' "$service_json" | jq -ce '.data.deployment // .data.service.deployment')"
+          previous="$(printf '%s' "$deployment" | jq -r '.external.imagePath // empty')"
+          updated="$(printf '%s' "$deployment" | jq --arg image "$IMAGE_REFERENCE" '.external.imagePath=$image | del(.runtimeEnvironment, .runtimeFiles)')"
+          payload="$(jq -cn --argjson deployment "$updated" '{deployment: $deployment}')"
+          curl --fail --silent --show-error --request PATCH \
+            --header "Authorization: Bearer $NORTHFLANK_API_TOKEN" \
+            --header 'Content-Type: application/json' \
+            --data "$payload" \
+            "$api/services/deployment/$NORTHFLANK_SERVICE_ID" >/dev/null
+          if printf '%s' "$previous" | grep -Eq '^ghcr.io/[^[:space:]]+$'; then
+            echo "previous_reference=$previous" >> "$GITHUB_OUTPUT"
+          else
+            echo 'previous_reference=unavailable' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify deployment and readiness
+        shell: bash
+        env:
+          IMAGE_REFERENCE: ${{ steps.resolve.outputs.image_reference }}
+          REQUESTED_VERSION: ${{ steps.resolve.outputs.requested_version }}
+          PREVIOUS_REFERENCE: ${{ steps.update.outputs.previous_reference }}
+        run: |
+          set -euo pipefail
+          # NORTHFLANK_READINESS_URL must point to the Voicelet /readyz endpoint.
+          api="https://api.northflank.com/v1/projects/$NORTHFLANK_PROJECT_ID"
+          status=''
+          # Bounded timeout: 30 attempts at 10 seconds is five minutes.
+          for attempt in $(seq 1 30); do
+            service_json="$(curl --fail --silent --show-error --header "Authorization: Bearer $NORTHFLANK_API_TOKEN" "$api/services/$NORTHFLANK_SERVICE_ID")"
+            status="$(printf '%s' "$service_json" | jq -r '.data.status.deployment.status // empty')"
+            if [[ "$status" == 'FAILED' ]]; then
+              echo 'Northflank reported a failed deployment.' >&2
+              exit 1
+            fi
+            if [[ "$status" == 'COMPLETED' ]]; then
+              break
+            fi
+            if [[ "$attempt" == 30 ]]; then
+              echo 'Northflank deployment verification timed out.' >&2
+              exit 1
+            fi
+            sleep 10
+          done
+          if ! curl --fail --silent --show-error --max-time 10 "$NORTHFLANK_READINESS_URL" >/dev/null; then
+            echo 'Voicelet readiness verification failed.' >&2
+            exit 1
+          fi
+          {
+            echo '### Northflank deployment result'
+            echo "- Requested version: \`$REQUESTED_VERSION\`"
+            echo "- Resolved image: \`$IMAGE_REFERENCE\`"
+            echo "- Previous image: \`$PREVIOUS_REFERENCE\`"
+            echo "- Northflank deployment status: \`$status\`"
+            echo '- Readiness verification: passed'
+          } >> "$GITHUB_STEP_SUMMARY"

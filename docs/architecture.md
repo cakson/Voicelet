@@ -29,3 +29,10 @@ Room reconciliation is a separate application policy. It receives category-scope
 guarded empty-room deletion outcomes through the Discord port, compares them with the manager's
 read-only transient association view, and never mutates associations for zombies. The gateway source
 starts one coalesced per-server scan schedule after ready and cancels it on disconnect or stop.
+
+Container publishing and Northflank deployment are operations-layer concerns. The production image
+contains compiled Voicelet output and runtime dependencies only; GitHub Actions publishes a full-SHA
+GHCR version after `pnpm check`, while a separate manually triggered workflow resolves that version
+to a digest and updates the existing service. Northflank remains the owner of Discord credentials and
+environment-specific runtime configuration. Workflow summaries contain only the selected version,
+digest, bounded deployment state, and safe readiness outcome.
