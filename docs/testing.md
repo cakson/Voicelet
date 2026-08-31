@@ -15,3 +15,8 @@ documented 30-second and 5-second bounds.
 
 Temporary-room coverage includes per-server configuration, creation, reuse, stale rooms, duplicate
 deliveries, concurrent members, safe failures, and readiness after failure.
+
+Automated tests use the simulated Gateway and never require a Discord credential or live server.
+For a real Discord connection, use the manual [Local Discord development onboarding guide](local-discord-development.md),
+which keeps the bot token in an ignored local `.env`, checks loopback `/livez` and `/readyz`, and
+walks through create, move, reuse, and clean shutdown.

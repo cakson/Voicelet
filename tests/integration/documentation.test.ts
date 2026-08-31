@@ -7,4 +7,65 @@ describe('documentation', () => {
     for (const command of ['pnpm dev', 'pnpm check', 'pnpm build'])
       expect(readme).toContain(command);
   });
+
+  it('publishes the local Discord onboarding entry point', async () => {
+    const readme = await readFile('README.md', 'utf8');
+    expect(readme).toContain('docs/local-discord-development.md');
+    expect(readme).toContain('Local Discord development');
+  });
+
+  it('keeps the tracked environment example safe and complete', async () => {
+    const example = await readFile('.env.example', 'utf8');
+    expect(example).toContain('DISCORD_TOKEN=');
+    expect(example).toContain('GATEWAY_MODE=discord');
+    expect(example).toContain('TEMPORARY_ROOM_CONFIG=');
+    expect(example).toContain('Secret:');
+    expect(example).toContain('Non-secret');
+    expect(example).toContain('127.0.0.1');
+    expect(example).toContain('3000');
+    expect(example).toContain('<development-server-id>');
+    expect(example).not.toMatch(/DISCORD_TOKEN=\S+/);
+    expect(example).not.toMatch(/\b\d{17,20}\b/);
+  });
+
+  it('covers the required setup, smoke test, security, and troubleshooting contract', async () => {
+    const guide = await readFile('docs/local-discord-development.md', 'utf8');
+    for (const phrase of [
+      'Discord Developer Portal',
+      'bot token',
+      'personal Discord',
+      'normal Discord user account',
+      'production credentials',
+      'regenerate',
+      'dedicated test server',
+      'Guild Install',
+      'View Channel',
+      'Manage Channels',
+      'Move Members',
+      'Connect',
+      'GuildVoiceStates',
+      'no privileged',
+      'Developer Mode',
+      'TEMPORARY_ROOM_CONFIG',
+      'triggerChannelId',
+      'destinationCategoryId',
+      '/livez',
+      '/readyz',
+      '/metrics',
+      'port forwarding',
+      'tunnel',
+      'public domain',
+      'room-creation',
+      'existing room',
+      'clean',
+      'Troubleshooting',
+      'voice-state',
+      'cannot create',
+      'cannot move',
+    ]) {
+      expect(guide).toContain(phrase);
+    }
+    expect(guide).not.toContain('user token');
+    expect(guide).not.toMatch(/(?:DISCORD_TOKEN|token)\s*[:=]\s*[A-Za-z0-9._-]{20,}/i);
+  });
 });
