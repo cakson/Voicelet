@@ -28,6 +28,10 @@ export async function bootstrap(): Promise<void> {
         simulatedFactory.client.failNextCategoryInspection = true;
       if (message.type === 'fail-next-room-inspection')
         simulatedFactory.client.failNextRoomInspection = true;
+      if (message.type === 'fail-next-owner-allowance')
+        simulatedFactory.client.failNextOwnerAllowance = true;
+      if (message.type === 'fail-next-category-restore')
+        simulatedFactory.client.failNextCategoryRestore = true;
       if (
         message.type === 'seed-room' &&
         'guildId' in message &&
@@ -50,6 +54,31 @@ export async function bootstrap(): Promise<void> {
         simulatedFactory.client.setRoomOccupied(message.guildId, message.roomId, message.occupied);
       if (message.type === 'emit-ready') simulatedFactory.client.emitReady();
       if (
+        message.type === 'owner-capability' &&
+        'roomId' in message &&
+        'ownerId' in message &&
+        typeof message.roomId === 'string' &&
+        typeof message.ownerId === 'string'
+      )
+        process.send?.({
+          type: 'owner-capability-result',
+          allowed: simulatedFactory.client.canManageRoom(message.roomId, message.ownerId),
+        });
+      if (
+        message.type === 'move-room' &&
+        'guildId' in message &&
+        'roomId' in message &&
+        typeof message.guildId === 'string' &&
+        typeof message.roomId === 'string'
+      )
+        simulatedFactory.client.moveRoom(
+          message.guildId,
+          message.roomId,
+          'categoryId' in message && typeof message.categoryId === 'string'
+            ? message.categoryId
+            : undefined,
+        );
+      if (
         message.type === 'advance-time' &&
         'milliseconds' in message &&
         typeof message.milliseconds === 'number' &&
@@ -64,7 +93,11 @@ export async function bootstrap(): Promise<void> {
         typeof message.guildId === 'string' &&
         typeof message.roomId === 'string'
       )
-        simulatedFactory.client.externalDelete(message.guildId, message.roomId);
+        simulatedFactory.client.externalDelete(
+          message.guildId,
+          message.roomId,
+          !('suppressCallback' in message && message.suppressCallback === true),
+        );
     });
   }
   const shutdown = async () => {

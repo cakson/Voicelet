@@ -19,6 +19,26 @@ function request(socketPath: string, path: string): Promise<Response> {
   });
 }
 
+function capability(worker: ChildProcess, roomId: string, ownerId: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const listener = (message: unknown) => {
+      if (
+        typeof message === 'object' &&
+        message !== null &&
+        'type' in message &&
+        message.type === 'owner-capability-result' &&
+        'allowed' in message &&
+        typeof message.allowed === 'boolean'
+      ) {
+        worker.off('message', listener);
+        resolve(message.allowed);
+      }
+    };
+    worker.on('message', listener);
+    worker.send({ type: 'owner-capability', roomId, ownerId });
+  });
+}
+
 async function waitFor<T>(
   action: () => Promise<T>,
   predicate: (value: T) => boolean,
@@ -82,7 +102,26 @@ describe('worker voice-state flow', () => {
       () => request(socketPath, '/metrics'),
       (response) =>
         response.body.includes('voicelet_voice_state_events_handled_total 1') &&
-        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 1'),
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 1') &&
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="owner_permission_applied"} 1',
+        ),
+      1_000,
+    );
+    await expect(capability(worker, 'sim-room-1', validVoiceState.userId)).resolves.toBe(true);
+    await expect(capability(worker, 'sim-room-1', 'other-user')).resolves.toBe(false);
+    worker.send({
+      type: 'move-room',
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      categoryId: 'other-category',
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="category_restored"} 1',
+        ),
       1_000,
     );
     worker.send({
@@ -248,4 +287,121 @@ describe('worker voice-state flow', () => {
     worker.kill('SIGTERM');
     await rm(directory, { recursive: true, force: true });
   }, 20_000);
+
+  it('keeps native owner capability scoped through deletion, replacement, and setup failure', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'voicelet-owner-permissions-e2e-'));
+    const socketPath = join(directory, 'worker.sock');
+    const worker = fork('src/main.ts', [], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        GATEWAY_MODE: 'simulated',
+        SOCKET_PATH: socketPath,
+        LOG_LEVEL: 'silent',
+        TEMPORARY_ROOM_CONFIG: JSON.stringify({
+          'test-guild': {
+            triggerChannelId: 'trigger-channel',
+            destinationCategoryId: 'category-id',
+            inactivityTimeoutMinutes: 1,
+            permanentChannelIds: ['permanent-room'],
+          },
+        }),
+      },
+      execArgv: ['--import', 'tsx'],
+      stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+    });
+    workers.push(worker);
+    await waitFor(
+      () => request(socketPath, '/readyz'),
+      (response) => response.statusCode === 200,
+      10_000,
+    );
+    worker.send({
+      type: 'seed-room',
+      guildId: 'test-guild',
+      roomId: 'permanent-room',
+      categoryId: 'category-id',
+    });
+    const ownerA = { ...validVoiceState, channelId: 'trigger-channel', previousChannelId: null };
+    const ownerB = {
+      ...ownerA,
+      userId: 'owner-b',
+      displayName: 'Owner B',
+    };
+    worker.send({ type: 'voice-state', event: ownerA });
+    worker.send({ type: 'voice-state', event: ownerB });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 2') &&
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="owner_permission_applied"} 2',
+        ),
+      2_000,
+    );
+    await expect(capability(worker, 'sim-room-1', validVoiceState.userId)).resolves.toBe(true);
+    await expect(capability(worker, 'sim-room-2', 'owner-b')).resolves.toBe(true);
+    await expect(capability(worker, 'sim-room-2', validVoiceState.userId)).resolves.toBe(false);
+    await expect(capability(worker, 'sim-room-1', 'owner-b')).resolves.toBe(false);
+    await expect(capability(worker, 'trigger-channel', validVoiceState.userId)).resolves.toBe(
+      false,
+    );
+    await expect(capability(worker, 'category-id', validVoiceState.userId)).resolves.toBe(false);
+    await expect(capability(worker, 'permanent-room', validVoiceState.userId)).resolves.toBe(false);
+
+    worker.send({ type: 'fail-next-owner-allowance' });
+    worker.send({
+      type: 'voice-state',
+      event: { ...ownerA, userId: 'owner-failure', displayName: 'Owner Failure' },
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 3') &&
+        response.body.includes(
+          'voicelet_temporary_room_operations_total{outcome="owner_permission_failed"} 1',
+        ),
+      2_000,
+    );
+    await expect(capability(worker, 'sim-room-3', 'owner-failure')).resolves.toBe(false);
+    worker.send({
+      type: 'voice-state',
+      event: {
+        ...ownerA,
+        userId: 'owner-failure',
+        displayName: 'Owner Failure',
+        previousChannelId: 'elsewhere',
+      },
+    });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 3'),
+      1_000,
+    );
+
+    worker.send({
+      type: 'external-room-delete',
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      suppressCallback: true,
+    });
+    await waitFor(
+      () => capability(worker, 'sim-room-1', validVoiceState.userId),
+      (allowed) => !allowed,
+      2_000,
+    );
+    worker.send({ type: 'voice-state', event: { ...ownerA, previousChannelId: 'elsewhere' } });
+    await waitFor(
+      () => request(socketPath, '/metrics'),
+      (response) =>
+        response.body.includes('voicelet_temporary_room_operations_total{outcome="created"} 4'),
+      2_000,
+    );
+    await expect(capability(worker, 'sim-room-4', validVoiceState.userId)).resolves.toBe(true);
+    await expect(capability(worker, 'sim-room-2', 'owner-b')).resolves.toBe(true);
+
+    worker.kill('SIGTERM');
+    await rm(directory, { recursive: true, force: true });
+  }, 30_000);
 });

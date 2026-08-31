@@ -30,8 +30,109 @@ describe('TemporaryRoomManager', () => {
     expect(discord.rooms).toHaveLength(1);
     expect([...discord.rooms.values()][0]?.name).toBe('ada-lovelace-room');
     expect(discord.placements.get('test-guild:user')).toBe('sim-room-1');
+    expect(discord.canManageRoom('sim-room-1', 'user')).toBe(true);
+    expect(discord.canManageRoom('sim-room-1', 'other')).toBe(false);
   });
-  it('ignores bots and replaces a stale room', async () => {
+  it('contains owner allowance failures without retrying on reuse', async () => {
+    const discord = new SimulatedDiscordClient();
+    const observations: string[] = [];
+    const manager = new TemporaryRoomManager(config, discord, (event) => observations.push(event));
+    discord.failNextOwnerAllowance = true;
+    await manager.handle(event);
+    expect(discord.ownerAllowances.has('sim-room-1')).toBe(false);
+    expect(observations).toContain('temporary_room_owner_permission_failed');
+    await manager.handle(event);
+    expect(discord.ownerAllowances.has('sim-room-1')).toBe(false);
+    expect(discord.rooms).toHaveLength(1);
+  });
+  it('restores a moved room and reapplies its owner allowance', async () => {
+    const discord = new SimulatedDiscordClient();
+    const manager = new TemporaryRoomManager(config, discord, () => undefined);
+    await manager.handle(event);
+    discord.moveRoom('test-guild', 'sim-room-1', 'elsewhere');
+    await manager.roomParentChanged({
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      parentId: 'elsewhere',
+    });
+    expect(discord.rooms.get('sim-room-1')?.categoryId).toBe('category');
+    expect(discord.canManageRoom('sim-room-1', 'user')).toBe(true);
+  });
+  it('retains the association when category restoration fails', async () => {
+    const discord = new SimulatedDiscordClient();
+    const observations: string[] = [];
+    const manager = new TemporaryRoomManager(config, discord, (event) => observations.push(event));
+    await manager.handle(event);
+    discord.failNextCategoryRestore = true;
+    await manager.roomParentChanged({
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      parentId: 'elsewhere',
+    });
+    expect(manager.isKnownManagedRoom('test-guild', 'sim-room-1')).toBe(true);
+    expect(observations).toContain('temporary_room_category_restore_failed');
+  });
+  it('coalesces duplicate parent-change notifications', async () => {
+    const discord = new SimulatedDiscordClient();
+    const manager = new TemporaryRoomManager(config, discord, () => undefined);
+    await manager.handle(event);
+    let applications = 0;
+    const apply = discord.applyOwnerAllowance.bind(discord);
+    discord.applyOwnerAllowance = async (...args) => {
+      applications += 1;
+      return apply(...args);
+    };
+    discord.moveRoom('test-guild', 'sim-room-1', 'elsewhere');
+    await Promise.all([
+      manager.roomParentChanged({
+        guildId: 'test-guild',
+        roomId: 'sim-room-1',
+        parentId: 'elsewhere',
+      }),
+      manager.roomParentChanged({
+        guildId: 'test-guild',
+        roomId: 'sim-room-1',
+        parentId: 'elsewhere',
+      }),
+    ]);
+    expect(applications).toBe(1);
+  });
+  it('does not reapply an owner allowance after confirmed deletion races restoration', async () => {
+    const discord = new SimulatedDiscordClient();
+    const manager = new TemporaryRoomManager(config, discord, () => undefined);
+    await manager.handle(event);
+    let releaseRestore!: () => void;
+    const restorationStarted = new Promise<void>((resolve) => {
+      const restore = discord.restoreRoomCategory.bind(discord);
+      discord.restoreRoomCategory = async (...args) => {
+        resolve();
+        await new Promise<void>((release) => {
+          releaseRestore = release;
+        });
+        return restore(...args);
+      };
+    });
+    let applications = 0;
+    const apply = discord.applyOwnerAllowance.bind(discord);
+    discord.applyOwnerAllowance = async (...args) => {
+      applications += 1;
+      return apply(...args);
+    };
+
+    const restoration = manager.roomParentChanged({
+      guildId: 'test-guild',
+      roomId: 'sim-room-1',
+      parentId: 'elsewhere',
+    });
+    await restorationStarted;
+    const deletion = manager.externalDeleted('test-guild', 'sim-room-1');
+    releaseRestore();
+    await Promise.all([restoration, deletion]);
+
+    expect(applications).toBe(0);
+    expect(manager.isKnownManagedRoom('test-guild', 'sim-room-1')).toBe(false);
+  });
+  it('ignores bots and replaces a missing stale room without a deletion callback', async () => {
     const discord = new SimulatedDiscordClient();
     const manager = new TemporaryRoomManager(config, discord, () => undefined);
     await manager.handle({ ...event, isBot: true });
@@ -40,6 +141,8 @@ describe('TemporaryRoomManager', () => {
     discord.rooms.delete('sim-room-1');
     await manager.handle({ ...event, previousChannelId: 'elsewhere' });
     expect(discord.rooms).toHaveLength(1);
+    expect(discord.rooms.has('sim-room-2')).toBe(true);
+    expect(discord.placements.get('test-guild:user')).toBe('sim-room-2');
   });
   it('ignores voice-state events outside the configured trigger', async () => {
     const discord = new SimulatedDiscordClient();

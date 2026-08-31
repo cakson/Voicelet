@@ -191,6 +191,31 @@ describe('DiscordGatewayEventSource', () => {
     source.stop();
   });
 
+  it('contains owner allowance failure without duplicate creation', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const observability = Observability.create('silent');
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      observability,
+      configurations,
+    );
+    await source.start();
+    factory.client.failNextOwnerAllowance = true;
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    expect(factory.client.rooms).toHaveLength(1);
+    expect(factory.client.ownerAllowances).toHaveLength(0);
+    expect(await observability.registry.metrics()).toContain(
+      'voicelet_temporary_room_operations_total{outcome="owner_permission_failed"} 1',
+    );
+    factory.client.emitVoiceState({ ...temporaryRoomJoin, previousChannelId: 'other-channel' });
+    await settled();
+    expect(factory.client.rooms).toHaveLength(1);
+    source.stop();
+  });
+
   it('leaves trigger and unrelated voice resources outside zombie cleanup', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const scheduler = new ManualScheduler();
@@ -215,6 +240,52 @@ describe('DiscordGatewayEventSource', () => {
     await scheduler.advanceBy(60_000);
     expect(factory.client.deleteAttempts).toEqual([]);
     expect(factory.client.rooms.has('unrelated-room')).toBe(true);
+    source.stop();
+  });
+
+  it('applies isolated owner allowances and restores moved rooms', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      Observability.create('silent'),
+      configurations,
+    );
+    await source.start();
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    factory.client.emitVoiceState({ ...temporaryRoomJoin, userId: 'second-user' });
+    await settled();
+    expect(factory.client.canManageRoom('sim-room-1', 'test-user')).toBe(true);
+    expect(factory.client.canManageRoom('sim-room-1', 'second-user')).toBe(false);
+    expect(factory.client.canManageRoom('sim-room-2', 'second-user')).toBe(true);
+    factory.client.moveRoom('test-guild', 'sim-room-1', 'outside-category');
+    await settled();
+    expect(factory.client.rooms.get('sim-room-1')?.categoryId).toBe('category-id');
+    source.stop();
+  });
+
+  it('observes restoration failures without losing the owner association', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const observability = Observability.create('silent');
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      observability,
+      configurations,
+    );
+    await source.start();
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    factory.client.failNextCategoryRestore = true;
+    factory.client.moveRoom('test-guild', 'sim-room-1', 'outside-category');
+    await settled();
+    expect(factory.client.rooms.has('sim-room-1')).toBe(true);
+    expect(await observability.registry.metrics()).toContain(
+      'voicelet_temporary_room_operations_total{outcome="category_restore_failed"} 1',
+    );
     source.stop();
   });
 

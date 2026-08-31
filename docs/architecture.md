@@ -16,7 +16,9 @@ No data is persisted in this foundation. Tokens, production Discord identifiers,
 payloads must not be logged or emitted as metric labels.
 
 Temporary-room associations and per-member operation locks live in the application layer only and
-are discarded at restart. The Discord adapter owns channel creation and member movement.
+are discarded at restart. The Discord adapter owns channel creation, member movement,
+member-specific owner overwrites, and tracked-room category restoration. Owner overwrites contain
+only `ManageChannels` and `ManageRoles` on the created room; no owner role is created.
 
 Temporary-room lifecycle scheduling and occupancy policy also live in the application layer. The
 Discord adapter supplies current room state, deletion, and external-deletion notification; timers are

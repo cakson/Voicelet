@@ -23,15 +23,17 @@ the `bot` scope. Authorize the generated install link for a dedicated test serve
 that can manage that server. A user-context-only installation is not sufficient for Voicelet's
 server voice-channel operations. Confirm that the bot appears in the test server's member list.
 
-Grant the bot only these effective permissions on the relevant server/category/channels:
+For native owner access-permission editing, an administrator must grant the Voicelet bot effective
+**Administrator** permission. This bot-only prerequisite preserves lifecycle, reconciliation,
+restoration, and deletion authority after owners edit channel overwrites; never grant it to owners.
+Verify the bot can access the configured resources with:
 
 - **View Channel** so it can access the trigger, category, and created voice channels;
 - **Manage Channels** so it can create a temporary voice channel under the category;
 - **Move Members** so it can move the triggering member; and
 - **Connect**, which Discord requires when moving a member into a voice channel.
 
-Check role ordering and category/channel permission overrides. Do not grant **Administrator**; it is
-not required. The member authorizing the guild installation needs the server-management authority
+Check role ordering and category/channel permission overrides. The member authorizing the guild installation needs the server-management authority
 Discord requires for installing a server-scoped application.
 
 ## 3. Gateway capability
@@ -131,6 +133,12 @@ confirm the development bot shows **online** in the dedicated test server.
 10. Stop Voicelet with Ctrl-C (SIGINT). Confirm the process exits cleanly and the local endpoints stop
     responding.
 
+11. Repeat with two ordinary test members. Confirm each owner can use Discord's native interface to
+    rename, change region/user limit, and manage access for only their own room. Confirm neither can
+    manage the trigger, category, another temporary room, or an unrelated channel. Move one room
+    outside the category and verify restoration; delete it and verify its owner can create a
+    replacement while the other room remains unchanged.
+
 ## Troubleshooting
 
 ### Missing or invalid bot credentials
@@ -155,9 +163,10 @@ startup with a generic validation error and is not echoed by the worker.
 
 ### Missing Discord permissions
 
-Verify effective **View Channel**, **Manage Channels**, **Move Members**, and **Connect** permissions
-for the bot's role. Inspect category and channel overrides, and ensure the bot's role is high enough
-for the move operation. Administrator is unnecessary.
+Verify effective **Administrator** for the bot as the documented prerequisite (or, for deployments
+that do not enable native access editing, at minimum **View Channel**, **Manage Channels**, **Move
+Members**, and **Connect**). Inspect category and channel overrides. Never grant Administrator to
+owners.
 
 ### Worker connects but receives no voice-state events
 

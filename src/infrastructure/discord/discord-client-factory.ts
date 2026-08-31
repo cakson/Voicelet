@@ -6,12 +6,22 @@ import type {
   DiscordClientFactory,
   RawVoiceState,
   RoomState,
+  OwnerAllowanceResult,
+  RoomCategoryRestorationResult,
+  RoomParentChanged,
 } from '../../ports/index.js';
 
+export const requiredGatewayIntents = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildVoiceStates,
+];
+
+function isUnknownChannel(error: unknown): boolean {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 10_003;
+}
+
 export class DiscordJsClient implements DiscordClient {
-  constructor(
-    private readonly client: Client = new Client({ intents: [GatewayIntentBits.GuildVoiceStates] }),
-  ) {}
+  constructor(private readonly client: Client = new Client({ intents: requiredGatewayIntents })) {}
 
   onReady(listener: () => void): void {
     this.client.once('clientReady', listener);
@@ -37,8 +47,8 @@ export class DiscordJsClient implements DiscordClient {
       const channel = await guild.channels.fetch(roomId);
       if (!channel || channel.type !== ChannelType.GuildVoice) return 'missing';
       return channel.members.size === 0 ? 'empty' : 'occupied';
-    } catch {
-      return 'unavailable';
+    } catch (error) {
+      return isUnknownChannel(error) ? 'missing' : 'unavailable';
     }
   }
   async deleteRoom(guildId: string, roomId: string): Promise<DeleteRoomResult> {
@@ -85,6 +95,59 @@ export class DiscordJsClient implements DiscordClient {
     this.client.on('channelDelete', (channel) => {
       if (channel.type === ChannelType.GuildVoice) listener(channel.guild.id, channel.id);
     });
+  }
+  onRoomParentChanged(listener: (event: RoomParentChanged) => void): void {
+    this.client.on('channelUpdate', (oldChannel, newChannel) => {
+      if (
+        newChannel.type !== ChannelType.GuildVoice ||
+        !('parentId' in oldChannel) ||
+        oldChannel.parentId === newChannel.parentId
+      )
+        return;
+      listener({
+        guildId: newChannel.guild.id,
+        roomId: newChannel.id,
+        parentId: newChannel.parentId ?? undefined,
+      });
+    });
+  }
+  async applyOwnerAllowance(
+    guildId: string,
+    roomId: string,
+    ownerId: string,
+  ): Promise<OwnerAllowanceResult> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'missing';
+      const channel = await guild.channels.fetch(roomId);
+      if (!channel || channel.type !== ChannelType.GuildVoice || channel.guild.id !== guildId)
+        return 'missing';
+      await channel.permissionOverwrites.edit(ownerId, {
+        ManageChannels: true,
+        ManageRoles: true,
+      });
+      return 'applied';
+    } catch {
+      return 'failed';
+    }
+  }
+  async restoreRoomCategory(
+    guildId: string,
+    roomId: string,
+    categoryId: string,
+  ): Promise<RoomCategoryRestorationResult> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'failed';
+      const channel = await guild.channels.fetch(roomId);
+      if (!channel || channel.type !== ChannelType.GuildVoice || channel.guild.id !== guildId)
+        return 'missing';
+      if (channel.parentId === categoryId) return 'already_in_category';
+      await channel.setParent(categoryId);
+      return 'restored';
+    } catch {
+      return 'failed';
+    }
   }
   async createRoom(guildId: string, categoryId: string, name: string): Promise<string | null> {
     try {

@@ -79,6 +79,9 @@ export class DiscordGatewayEventSource {
     this.client.onRoomDeleted((guildId, roomId) => {
       void this.rooms.externalDeleted(guildId, roomId);
     });
+    this.client.onRoomParentChanged((event) => {
+      void this.rooms.roomParentChanged(event);
+    });
     this.client.onDisconnect(() => {
       this.setState('disconnected');
       this.reconciler.pause();
