@@ -21,8 +21,9 @@ jobs:
           docker run --rm
           --volume "$PWD:/workspace"
           --workdir /workspace
+          --env CI=true
           node:24.20.0-bookworm-slim
-          sh -lc 'corepack enable && pnpm install --frozen-lockfile && pnpm check'
+          sh -lc 'corepack enable && pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && pnpm check'
       - name: Build production image
         run: docker build --tag voicelet:ci .
 

@@ -30,6 +30,8 @@ describe('container and deployment artifacts', () => {
     expect(workflow).toContain('pull_request');
     expect(workflow).toContain('branches: [main]');
     expect(workflow).toContain('pnpm check');
+    expect(workflow).toContain('--store-dir /tmp/pnpm-store');
+    expect(workflow).toContain('--env CI=true');
     expect(workflow).toContain('packages: write');
     expect(workflow).toContain('sha-${{ github.sha }}');
     expect(workflow).toContain('org.opencontainers.image.revision');
