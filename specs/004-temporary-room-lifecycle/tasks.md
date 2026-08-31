@@ -182,5 +182,11 @@ Each test task targets a distinct file and can proceed in parallel. T015–T017 
 
 ## Phase 7: Convergence
 
-- [ ] T032 Return `unavailable` for an uncached live guild during room lookup and `failed` for deletion, with regression coverage for the stale-association and failed-deletion safety paths per FR-012a and FR-010 (contradicts).
-- [ ] T033 Add explicit simulated integration assertions that trigger, unmanaged, and unrelated voice resources are never automatic-deletion targets per SC-003 (partial).
+- [X] T032 Return `unavailable` for an uncached live guild during room lookup and `failed` for deletion, with regression coverage for the stale-association and failed-deletion safety paths per FR-012a and FR-010 (contradicts).
+- [X] T033 Add explicit simulated integration assertions that trigger, unmanaged, and unrelated voice resources are never automatic-deletion targets per SC-003 (partial).
+
+---
+
+## Phase 8: Convergence
+
+- [X] T034 Start lifecycle tracking for a newly created managed room when its initial member move fails and the authoritative room state is empty; cover expiry and retry behavior with deterministic tests per FR-001, FR-010, and SC-001 (partial).
