@@ -14,6 +14,10 @@ describe('container and deployment artifacts', () => {
     expect(dockerfile).toContain('dist/main.js');
     expect(dockerfile).toContain('USER voicelet');
     expect(dockerfile).toContain('/livez');
+    expect(dockerfile).toMatch(
+      /^FROM node:24\.20\.0-bookworm-slim@sha256:[0-9a-f]{64} AS (build|runtime)$/gm,
+    );
+    expect([...dockerfile.matchAll(/^FROM /gm)]).toHaveLength(2);
     for (const entry of ['.env*', '.git', 'node_modules', 'dist', 'coverage'])
       expect(dockerignore).toContain(entry);
   });
@@ -30,6 +34,19 @@ describe('container and deployment artifacts', () => {
     expect(workflow).not.toMatch(/uses:\s+[^@\n]+@(v|main|master)(?:\s|$)/);
   });
 
+  it('pins every third-party workflow action to an immutable commit', async () => {
+    const { readdir } = await import('node:fs/promises');
+    const workflowFiles = await readdir('.github/workflows');
+    for (const file of workflowFiles.filter(
+      (entry) => entry.endsWith('.yml') || entry.endsWith('.yaml'),
+    )) {
+      const workflow = await read(`.github/workflows/${file}`);
+      for (const match of workflow.matchAll(/^\s*-?\s*uses:\s*([^@\s]+)@([^\s#]+)/gm)) {
+        expect(match[2], `${file} action ${match[1]}`).toMatch(/^[0-9a-f]{40}$/);
+      }
+    }
+  });
+
   it('requires explicit immutable deployment selection and readiness verification', async () => {
     const workflow = await read('.github/workflows/deploy-northflank.yml');
     expect(workflow).toContain('workflow_dispatch:');
@@ -40,6 +57,9 @@ describe('container and deployment artifacts', () => {
     expect(workflow).toContain('sha256:');
     expect(workflow).toContain('timeout');
     expect(workflow).toContain('/readyz');
+    expect(workflow).toContain('/containers');
+    expect(workflow).toContain('TASK_RUNNING');
+    expect(workflow).toContain('no running service containers');
     expect(workflow).not.toMatch(/image(?:_ref|Reference)?\s*=.*:latest/);
   });
 

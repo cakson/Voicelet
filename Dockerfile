@@ -1,4 +1,4 @@
-FROM node:24.20.0-bookworm-slim AS build
+FROM node:24.20.0-bookworm-slim@sha256:6642ef280aebc09c4541bee0b15c9f89f0f3f3c247ddee79ae1d37eddfdcbbaa AS build
 
 WORKDIR /app
 RUN corepack enable
@@ -11,7 +11,7 @@ COPY src ./src
 RUN pnpm build
 RUN pnpm prune --prod
 
-FROM node:24.20.0-bookworm-slim AS runtime
+FROM node:24.20.0-bookworm-slim@sha256:6642ef280aebc09c4541bee0b15c9f89f0f3f3c247ddee79ae1d37eddfdcbbaa AS runtime
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0

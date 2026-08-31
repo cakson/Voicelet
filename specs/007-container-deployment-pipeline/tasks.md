@@ -249,14 +249,14 @@ serially in a single worktree despite their logically independent coverage.
 These follow-up tasks capture implementation gaps found after the initial implementation pass. Existing
 tasks remain unchanged and retain their original traceability.
 
-- [ ] T027 Pin both Node base-image references in `Dockerfile` to immutable digests while retaining
+- [X] T027 Pin both Node base-image references in `Dockerfile` to immutable digests while retaining
   the documented Node 24 runtime, and add a contract assertion for digest-pinned `FROM` lines in
   `tests/integration/deployment-artifacts.test.ts` (FR-001, plan: reproducible image decision)
   (partial).
-- [ ] T028 Pin every third-party action reference in `.github/workflows/ci.yml` to a full commit SHA
+- [X] T028 Pin every third-party action reference in `.github/workflows/ci.yml` to a full commit SHA
   and extend `tests/integration/deployment-artifacts.test.ts` to enforce this across all repository
   workflows (plan: workflow security constraint, Constitution VI) (partial).
-- [ ] T029 Extend `.github/workflows/deploy-northflank.yml` to list and validate Northflank service
+- [X] T029 Extend `.github/workflows/deploy-northflank.yml` to list and validate Northflank service
   containers after deployment, requiring the expected running task state and rejecting failed or
   missing replicas, with safe contract coverage in `tests/integration/deployment-artifacts.test.ts`
   (FR-014, US3/AC1, plan: service/container verification decision) (partial).

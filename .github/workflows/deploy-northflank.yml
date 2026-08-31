@@ -102,6 +102,17 @@ jobs:
             fi
             sleep 10
           done
+          containers_json="$(curl --fail --silent --show-error --header "Authorization: Bearer $NORTHFLANK_API_TOKEN" "$api/services/$NORTHFLANK_SERVICE_ID/containers")"
+          container_count="$(printf '%s' "$containers_json" | jq -r '.data.containers | length')"
+          if [[ "$container_count" -lt 1 ]]; then
+            echo 'Northflank reported no running service containers.' >&2
+            exit 1
+          fi
+          failed_containers="$(printf '%s' "$containers_json" | jq -r '[.data.containers[] | select(.status != "TASK_RUNNING")] | length')"
+          if [[ "$failed_containers" -ne 0 ]]; then
+            echo 'Northflank reported a service container that is not TASK_RUNNING.' >&2
+            exit 1
+          fi
           if ! curl --fail --silent --show-error --max-time 10 "$NORTHFLANK_READINESS_URL" >/dev/null; then
             echo 'Voicelet readiness verification failed.' >&2
             exit 1
