@@ -3,6 +3,7 @@ import type {
   DiscordClient,
   DiscordClientFactory,
   GatewayState,
+  Scheduler,
 } from '../../ports/index.js';
 import { normalizeVoiceState } from '../../domain/normalize-voice-state.js';
 import { TemporaryRoomManager } from '../../application/manage-temporary-room.js';
@@ -19,9 +20,15 @@ export class DiscordGatewayEventSource {
     private readonly clock: Clock,
     private readonly observability: Observability,
     configurations: Map<string, TemporaryRoomConfig> = new Map(),
+    scheduler: Scheduler = {
+      schedule: (delayMs, callback) => {
+        const timer = setTimeout(callback, delayMs);
+        return { cancel: () => clearTimeout(timer) };
+      },
+    },
   ) {
     this.client = factory.create();
-    this.rooms = new TemporaryRoomManager(configurations, this.client, (event) =>
+    this.rooms = new TemporaryRoomManager(configurations, this.client, scheduler, (event) =>
       this.observability.recordTemporaryRoom(event),
     );
   }
@@ -54,7 +61,12 @@ export class DiscordGatewayEventSource {
         eventType: 'voice_state',
         outcome: 'handled',
       });
-      void this.rooms.handle(normalized);
+      void this.rooms
+        .handle(normalized)
+        .catch(() => this.observability.recordTemporaryRoom('temporary_room_delete_failed'));
+    });
+    this.client.onRoomDeleted((guildId, roomId) => {
+      void this.rooms.externalDeleted(guildId, roomId);
     });
     this.client.onDisconnect(() => {
       this.setState('disconnected');
@@ -78,5 +90,6 @@ export class DiscordGatewayEventSource {
   stop(): void {
     this.setState('stopped');
     this.client.destroy();
+    this.rooms.dispose();
   }
 }

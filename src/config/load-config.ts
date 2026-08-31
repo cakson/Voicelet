@@ -27,6 +27,7 @@ const roomConfigSchema = z.record(
   z.object({
     triggerChannelId: z.string().min(1),
     destinationCategoryId: z.string().min(1),
+    inactivityTimeoutMinutes: z.number().int().min(1).max(1440).default(60),
   }),
 );
 

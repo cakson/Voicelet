@@ -17,11 +17,24 @@ export interface DiscordClient {
   onDisconnect(listener: () => void): void;
   onReconnect(listener: () => void): void;
   onError(listener: () => void): void;
-  roomExists(guildId: string, roomId: string): Promise<boolean>;
+  roomState(guildId: string, roomId: string): Promise<RoomState>;
+  deleteRoom(guildId: string, roomId: string): Promise<DeleteRoomResult>;
+  onRoomDeleted(listener: (guildId: string, roomId: string) => void): void;
   createRoom(guildId: string, categoryId: string, name: string): Promise<string | null>;
   moveMember(guildId: string, userId: string, roomId: string): Promise<boolean>;
   login(token: string): Promise<void>;
   destroy(): void;
+}
+
+export type RoomState = 'empty' | 'occupied' | 'missing' | 'unavailable';
+export type DeleteRoomResult = 'deleted' | 'missing' | 'failed';
+
+export interface ScheduledWork {
+  cancel(): void;
+}
+
+export interface Scheduler {
+  schedule(delayMs: number, callback: () => void): ScheduledWork;
 }
 
 export interface DiscordClientFactory {
@@ -44,4 +57,10 @@ export type TemporaryRoomObservation =
   | 'temporary_room_reused'
   | 'temporary_room_stale'
   | 'temporary_room_create_failed'
-  | 'temporary_room_move_failed';
+  | 'temporary_room_move_failed'
+  | 'temporary_room_inactivity_started'
+  | 'temporary_room_inactivity_cancelled'
+  | 'temporary_room_deleted'
+  | 'temporary_room_delete_failed'
+  | 'temporary_room_retry_scheduled'
+  | 'temporary_room_external_deleted';
