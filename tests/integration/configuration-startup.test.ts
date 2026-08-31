@@ -48,9 +48,29 @@ describe('documented environment configuration', () => {
     expect(config.temporaryRooms.get('guild-one')).toEqual({
       triggerChannelId: 'trigger-one',
       destinationCategoryId: 'category-one',
+      inactivityTimeoutMinutes: 60,
     });
     expect(config.temporaryRooms).toHaveLength(2);
     expect(loadConfig({ GATEWAY_MODE: 'simulated' }).temporaryRooms).toHaveLength(0);
+  });
+
+  it('accepts only whole-minute inactivity timeouts within the documented range', () => {
+    const configuration = (inactivityTimeoutMinutes: unknown) =>
+      loadConfig({
+        GATEWAY_MODE: 'simulated',
+        TEMPORARY_ROOM_CONFIG: JSON.stringify({
+          guild: {
+            triggerChannelId: 'trigger',
+            destinationCategoryId: 'category',
+            inactivityTimeoutMinutes,
+          },
+        }),
+      });
+    expect(configuration(1).temporaryRooms.get('guild')?.inactivityTimeoutMinutes).toBe(1);
+    expect(configuration(1440).temporaryRooms.get('guild')?.inactivityTimeoutMinutes).toBe(1440);
+    for (const invalid of [0, 1441, 1.5, '60', null]) {
+      expect(() => configuration(invalid)).toThrow('Invalid environment configuration');
+    }
   });
 
   it('rejects malformed temporary-room mappings without exposing their contents', () => {

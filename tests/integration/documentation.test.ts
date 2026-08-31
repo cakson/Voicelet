@@ -24,8 +24,24 @@ describe('documentation', () => {
     expect(example).toContain('127.0.0.1');
     expect(example).toContain('3000');
     expect(example).toContain('<development-server-id>');
+    expect(example).toContain('inactivityTimeoutMinutes');
+    expect(example).toContain('1-1440');
     expect(example).not.toMatch(/DISCORD_TOKEN=\S+/);
     expect(example).not.toMatch(/\b\d{17,20}\b/);
+  });
+
+  it('documents the temporary-room lifecycle timeout and local deletion test', async () => {
+    const [readme, guide] = await Promise.all([
+      readFile('README.md', 'utf8'),
+      readFile('docs/local-discord-development.md', 'utf8'),
+    ]);
+    for (const document of [readme, guide]) {
+      expect(document).toContain('inactivityTimeoutMinutes');
+      expect(document).toContain('60');
+      expect(document).toContain('1');
+      expect(document).toContain('1440');
+    }
+    expect(guide).toContain('automatic deletion');
   });
 
   it('covers the required setup, smoke test, security, and troubleshooting contract', async () => {
