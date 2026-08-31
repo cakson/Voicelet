@@ -49,3 +49,7 @@ Expected evidence:
 6. An event from an unconfigured server creates no room and emits no per-member details.
 
 The detailed transient state and transition rules are in [data-model.md](./data-model.md). The internal gateway behavior is defined in [temporary-room-port.md](./contracts/temporary-room-port.md).
+
+## Verification record
+
+The simulated quickstart journey was verified on 2026-08-31 with no discrepancies. The process-level suite requires permission to bind its temporary local Unix socket in restricted environments.

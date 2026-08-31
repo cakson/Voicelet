@@ -12,3 +12,6 @@ Run all checks with `pnpm check`; CI runs the same command after a frozen-lockfi
 The production adapter uses `discord.js`; tests inject the deterministic simulated client through
 the `DiscordClientFactory` port. The E2E path enforces readiness and event handling within the
 documented 30-second and 5-second bounds.
+
+Temporary-room coverage includes per-server configuration, creation, reuse, stale rooms, duplicate
+deliveries, concurrent members, safe failures, and readiness after failure.

@@ -25,6 +25,13 @@ The operational endpoints are `GET /livez`, `GET /readyz`, and `GET /metrics`. A
 `SOCKET_PATH` is available for process-level local tests; ordinary development uses `HOST` and
 `PORT`.
 
+## Temporary voice rooms
+
+Set `TEMPORARY_ROOM_CONFIG` to a JSON map keyed by Discord server ID, with `triggerChannelId` and
+`destinationCategoryId` in each value. Servers omitted from the map are ignored. The bot requires
+Manage Channels, Move Members, and access to the destination category; configuration or Discord
+operation failures are recorded without identifiers or provider details.
+
 ## Common commands
 
 | Command          | Purpose                                      |
