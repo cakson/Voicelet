@@ -86,6 +86,9 @@ is platform-neutral and agrees with the deployment guide.
   operational documentation and automation must not direct operators to use it.
 - Documentation must not imply that an image's publication guarantees the health, completion, or
   outcome of an external deployment.
+- Before the legacy repository deployment workflow is removed, the release owner must confirm that
+  the chosen external environment can authorize a GHCR pull and is configured to run a selected
+  immutable image; this transition check is a release prerequisite, not a CI deployment action.
 
 ## Requirements *(mandatory)*
 
@@ -116,13 +119,17 @@ is platform-neutral and agrees with the deployment guide.
 - **FR-009**: Documentation and workflow output guidance MUST preserve the existing security
   boundary: no runtime secrets, registry pull credentials, or raw Discord data may be embedded in
   the image, committed, or logged.
+- **FR-010**: Before the legacy repository deployment workflow is removed, the deployment guide
+  MUST document a transition prerequisite for the release owner to confirm that an external
+  environment is configured to authorize a GHCR pull and use a selected immutable image. This
+  prerequisite MUST NOT add external deployment control or verification to CI.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
-- **SC-001**: A maintainer can identify the GHCR-only CI delivery endpoint and immutable image
-  naming from the deployment guide in one review, with no provider-deployment step required.
+- **SC-001**: The deployment guide identifies the GHCR-only CI delivery endpoint and immutable
+  image naming, with no provider-deployment step required.
 - **SC-002**: A search of active README, deployment, architecture, testing, and delivery-workflow
   documentation finds zero instructions that require the former named hosting provider.
 - **SC-003**: In 100% of documented successful main-branch delivery cases, the stated repository

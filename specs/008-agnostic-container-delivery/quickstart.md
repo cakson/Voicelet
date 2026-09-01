@@ -43,3 +43,8 @@
 After a successful main-branch publication, identify the immutable source-SHA image in GHCR and
 provide that reference to the chosen external container environment. Do not add platform
 credentials, runtime configuration, deployment verification, or rollback commands to repository CI.
+
+Before removing the legacy repository deployment workflow, the release owner must confirm that this
+external environment has its own GHCR pull authorization and is configured to use the selected
+immutable image. Record that release-readiness confirmation outside repository CI; the repository
+does not deploy or verify the external environment.

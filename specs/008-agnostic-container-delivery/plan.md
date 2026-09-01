@@ -37,7 +37,9 @@ simulated mode.
 **Constraints**: CI validates, builds, and publishes only; a successful main revision publishes a
 full-SHA GHCR tag plus optional mutable `main` tag. No runtime secrets, GHCR pull credentials, raw
 Discord data, external deployment calls, readiness polling, or rollback automation may be embedded
-in repository delivery automation.
+in repository delivery automation. Before removing the legacy workflow, a release owner must
+confirm the external environment can authorize a GHCR pull and is configured for a selected
+immutable image; this is a release transition prerequisite, not a CI action.
 
 **Scale/Scope**: One repository, one GHCR package, one publication workflow, one legacy
 provider-specific workflow removal, and the active operational documents and contract tests that
@@ -55,7 +57,7 @@ describe it. Historical `specs/007-container-deployment-pipeline/` artifacts rem
 | Security by default | Pass | Delete provider credentials and calls from repository automation; retain secret-free image and safe-output assertions. |
 | Actionable observability | Pass | Clarify that deployment observability is owned by the external platform; retain publish and local container validation evidence without raw Discord data. |
 | Reproducible repository | Pass | Keep frozen-lockfile quality checks, Docker build validation, and documented local smoke procedure. |
-| Definition of done | Pass | Tasks will require docs, contract-test updates, workflow removal, and `pnpm check`. |
+| Definition of done | Pass | Tasks will require the external-handoff transition prerequisite, docs, contract-test updates, workflow removal, and `pnpm check`. |
 
 **Post-design re-check**: Pass. The design removes an operations integration instead of adding a
 new dependency or exception. External deployment behavior remains intentionally outside the

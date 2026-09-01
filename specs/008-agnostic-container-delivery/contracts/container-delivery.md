@@ -14,6 +14,13 @@ The repository does not accept a deployment version input or configure, invoke, 
 roll back any external container environment. It does not contain provider-specific deployment
 credentials, platform identifiers, or registry pull credentials.
 
+## Legacy-workflow transition prerequisite
+
+Before the legacy repository deployment workflow is removed, the release owner confirms that the
+chosen external environment is authorized to pull from GHCR and configured to use a selected
+immutable image. This confirmation is release-readiness evidence only; it does not authorize the
+repository to call, verify, or otherwise control the external environment.
+
 ## External consumer responsibilities
 
 An external container environment independently authorizes its GHCR pull, selects an immutable
