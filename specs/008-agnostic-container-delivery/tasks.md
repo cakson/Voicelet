@@ -28,7 +28,7 @@ stories rely on.
 **Purpose**: Establish a failing, provider-neutral repository delivery contract before changing
 automation or documentation.
 
-- [ ] T001 Replace the Northflank deployment assertions with GHCR-only publication, absence-of-provider-workflow, secret-boundary, and active-documentation consistency assertions in `tests/integration/deployment-artifacts.test.ts`.
+- [X] T001 Replace the Northflank deployment assertions with GHCR-only publication, absence-of-provider-workflow, secret-boundary, and active-documentation consistency assertions in `tests/integration/deployment-artifacts.test.ts`.
 
 ---
 
@@ -39,8 +39,8 @@ story.
 
 **⚠️ CRITICAL**: Complete this phase before considering any user story complete.
 
-- [ ] T002 Document the pre-removal external GHCR-pull and immutable-image transition prerequisite in `docs/deployment.md` and add its focused assertion in `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T003 Delete the manual Northflank deployment workflow in `.github/workflows/deploy-northflank.yml` only after T002's documented transition prerequisite is in place, so CI has no deployment, verification, or rollback path.
+- [X] T002 Document the pre-removal external GHCR-pull and immutable-image transition prerequisite in `docs/deployment.md` and add its focused assertion in `tests/integration/deployment-artifacts.test.ts`.
+- [X] T003 Delete the manual Northflank deployment workflow in `.github/workflows/deploy-northflank.yml` only after T002's documented transition prerequisite is in place, so CI has no deployment, verification, or rollback path.
 
 **Checkpoint**: The only remaining delivery workflow is GHCR publication; the focused contract test
 will still identify active documentation that needs alignment.
@@ -58,8 +58,8 @@ publication with no provider deployment instruction.
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Rewrite the CI-flow, image-versioning, and local-container sections in `docs/deployment.md` so publication to GHCR is the final repository-managed action and no external deployment result is implied.
-- [ ] T005 [US1] Make the provider-neutral CI-boundary assertions pass in `tests/integration/deployment-artifacts.test.ts` for `docs/deployment.md` and `.github/workflows/publish-container.yml`.
+- [X] T004 [US1] Rewrite the CI-flow, image-versioning, and local-container sections in `docs/deployment.md` so publication to GHCR is the final repository-managed action and no external deployment result is implied.
+- [X] T005 [US1] Make the provider-neutral CI-boundary assertions pass in `tests/integration/deployment-artifacts.test.ts` for `docs/deployment.md` and `.github/workflows/publish-container.yml`.
 
 **Checkpoint**: A maintainer can rely on the deployment guide alone to understand the GHCR-only CI
 boundary.
@@ -77,9 +77,9 @@ without prescribing a hosting provider, deployment request, readiness check, or 
 
 ### Implementation for User Story 2
 
-- [ ] T006 [US2] Add the platform-neutral external-image handoff, registry-pull authorization boundary, and separately supplied runtime-configuration guidance in `docs/deployment.md`.
-- [ ] T007 [US2] Replace the manual Northflank deployment instructions with immutable GHCR handoff and external-environment responsibilities in `README.md`.
-- [ ] T008 [US2] Make the README and deployment-guide platform-neutral handoff assertions pass in `tests/integration/deployment-artifacts.test.ts`.
+- [X] T006 [US2] Add the platform-neutral external-image handoff, registry-pull authorization boundary, and separately supplied runtime-configuration guidance in `docs/deployment.md`.
+- [X] T007 [US2] Replace the manual Northflank deployment instructions with immutable GHCR handoff and external-environment responsibilities in `README.md`.
+- [X] T008 [US2] Make the README and deployment-guide platform-neutral handoff assertions pass in `tests/integration/deployment-artifacts.test.ts`.
 
 **Checkpoint**: An operator can consume the published image on a compatible platform without
 repository-specific platform credentials or automation.
@@ -98,9 +98,9 @@ without itself being treated as operator guidance, while historical
 
 ### Implementation for User Story 3
 
-- [ ] T009 [P] [US3] Replace the provider deployment architecture description with the GHCR-only repository boundary and external-platform responsibility in `docs/architecture.md`.
-- [ ] T010 [P] [US3] Update delivery-test coverage documentation to name GHCR publication and provider-neutral contract validation in `docs/testing.md`.
-- [ ] T011 [US3] Finalize active-documentation and workflow-absence regression assertions in `tests/integration/deployment-artifacts.test.ts` without scanning historical feature specifications.
+- [X] T009 [P] [US3] Replace the provider deployment architecture description with the GHCR-only repository boundary and external-platform responsibility in `docs/architecture.md`.
+- [X] T010 [P] [US3] Update delivery-test coverage documentation to name GHCR publication and provider-neutral contract validation in `docs/testing.md`.
+- [X] T011 [US3] Finalize active-documentation and workflow-absence regression assertions in `tests/integration/deployment-artifacts.test.ts` without scanning historical feature specifications.
 
 **Checkpoint**: README, operational documentation, workflow inventory, and contract tests describe
 one provider-neutral delivery model.
@@ -111,8 +111,8 @@ one provider-neutral delivery model.
 
 **Purpose**: Produce final repository evidence and verify the documented validation path.
 
-- [ ] T012 Run the quickstart review and reconcile any remaining wording or contract gaps in `specs/008-agnostic-container-delivery/quickstart.md`, `README.md`, `docs/deployment.md`, `docs/architecture.md`, `docs/testing.md`, and `tests/integration/deployment-artifacts.test.ts`.
-- [ ] T013 Run `pnpm check` and, where Docker is available, `pnpm container:build` plus `pnpm container:smoke`; resolve feature-related failures in `.github/workflows/`, `tests/integration/deployment-artifacts.test.ts`, `README.md`, and `docs/`.
+- [X] T012 Run the quickstart review and reconcile any remaining wording or contract gaps in `specs/008-agnostic-container-delivery/quickstart.md`, `README.md`, `docs/deployment.md`, `docs/architecture.md`, `docs/testing.md`, and `tests/integration/deployment-artifacts.test.ts`.
+- [X] T013 Run `pnpm check` and, where Docker is available, `pnpm container:build` plus `pnpm container:smoke`; resolve feature-related failures in `.github/workflows/`, `tests/integration/deployment-artifacts.test.ts`, `README.md`, and `docs/`.
 
 ## Dependencies & Execution Order
 
@@ -174,3 +174,10 @@ T010: docs/testing.md
   modified or tested as active operational guidance.
 - The implementation must not add an external deployment workflow, provider credentials, runtime
   secrets, or raw Discord data to repository artifacts or logs.
+- Validation note: `pnpm check` passed formatting, lint, typecheck, unit, integration, and build
+  stages; the existing E2E worker-start suite failed its 10-second readiness wait in two consecutive
+  runs. The focused feature tests and Docker build/smoke validation passed.
+
+## Phase 7: Convergence
+
+- [ ] T014 CRITICAL: Investigate and resolve the reproducible E2E worker-start readiness timeout in `tests/e2e/worker-voice-state.test.ts` and the affected worker startup path so the full `pnpm check` quality gate passes (Constitution II, partial).
