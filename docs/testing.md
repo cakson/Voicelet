@@ -31,6 +31,7 @@ which keeps the bot token in an ignored local `.env`, checks loopback `/livez` a
 walks through create, move, reuse, and clean shutdown.
 
 Container and workflow contract tests inspect the Dockerfile, `.dockerignore`, GHCR publication
-workflow, manually dispatched Northflank workflow, and deployment documentation. The documented
-Docker smoke test uses `GATEWAY_MODE=simulated` and separately supplied environment values, then
-checks `/livez`, `/readyz`, and `/metrics`. It never records Discord or deployment credentials.
+workflow, absence of a repository-managed provider deployment workflow, and active delivery
+documentation. The documented Docker smoke test uses `GATEWAY_MODE=simulated` and separately supplied
+environment values, then checks `/livez`, `/readyz`, and `/metrics`. It never records Discord,
+registry-pull, or deployment credentials.

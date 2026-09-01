@@ -1,40 +1,32 @@
-# Production container deployment
+# Production container delivery
 
-Voicelet is published as a production Docker image and deployed to the existing Northflank Voicelet
-service. Publishing and deployment are intentionally separate operations: merging to `main` creates
-an image, but never deploys it.
+Voicelet's repository delivery flow validates and publishes a production Docker image to GitHub
+Container Registry (GHCR). Publication and deployment are separate operations: a successful merge to
+`main` creates an image, but the repository does not deploy, verify, or roll it back on a container
+platform.
 
-## Required GitHub configuration
+## Repository configuration
 
-Configure these values in the repository or its environment without putting real values in source:
-
-| Name                            | GitHub storage   | Purpose                                                                 |
-| ------------------------------- | ---------------- | ----------------------------------------------------------------------- |
-| `NORTHFLANK_API_TOKEN`          | Actions secret   | Scoped Northflank service read/update token.                            |
-| `NORTHFLANK_PROJECT_ID`         | Actions variable | Existing Northflank project.                                            |
-| `NORTHFLANK_SERVICE_ID`         | Actions variable | Existing Voicelet service.                                              |
-| `NORTHFLANK_GHCR_CREDENTIAL_ID` | Actions variable | Northflank's saved GHCR pull credential ID when the package is private. |
-| `NORTHFLANK_READINESS_URL`      | Actions variable | Required safe URL for the deployed Voicelet `/readyz` endpoint.         |
-
-build-time content is limited to the application and its production dependencies; runtime
-configuration is supplied by Northflank. The Northflank token should be issued to a project-scoped role with only service read and update
-permissions. GHCR pull credentials remain configured in Northflank; they are never passed through the
-Docker build or committed to GitHub. Never print tokens, headers, runtime configuration, or raw API
-responses in a workflow log.
+The publication workflow uses GitHub's package-publishing permission and does not require deployment
+platform credentials. Runtime configuration and registry pull authorization are supplied by the
+external environment that runs the image; do not put either in source, build context, image metadata,
+or workflow output. Never print tokens, runtime configuration, raw Discord data, or raw provider API
+responses in repository logs.
 
 ## Publication and version discovery
 
 The `Publish container` workflow runs on pull requests and pushes to `main`. Both paths run the
-repository quality checks and build the production image. Only a successful push to `main` logs in to
-GitHub Container Registry (GHCR) and publishes:
+repository quality checks and build the production image. Only a successful push to `main` publishes
+to GHCR:
 
 ```text
 ghcr.io/<owner>/<repository>:sha-<40-character-git-commit>
 ```
 
-The `sha-` tag is the immutable operator-facing version. Image metadata records the repository source
-and Git revision, so the Git commit can be identified from the GHCR package. The workflow may also
-update the mutable `main` convenience tag; deployment never selects `main` or `latest`.
+The `sha-` tag is the immutable operator-facing version. Image metadata records the repository
+source and Git revision, so the source commit can be identified from the GHCR package. The workflow
+may also publish a mutable `main` convenience tag; external environments should select the immutable
+source-SHA tag.
 
 Failed tests, linting, formatting, type checking, build validation, or Docker validation prevent
 publication. Pull requests never publish a production artifact.
@@ -59,30 +51,18 @@ docker run --rm --publish 3000:3000 \
   voicelet:local
 ```
 
-Check `GET /livez`, `GET /readyz`, and `GET /metrics`. In a real deployment, Northflank supplies
-`DISCORD_TOKEN`, `TEMPORARY_ROOM_CONFIG`, and other runtime configuration independently; none is
-present in the image. `pnpm container:smoke` automates the credential-free local check.
+Check `GET /livez`, `GET /readyz`, and `GET /metrics`. `pnpm container:smoke` automates the
+credential-free local check. A real environment supplies `DISCORD_TOKEN`, `TEMPORARY_ROOM_CONFIG`,
+and other runtime values independently; none is present in the image.
 
-## Manual deployment
+## External deployment handoff
 
-1. Open GitHub Actions and select `Deploy Northflank`.
-2. Choose **Run workflow** on the default branch.
-3. Enter a retained immutable `image_version` in the form `sha-<40-character-git-commit>`.
-4. The workflow validates the tag in GHCR, resolves it to a digest, reads the prior service image when
-   safely available, and updates only the Northflank image reference.
-5. It polls Northflank status and containers, then requires the configured readiness URL to return a
-   successful response. The summary reports the requested tag, resolved digest, prior image when
-   available, and final outcome.
+After a successful main-branch publication, provide the selected immutable GHCR image reference to
+the compatible container environment of your choice. That environment independently configures its
+GHCR pull authorization, runtime configuration, rollout, health checks, observability, and rollback.
+The repository does not provide a universal deployment command or assume a named hosting provider.
 
-The workflow fails before changing Northflank for malformed or missing versions. Update failures,
-container failures, readiness failures, and the five-minute verification timeout also fail the
-workflow; acceptance of an update alone is not success. Whether it succeeds or fails, the workflow
-summary identifies the safely validated requested version, resolved and prior image references when
-available, and the final outcome without exposing credentials or raw platform responses.
-
-## Rollback
-
-A rollback is the same manual workflow with an earlier retained `sha-` version. Select the older
-version, allow the workflow to validate and resolve it, and verify readiness. No rebuild of the older
-source revision is required. Keep the requested and previously running image references from the
-workflow summary for troubleshooting.
+Before removing the legacy repository deployment workflow, the release owner must confirm that the
+chosen external environment has GHCR pull authorization and is configured to run the selected
+immutable image. Record this transition prerequisite outside repository CI; it is release-readiness
+evidence, not a repository deployment action.

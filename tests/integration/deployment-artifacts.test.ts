@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const read = (path: string) => readFile(path, 'utf8');
@@ -58,42 +59,29 @@ describe('container and deployment artifacts', () => {
     expect(workflow).not.toContain('pull-requests: write');
   });
 
-  it('requires explicit immutable deployment selection and readiness verification', async () => {
-    const workflow = await read('.github/workflows/deploy-northflank.yml');
-    expect(workflow).toContain('workflow_dispatch:');
-    expect(workflow).toContain('image_version:');
-    expect(workflow).toContain('sha-[0-9a-f]{40}');
-    expect(workflow).toContain('NORTHFLANK_API_TOKEN');
-    expect(workflow).toContain('NORTHFLANK_READINESS_URL');
-    expect(workflow).toContain('sha256:');
-    expect(workflow).toContain('timeout');
-    expect(workflow).toContain('/readyz');
-    expect(workflow).toContain('/containers');
-    expect(workflow).toContain('TASK_RUNNING');
-    expect(workflow).toContain('no running service containers');
-    expect(workflow).toContain('Summarize failed deployment');
-    expect(workflow).toContain('if: failure()');
-    expect(workflow).toContain("requested='unavailable (invalid image_version)'");
-    expect(workflow).toContain('- Outcome: `failed`');
-    expect(workflow).toContain('- Outcome: `succeeded`');
-    expect(workflow).not.toMatch(/image(?:_ref|Reference)?\s*=.*:latest/);
+  it('does not retain a repository-managed provider deployment workflow', () => {
+    expect(existsSync('.github/workflows/deploy-northflank.yml')).toBe(false);
   });
 
-  it('documents version discovery, rollback, and the runtime secret boundary', async () => {
-    const [readme, deployment] = await Promise.all([read('README.md'), read('docs/deployment.md')]);
+  it('documents a provider-neutral GHCR handoff and transition boundary', async () => {
+    const activeDocs = await Promise.all([
+      read('README.md'),
+      read('docs/deployment.md'),
+      read('docs/architecture.md'),
+      read('docs/testing.md'),
+    ]);
+    const content = activeDocs.join('\n');
     for (const phrase of [
-      'Docker',
       'GitHub Container Registry',
       'sha-',
-      'rollback',
-      'NORTHFLANK_API_TOKEN',
-      'NORTHFLANK_READINESS_URL',
       'runtime configuration',
-      'build-time',
+      'external',
+      'transition prerequisite',
     ]) {
-      expect(`${readme}\n${deployment}`).toContain(phrase);
+      expect(content).toContain(phrase);
     }
-    expect(`${readme}\n${deployment}`).not.toMatch(/DISCORD_TOKEN\s*[:=]\s*\S{20,}/);
-    expect(`${readme}\n${deployment}`).not.toMatch(/NORTHFLANK_API_TOKEN\s*[:=]\s*\S{20,}/);
+    expect(content).not.toMatch(/Northflank|Deploy Northflank|NORTHFLANK_/i);
+    expect(content).not.toMatch(/DISCORD_TOKEN\s*[:=]\s*\S{20,}/);
+    expect(content).not.toMatch(/GITHUB_TOKEN\s*[:=]\s*\S{20,}/);
   });
 });
