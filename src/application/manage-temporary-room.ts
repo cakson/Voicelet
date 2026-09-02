@@ -1,4 +1,5 @@
-import type { VoiceStateChanged, TemporaryRoomConfig } from '../domain/voice-state.js';
+import type { VoiceStateChanged } from '../domain/voice-state.js';
+import type { GuildConfig } from '../domain/guild-config.js';
 import type {
   DiscordClient,
   RoomParentChanged,
@@ -39,7 +40,7 @@ export class TemporaryRoomManager {
   private readonly deletingRooms = new Set<string>();
 
   constructor(
-    private readonly configurations: Map<string, TemporaryRoomConfig> | GuildConfigRepository,
+    private readonly configurations: GuildConfigRepository,
     private readonly discord: DiscordClient,
     schedulerOrObserve: Scheduler | ((event: TemporaryRoomObservation) => void),
     observe?: (event: TemporaryRoomObservation) => void,
@@ -147,17 +148,13 @@ export class TemporaryRoomManager {
     }
   }
 
-  private async config(guildId: string): Promise<TemporaryRoomConfig | undefined> {
-    if (this.configurations instanceof Map) return this.configurations.get(guildId);
+  private async config(guildId: string): Promise<GuildConfig | undefined> {
     const result = await this.configurations.get(guildId);
     this.observeConfiguration?.(result.kind);
     return result.kind === 'found' ? result.config : undefined;
   }
 
-  private async createOrReuse(
-    event: VoiceStateChanged,
-    config: TemporaryRoomConfig,
-  ): Promise<void> {
+  private async createOrReuse(event: VoiceStateChanged, config: GuildConfig): Promise<void> {
     const resources = await this.discord.inspectGuildConfigResources(
       event.guildId,
       config.triggerChannelId,
@@ -222,7 +219,7 @@ export class TemporaryRoomManager {
   private async updateLifecycle(
     guildId: string,
     roomId: string,
-    config?: TemporaryRoomConfig,
+    config?: GuildConfig,
   ): Promise<void> {
     if (!config) return;
     await this.serial(this.roomKey(guildId, roomId), async () => {

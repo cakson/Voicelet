@@ -136,4 +136,4 @@ provider values outside infrastructure, production test credentials, or persiste
 
 ## Phase 11: Convergence
 
-- [ ] T071 Remove Map-based runtime guild-configuration overloads and defaults from the Gateway source, room manager, reconciler, and in-memory adapter; migrate affected unit and Gateway tests to seed the deterministic repository and prove behavior cannot bypass persistent configuration per FR-015 and FR-020 (contradicts)
+- [X] T071 Remove Map-based runtime guild-configuration overloads and defaults from the Gateway source, room manager, reconciler, and in-memory adapter; migrate affected unit and Gateway tests to seed the deterministic repository and prove behavior cannot bypass persistent configuration per FR-015 and FR-020 (contradicts)

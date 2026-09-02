@@ -4,13 +4,16 @@ import {
   temporaryRoomName,
 } from '../../src/application/manage-temporary-room.js';
 import { SimulatedDiscordClient } from '../../src/infrastructure/discord/simulated-client-factory.js';
+import { InMemoryGuildConfigRepository } from '../../src/infrastructure/memory/in-memory-guild-config-repository.js';
 import { ManualScheduler } from '../support/manual-scheduler.js';
 
-const config = new Map([
-  [
-    'test-guild',
-    { triggerChannelId: 'trigger', destinationCategoryId: 'category', inactivityTimeoutMinutes: 1 },
-  ],
+const config = new InMemoryGuildConfigRepository([
+  {
+    guildId: 'test-guild',
+    triggerChannelId: 'trigger',
+    destinationCategoryId: 'category',
+    inactivityTimeoutMinutes: 1,
+  },
 ]);
 const event = {
   guildId: 'test-guild',

@@ -6,13 +6,11 @@ import type {
   GuildConfigSave,
 } from '../../ports/guild-config-repository.js';
 import type { GuildConfigInput } from '../../domain/guild-config.js';
-import type { TemporaryRoomConfig } from '../../domain/voice-state.js';
 
 export class InMemoryGuildConfigRepository implements GuildConfigRepository {
   private readonly values = new Map<string, ReturnType<typeof parseGuildConfig>>();
-  constructor(initial: Map<string, TemporaryRoomConfig> = new Map()) {
-    for (const [guildId, value] of initial) {
-      const input = { ...value, guildId };
+  constructor(initial: Iterable<GuildConfigInput> = []) {
+    for (const input of initial) {
       const config = parseGuildConfig(input);
       if (config) this.values.set(config.guildId, config);
     }

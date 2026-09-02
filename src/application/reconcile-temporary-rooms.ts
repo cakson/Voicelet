@@ -1,4 +1,4 @@
-import type { TemporaryRoomConfig } from '../domain/voice-state.js';
+import type { GuildConfig } from '../domain/guild-config.js';
 import type {
   DiscordClient,
   ReconciliationObservation,
@@ -17,7 +17,7 @@ export class TemporaryRoomReconciler {
   private disposed = false;
 
   constructor(
-    private readonly configurations: Map<string, TemporaryRoomConfig> | GuildConfigRepository,
+    private readonly configurations: GuildConfigRepository,
     private readonly discord: DiscordClient,
     private readonly scheduler: Scheduler,
     private readonly isKnownManagedRoom: (guildId: string, roomId: string) => boolean,
@@ -28,10 +28,6 @@ export class TemporaryRoomReconciler {
   async start(): Promise<void> {
     if (this.disposed) return;
     this.active = true;
-    if (this.configurations instanceof Map) {
-      for (const guildId of this.configurations.keys()) this.request(guildId);
-      return;
-    }
     const result = await this.configurations.list();
     this.observeConfiguration?.(result.kind);
     if (result.kind === 'found') for (const config of result.configs) this.request(config.guildId);
@@ -51,7 +47,6 @@ export class TemporaryRoomReconciler {
 
   request(guildId: string): void {
     if (this.disposed || !this.active) return;
-    if (this.configurations instanceof Map ? !this.configurations.has(guildId) : false) return;
     if (this.running.has(guildId)) {
       this.queued.add(guildId);
       return;
@@ -85,7 +80,7 @@ export class TemporaryRoomReconciler {
     }
   }
 
-  private schedule(guildId: string, config: TemporaryRoomConfig): void {
+  private schedule(guildId: string, config: GuildConfig): void {
     this.scheduled.get(guildId)?.cancel();
     const interval = config.reconciliationIntervalMinutes ?? 15;
     this.scheduled.set(
@@ -94,14 +89,13 @@ export class TemporaryRoomReconciler {
     );
   }
 
-  private async config(guildId: string): Promise<TemporaryRoomConfig | undefined> {
-    if (this.configurations instanceof Map) return this.configurations.get(guildId);
+  private async config(guildId: string): Promise<GuildConfig | undefined> {
     const result = await this.configurations.get(guildId);
     this.observeConfiguration?.(result.kind);
     return result.kind === 'found' ? result.config : undefined;
   }
 
-  private isPermanent(roomId: string, config: TemporaryRoomConfig): boolean {
+  private isPermanent(roomId: string, config: GuildConfig): boolean {
     return (
       roomId === config.triggerChannelId || (config.permanentChannelIds ?? []).includes(roomId)
     );
@@ -110,7 +104,7 @@ export class TemporaryRoomReconciler {
   private async reconcileCandidate(
     guildId: string,
     roomId: string,
-    config: TemporaryRoomConfig,
+    config: GuildConfig,
   ): Promise<void> {
     if (this.isPermanent(roomId, config)) {
       this.observe('reconciliation_permanent_preserved');

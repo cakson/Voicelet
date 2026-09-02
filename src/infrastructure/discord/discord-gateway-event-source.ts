@@ -8,7 +8,6 @@ import type {
 import { normalizeVoiceState } from '../../domain/normalize-voice-state.js';
 import { TemporaryRoomManager } from '../../application/manage-temporary-room.js';
 import { TemporaryRoomReconciler } from '../../application/reconcile-temporary-rooms.js';
-import type { TemporaryRoomConfig } from '../../domain/voice-state.js';
 import type { GuildConfigRepository } from '../../ports/guild-config-repository.js';
 import type { Observability } from '../logging/observability.js';
 
@@ -21,7 +20,7 @@ export class DiscordGatewayEventSource {
     private readonly token: string,
     private readonly clock: Clock,
     private readonly observability: Observability,
-    configurations: Map<string, TemporaryRoomConfig> | GuildConfigRepository = new Map(),
+    repository: GuildConfigRepository,
     scheduler: Scheduler = {
       schedule: (delayMs, callback) => {
         const timer = setTimeout(callback, delayMs);
@@ -31,14 +30,14 @@ export class DiscordGatewayEventSource {
   ) {
     this.client = factory.create();
     this.rooms = new TemporaryRoomManager(
-      configurations,
+      repository,
       this.client,
       scheduler,
       (event) => this.observability.recordTemporaryRoom(event),
       (outcome) => this.recordPersistence(outcome),
     );
     this.reconciler = new TemporaryRoomReconciler(
-      configurations,
+      repository,
       this.client,
       scheduler,
       (guildId, roomId) => this.rooms.isKnownManagedRoom(guildId, roomId),

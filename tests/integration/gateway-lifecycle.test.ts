@@ -11,15 +11,13 @@ import { ManualScheduler } from '../support/manual-scheduler.js';
 import { InMemoryGuildConfigRepository } from '../../src/infrastructure/memory/in-memory-guild-config-repository.js';
 import { createOperationalServer } from '../../src/infrastructure/http/operational-server.js';
 
-const configurations = new Map([
-  [
-    'test-guild',
-    {
-      triggerChannelId: 'trigger-channel',
-      destinationCategoryId: 'category-id',
-      inactivityTimeoutMinutes: 1,
-    },
-  ],
+const configurations = new InMemoryGuildConfigRepository([
+  {
+    guildId: 'test-guild',
+    triggerChannelId: 'trigger-channel',
+    destinationCategoryId: 'category-id',
+    inactivityTimeoutMinutes: 1,
+  },
 ]);
 
 async function settled(): Promise<void> {
@@ -35,6 +33,7 @@ describe('DiscordGatewayEventSource', () => {
       'test-token',
       { now: () => new Date() },
       observability,
+      configurations,
     );
     await source.start();
     factory.client.emitReady();
@@ -351,17 +350,15 @@ describe('DiscordGatewayEventSource', () => {
   it('reconciles startup zombies while preserving configured permanent and known managed rooms', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const scheduler = new ManualScheduler();
-    const reconciliationConfig = new Map([
-      [
-        'test-guild',
-        {
-          triggerChannelId: 'trigger-channel',
-          destinationCategoryId: 'category-id',
-          inactivityTimeoutMinutes: 1,
-          reconciliationIntervalMinutes: 1,
-          permanentChannelIds: ['permanent-room'],
-        },
-      ],
+    const reconciliationConfig = new InMemoryGuildConfigRepository([
+      {
+        guildId: 'test-guild',
+        triggerChannelId: 'trigger-channel',
+        destinationCategoryId: 'category-id',
+        inactivityTimeoutMinutes: 1,
+        reconciliationIntervalMinutes: 1,
+        permanentChannelIds: ['permanent-room'],
+      },
     ]);
     factory.client.seedRoom('test-guild', 'empty-zombie', 'category-id');
     factory.client.seedRoom('test-guild', 'occupied-zombie', 'category-id');
