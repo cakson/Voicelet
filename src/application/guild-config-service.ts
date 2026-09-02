@@ -1,4 +1,4 @@
-import type { GuildConfig, GuildConfigInput } from '../domain/guild-config.js';
+import { isGuildId, type GuildConfig, type GuildConfigInput } from '../domain/guild-config.js';
 import type {
   GuildConfigLookup,
   GuildConfigRepository,
@@ -8,6 +8,7 @@ import type {
 export class GuildConfigService {
   constructor(private readonly repository: GuildConfigRepository) {}
   get(guildId: string): Promise<GuildConfigLookup> {
+    if (!isGuildId(guildId)) return Promise.resolve({ kind: 'invalid' });
     return this.repository.get(guildId);
   }
   list() {

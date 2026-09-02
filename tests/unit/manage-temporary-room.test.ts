@@ -153,15 +153,28 @@ describe('TemporaryRoomManager', () => {
   });
   it('safely skips configured resources that are unavailable or stale', async () => {
     const unavailableDiscord = new SimulatedDiscordClient();
+    const unavailableObservations: string[] = [];
     unavailableDiscord.failNextGuildConfigInspection = 'unavailable';
-    const unavailable = new TemporaryRoomManager(config, unavailableDiscord, () => undefined);
+    const unavailable = new TemporaryRoomManager(config, unavailableDiscord, (event) =>
+      unavailableObservations.push(event),
+    );
     await unavailable.handle(event);
     expect(unavailableDiscord.rooms).toHaveLength(0);
+    expect(unavailableObservations).toEqual(['temporary_room_configuration_invalid']);
     const staleDiscord = new SimulatedDiscordClient();
+    const staleObservations: string[] = [];
     staleDiscord.failNextGuildConfigInspection = 'missing';
-    const stale = new TemporaryRoomManager(config, staleDiscord, () => undefined);
+    const stale = new TemporaryRoomManager(config, staleDiscord, (item) =>
+      staleObservations.push(item),
+    );
     await stale.handle(event);
     expect(staleDiscord.rooms).toHaveLength(0);
+    expect(staleObservations).toEqual(['temporary_room_configuration_invalid']);
+    const wrongTypeDiscord = new SimulatedDiscordClient();
+    wrongTypeDiscord.failNextGuildConfigInspection = 'wrong_type';
+    const wrongType = new TemporaryRoomManager(config, wrongTypeDiscord, () => undefined);
+    await wrongType.handle(event);
+    expect(wrongTypeDiscord.rooms).toHaveLength(0);
   });
   it('retains rooms after movement failures and releases each member lock', async () => {
     const discord = new SimulatedDiscordClient();

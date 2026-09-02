@@ -1,5 +1,6 @@
 import type { Firestore } from '@google-cloud/firestore';
 import {
+  isGuildId,
   parseGuildConfig,
   parseStoredGuildConfig,
   toStoredGuildConfig,
@@ -18,6 +19,7 @@ export class FirestoreGuildConfigRepository implements GuildConfigRepository {
   constructor(private readonly firestore: Firestore) {}
 
   async get(guildId: string): Promise<GuildConfigLookup> {
+    if (!isGuildId(guildId)) return { kind: 'invalid' };
     try {
       const snapshot = await this.firestore.collection(collectionName).doc(guildId).get();
       if (!snapshot.exists) return { kind: 'not_found' };

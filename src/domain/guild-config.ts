@@ -13,6 +13,10 @@ export type GuildConfigInput = z.input<typeof guildConfigInputSchema>;
 export type GuildConfig = z.output<typeof guildConfigInputSchema>;
 export type StoredGuildConfigV1 = GuildConfig & { schemaVersion: 1 };
 
+export function isGuildId(value: string): boolean {
+  return value.trim().length > 0;
+}
+
 export function parseGuildConfig(input: unknown): GuildConfig | undefined {
   const parsed = guildConfigInputSchema.safeParse(input);
   if (!parsed.success) return undefined;

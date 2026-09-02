@@ -35,4 +35,18 @@ describe('GuildConfigService', () => {
     await expect(service.get('guild-a')).resolves.toEqual({ kind: 'unavailable' });
     await expect(service.required('guild-a')).resolves.toBeUndefined();
   });
+
+  it('rejects blank guild identifiers before reading persistence', async () => {
+    let reads = 0;
+    const service = new GuildConfigService({
+      get: async () => {
+        reads += 1;
+        return { kind: 'not_found' } as const;
+      },
+      list: async () => ({ kind: 'found', configs: [], invalidCount: 0 }) as const,
+      save: async () => ({ kind: 'invalid' }) as const,
+    });
+    await expect(service.get('   ')).resolves.toEqual({ kind: 'invalid' });
+    expect(reads).toBe(0);
+  });
 });

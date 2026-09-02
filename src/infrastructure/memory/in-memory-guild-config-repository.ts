@@ -1,4 +1,4 @@
-import { parseGuildConfig } from '../../domain/guild-config.js';
+import { isGuildId, parseGuildConfig } from '../../domain/guild-config.js';
 import type {
   GuildConfigRepository,
   GuildConfigLookup,
@@ -20,6 +20,7 @@ export class InMemoryGuildConfigRepository implements GuildConfigRepository {
   unavailable = false;
   invalidGuilds = new Set<string>();
   async get(guildId: string): Promise<GuildConfigLookup> {
+    if (!isGuildId(guildId)) return { kind: 'invalid' };
     if (this.unavailable) return { kind: 'unavailable' };
     if (this.invalidGuilds.has(guildId)) return { kind: 'invalid' };
     const config = this.values.get(guildId);
