@@ -18,16 +18,11 @@ describe('documentation', () => {
     const example = await readFile('.env.example', 'utf8');
     expect(example).toContain('DISCORD_TOKEN=');
     expect(example).toContain('GATEWAY_MODE=discord');
-    expect(example).toContain('TEMPORARY_ROOM_CONFIG=');
+    expect(example).toContain('PERSISTENCE_PROVIDER=');
     expect(example).toContain('Secret:');
     expect(example).toContain('Non-secret');
     expect(example).toContain('127.0.0.1');
     expect(example).toContain('3000');
-    expect(example).toContain('<development-server-id>');
-    expect(example).toContain('inactivityTimeoutMinutes');
-    expect(example).toContain('reconciliationIntervalMinutes');
-    expect(example).toContain('permanentChannelIds');
-    expect(example).toContain('1-1440');
     expect(example).not.toMatch(/DISCORD_TOKEN=\S+/);
     expect(example).not.toMatch(/\b\d{17,20}\b/);
   });
@@ -79,9 +74,10 @@ describe('documentation', () => {
       'GuildVoiceStates',
       'no privileged',
       'Developer Mode',
-      'TEMPORARY_ROOM_CONFIG',
+      'PERSISTENCE_PROVIDER',
       'triggerChannelId',
       'destinationCategoryId',
+      'Firestore',
       '/livez',
       '/readyz',
       '/metrics',

@@ -8,6 +8,12 @@ Run all checks with `pnpm check`; CI runs the same command after a frozen-lockfi
 - `pnpm test:e2e` launches a separate worker process, drives its simulated Discord client through
   IPC, and checks its operational interface over a Unix-domain socket without Discord credentials
   or a live server.
+- `pnpm test:persistence:integration` and `pnpm test:persistence:e2e` start the official Firebase
+  Firestore emulator with isolated disposable data. They require no production credentials.
+
+Guild configuration unit tests use the in-memory repository. Firestore integration tests verify
+translation, validation, replacement, not-found, and emulator error behavior; E2E tests seed the
+same emulator and can restart the worker against the persisted document.
 
 The production adapter uses `discord.js`; tests inject the deterministic simulated client through
 the `DiscordClientFactory` port. The E2E path enforces readiness and event handling within the

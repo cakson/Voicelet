@@ -5,15 +5,19 @@ Voicelet is a single background-worker process. Dependencies flow in one directi
 
 - `src/domain` holds transient voice-state types and validation.
 - `src/application` contains the pure event handler.
-- `src/ports` defines the Gateway client, clock, and observation boundaries.
+- `src/ports` defines the Gateway client, clock, observation, and provider-independent
+  `GuildConfigRepository` boundaries.
 - `src/infrastructure/discord` adapts `discord.js` in production and supplies a deterministic
   simulated client for CI; Gateway failures are reduced to a safe failure class, readiness state,
   and bounded metrics without retaining provider error details.
 - `src/infrastructure/http` exposes `/livez`, `/readyz`, and `/metrics`.
 - `src/composition` wires dependencies; `src/main.ts` owns process lifecycle.
 
-No data is persisted in this foundation. Tokens, production Discord identifiers, and raw event
-payloads must not be logged or emitted as metric labels.
+`src/domain/guild-config.ts` owns the canonical versioned plain-data model. The Firestore adapter
+translates that model at the infrastructure edge; Firestore SDK types and collection paths never
+cross into application or domain code. A future PostgreSQL adapter can implement the same repository
+at the composition root without changing room behavior. Tokens, production Discord identifiers,
+and raw event payloads must not be logged or emitted as metric labels.
 
 Temporary-room associations and per-member operation locks live in the application layer only and
 are discarded at restart. The Discord adapter owns channel creation, member movement,

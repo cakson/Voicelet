@@ -27,15 +27,19 @@ The operational endpoints are `GET /livez`, `GET /readyz`, and `GET /metrics`. A
 `SOCKET_PATH` is available for process-level local tests; ordinary development uses `HOST` and
 `PORT`.
 
-## Temporary voice rooms
+## Persistent guild configuration
 
-Set `TEMPORARY_ROOM_CONFIG` to a JSON map keyed by Discord server ID, with `triggerChannelId`,
-`destinationCategoryId`, optional `inactivityTimeoutMinutes`, optional
-`reconciliationIntervalMinutes`, and optional `permanentChannelIds` in each value. Both minute
-values are whole numbers from 1 through 1440; inactivity defaults to 60 and reconciliation defaults
-to 15. The destination category is dedicated Voicelet-managed territory: do not place unrelated
-permanent voice channels there unless they appear in `permanentChannelIds`. The trigger channel is
-always excluded from zombie cleanup.
+Guild settings are stored through the application-owned `GuildConfigRepository`; Firestore is the
+production adapter and `PERSISTENCE_PROVIDER=memory` is deterministic for tests. Each guild has one
+validated document containing `triggerChannelId`, `destinationCategoryId`, optional
+`inactivityTimeoutMinutes` (default 60), `reconciliationIntervalMinutes` (default 15), and
+`permanentChannelIds`. Start the native emulator with `pnpm firebase:emulator`; local seeding is
+documented in `docs/local-discord-development.md`. `DISCORD_TOKEN` and datastore credentials are
+secrets, operational settings remain environment configuration, and guild settings do not belong
+in either category.
+
+Timeout values are whole minutes from 1 through 1440. The destination category is dedicated Voicelet-managed territory, and reconciliation never expands beyond it. The room-creation trigger
+is validated as a voice channel before use.
 
 A known managed room is present in the current in-memory association and is deleted only after it has
 remained continuously empty for its inactivity timeout; a join starts a fresh period. Any
@@ -85,7 +89,6 @@ Run it with runtime values supplied separately (the image contains no `.env` or 
 docker run --rm --publish 3000:3000 \
   --env HOST=0.0.0.0 \
   --env GATEWAY_MODE=simulated \
-  --env TEMPORARY_ROOM_CONFIG='{}' \
   voicelet:local
 ```
 

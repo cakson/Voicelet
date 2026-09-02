@@ -68,17 +68,20 @@ HOST=127.0.0.1
 PORT=3000
 LOG_LEVEL=info
 
-# Non-secret development IDs: server ID -> trigger and destination category.
-# inactivityTimeoutMinutes defaults to 60 and reconciliationIntervalMinutes defaults to 15.
-# Both must be whole numbers from 1 through 1440. Use 1 for this local smoke test.
-# permanentChannelIds lists category channels that must never be zombie-cleanup targets.
-TEMPORARY_ROOM_CONFIG='{"<development-server-id>":{"triggerChannelId":"<room-creation-voice-channel-id>","destinationCategoryId":"<temporary-rooms-category-id>","inactivityTimeoutMinutes":1,"reconciliationIntervalMinutes":1,"permanentChannelIds":[]}}'
+PERSISTENCE_PROVIDER=firestore
+FIRESTORE_PROJECT_ID=voicelet-local
 ```
+
+The native Firestore emulator stores guild configuration locally. Seed the canonical
+`triggerChannelId`, `destinationCategoryId`, timeout values, and permanent channels through the
+internal setup path; reset disposable emulator data by stopping and restarting the emulator. The
+room-creation trigger is the persisted `triggerChannelId`.
 
 Start with the repository example, which contains every setting and safe placeholders:
 
 ```sh
 cp .env.example .env
+pnpm firebase:emulator
 ```
 
 Replace only the placeholders in your untracked `.env`. `.env` is the local-secret boundary; do not
@@ -155,11 +158,11 @@ bot appears online in that server. A user-only installation does not grant the r
 ### Wrong server, category, or trigger channel
 
 Enable Developer Mode and copy each ID again. The server ID must own both the category and trigger
-channel, the trigger must be a voice channel, and `TEMPORARY_ROOM_CONFIG` must use the exact JSON
-property names `triggerChannelId`, `destinationCategoryId`, optional `inactivityTimeoutMinutes`,
-optional `reconciliationIntervalMinutes`, and optional `permanentChannelIds`. Both minute values are
-whole numbers from 1 through 1440; inactivity defaults to 60 and reconciliation defaults to 15. Malformed configuration prevents
-startup with a generic validation error and is not echoed by the worker.
+channel, and the persisted document must use the exact property names `triggerChannelId`,
+`destinationCategoryId`, optional `inactivityTimeoutMinutes`, optional
+`reconciliationIntervalMinutes`, and optional `permanentChannelIds`. Both minute values are whole
+numbers from 1 through 1440; inactivity defaults to 60 and reconciliation defaults to 15. Malformed
+persisted configuration is rejected safely and is not echoed by the worker.
 
 ### Missing Discord permissions
 
