@@ -8,6 +8,15 @@
 
 **Input**: User description: "Create the Persistent Guild Configuration feature. Voicelet currently relies on runtime configuration for Discord server-specific settings. Guild-specific application configuration must instead be stored persistently so that configuration survives application restarts, deployments, and Discord reconnects."
 
+## Clarifications
+
+### Session 2026-09-02
+
+- Q: How should guild configuration creation and updates be exposed in this feature? → A: Internal application service plus local seed/setup workflow.
+- Q: At what point should Voicelet verify that configured Discord channel and category identifiers still refer to usable resources? → A: Validate identifier format when loading; verify Discord resources when used.
+- Q: When persistent guild configuration cannot be read, should readiness report the worker as not ready while liveness remains healthy? → A: Readiness fails; liveness stays healthy.
+- Q: Which persistence technology should Voicelet implement as its first real storage adapter? → A: Firestore using the official client and official local emulator.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Use a Guild's Saved Configuration (Priority: P1)
@@ -32,14 +41,19 @@ same isolated persistent datastore, and process that guild's event; verify the s
 3. **Given** a valid configuration was saved before an application restart or redeployment, **When**
    the application starts again and processes the guild, **Then** the configuration is available
    without being re-entered.
+4. **Given** a saved configuration has well-formed identifiers for resources that no longer exist,
+   belong to another guild, or have an incompatible type, **When** Voicelet attempts the configured
+   behavior, **Then** it detects the unusable Discord resources, skips the behavior safely, and
+   records a privacy-safe observable failure.
 
 ---
 
 ### User Story 2 - Create or Update Guild Configuration (Priority: P1)
 
-As a configuration manager or application integration, I can create a configuration for a guild or
-update its existing configuration, so that the guild's behavior can be established and changed
-without changing application-wide settings.
+As a local setup workflow or other application integration, I can use Voicelet's internal
+configuration-management service to create a configuration for a guild or update its existing
+configuration, so that the guild's behavior can be established and changed without changing
+application-wide settings.
 
 **Why this priority**: A persistence feature is useful only if configuration can be safely established
 and maintained for each guild.
@@ -81,8 +95,8 @@ configuration.
    retrieves it, **Then** it rejects the data before application or domain behavior uses it and records
    a privacy-safe observable failure.
 3. **Given** the persistence service is unavailable, **When** Voicelet requests guild configuration,
-   **Then** it applies a safe failure outcome, keeps liveness and readiness behavior functioning as
-   defined for an unavailable dependency, and does not terminate the worker unexpectedly.
+   **Then** it applies a safe failure outcome, reports the worker as not ready while retaining
+   liveness unless the process itself is unhealthy, and does not terminate unexpectedly.
 
 ### Edge Cases
 
@@ -90,6 +104,9 @@ configuration.
   is rejected without persistence or application behavior using it.
 - One required channel or category value is missing, blank, duplicated, or otherwise invalid; the
   entire configuration is rejected rather than partially applied.
+- A structurally valid identifier refers to a deleted resource, a resource in another guild, or an
+  incompatible Discord channel type; Voicelet skips the affected behavior safely when it verifies
+  the resource at use time.
 - A persisted record contains unknown future fields; known valid fields remain representable and the
   persistence boundary does not expose provider-specific record details to application behavior.
 - A configuration update races with another update for the same guild; retrieval must not expose a
@@ -114,8 +131,15 @@ configuration.
   MUST handle an unconfigured guild without crashing the worker.
 - **FR-005**: Voicelet MUST support creating configuration for an unconfigured guild and replacing
   the existing configuration for a configured guild.
+- **FR-005a**: Voicelet MUST expose creation and replacement through an internal application service
+  and MUST provide a documented local seed or setup workflow; it MUST NOT add a user-facing
+  dashboard, HTTP configuration endpoint, or Discord slash-command interface in this feature.
 - **FR-006**: Configuration MUST be validated before entering the application or domain layer;
   invalid persisted or submitted configuration MUST be rejected and MUST NOT influence behavior.
+- **FR-006a**: Persistence-boundary validation MUST verify required identifier structure. Before
+  configuration-dependent Discord behavior runs, Voicelet MUST verify that each configured resource
+  exists, belongs to the guild, and has the required Discord channel or category type; unusable
+  resources MUST result in a safe, observable skipped behavior.
 - **FR-007**: The canonical guild configuration model MUST belong to Voicelet, remain independent of
   the persistence provider, and be extensible for future guild-specific settings.
 - **FR-008**: Application and domain behavior MUST access guild configuration through an
@@ -134,13 +158,16 @@ configuration.
   identifiers MUST remain outside guild configuration.
 - **FR-013**: Persistence failures, translation failures, and validation failures MUST produce
   bounded safe outcomes that do not cause uncontrolled worker termination.
+- **FR-013a**: When Voicelet cannot read persistent guild configuration, it MUST report not ready;
+  its liveness result MUST remain healthy unless the worker process itself is unhealthy.
 - **FR-014**: Important persistence failures MUST be observable through privacy-safe diagnostics that
   identify the failure category and relevant bounded context without logging full persisted records,
   Discord tokens, raw Discord payloads, or unnecessary personal identifiers.
 - **FR-015**: The storage boundary MUST support deterministic in-memory implementations for unit and
   application-level tests.
-- **FR-016**: Integration tests MUST exercise the real persistence adapter against a local or isolated
-  datastore using deterministic, disposable test data.
+- **FR-016**: The first real persistence adapter MUST use Firestore through its official client,
+  while integration tests MUST exercise that adapter against the official local Firestore emulator
+  using deterministic, disposable test data.
 - **FR-017**: End-to-end tests MUST run with isolated test data and without production database
   infrastructure or production credentials, including a test proving configuration written before an
   application restart is retrieved and used after startup.
@@ -184,8 +211,9 @@ configuration.
 - **SC-006**: A maintainer can identify from the documentation within 5 minutes which settings are
   guild-specific, which are application-wide, which are secrets, how to manage local persisted data,
   and where to replace the persistence provider.
-- **SC-007**: Existing liveness and readiness checks continue to return their documented outcomes
-  during normal operation and simulated persistence failure tests.
+- **SC-007**: Existing liveness and readiness checks continue to return their documented normal
+  outcomes; in 100% of simulated configuration-read failures, readiness reports not ready and
+  liveness remains healthy while the process is otherwise healthy.
 
 ## Assumptions
 
@@ -196,12 +224,19 @@ configuration.
 - A missing configuration is a normal unconfigured state, while malformed persisted data and
   persistence unavailability are failure states that must be distinguished for observability and
   safe behavior.
+- Identifier structure can be validated without Discord access; availability, guild membership, and
+  channel type are verified only when the corresponding Discord behavior runs.
 - The selected persistence technology will provide a local or isolated test mode suitable for
   reproducible CI, while the canonical model and storage boundary remain provider-independent.
+- Firestore is the first selected persistence provider. Voicelet will use its official client and
+  official local emulator; this choice is confined to infrastructure and does not define the
+  canonical guild configuration model or application storage boundary.
 - Local development may use disposable persisted data and an explicit setup or seed workflow; no
   production datastore or credentials are required for local or end-to-end tests.
-- Configuration management interfaces, authentication, and authorization are outside this feature;
-  existing or future callers remain responsible for access control.
+- Configuration creation and replacement are invoked through an internal application service and a
+  documented local seed or setup workflow. User-facing management interfaces, authentication, and
+  authorization remain outside this feature; existing or future callers remain responsible for
+  access control.
 
 ## Out of Scope
 
