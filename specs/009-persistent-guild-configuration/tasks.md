@@ -121,3 +121,9 @@ provider values outside infrastructure, production test credentials, or persiste
 - [X] T062 Add Firestore client-factory tests for emulator host parsing, isolated project routing, malformed host handling, and disposal per plan: emulator routing (partial)
 - [X] T063 Add explicit invalid-save adapter coverage and a test contract proving the emulator lifecycle scripts execute emulator-backed integration and E2E suites per FR-018 and SC-005 (partial)
 - [X] T064 Add documentation assertions for deterministic seed/reset behavior and the local-only configuration management boundary per FR-019 and quickstart.md (partial)
+
+## Phase 9: Convergence
+
+- [ ] T065 Add application-boundary guild identifier validation for lookups and tests proving invalid IDs never invoke persistence per FR-006a edge cases (partial)
+- [ ] T066 Add an emulator-backed worker health scenario for datastore unavailability and later successful read, asserting `/livez` remains healthy and `/readyz` recovers per FR-013a, FR-013b, and Constitution I (partial)
+- [ ] T067 Add manager/source assertions for bounded no-identifier observability across missing, wrong-type, and unavailable configured Discord resources per FR-006a and FR-014 (partial)
