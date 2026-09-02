@@ -133,3 +133,7 @@ provider values outside infrastructure, production test credentials, or persiste
 - [X] T068 Reject whitespace-only guild, trigger-channel, destination-category, and permanent-channel identifiers before repository saves, with tests proving invalid submissions do not reach persistence per FR-006 and FR-006a (partial)
 - [X] T069 Require Firestore persistence configuration for live Discord Gateway mode while preserving explicit in-memory selection for deterministic simulated tests; update configuration tests and safe examples per FR-011, FR-016, and plan: production adapter (partial)
 - [X] T070 Remove stale runtime-map configuration wording from documentation and add regression assertions for the retired configuration path per FR-019 and FR-020 (partial)
+
+## Phase 11: Convergence
+
+- [ ] T071 Remove Map-based runtime guild-configuration overloads and defaults from the Gateway source, room manager, reconciler, and in-memory adapter; migrate affected unit and Gateway tests to seed the deterministic repository and prove behavior cannot bypass persistent configuration per FR-015 and FR-020 (contradicts)
