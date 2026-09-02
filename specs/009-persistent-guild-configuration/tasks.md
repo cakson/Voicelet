@@ -115,9 +115,9 @@ provider values outside infrastructure, production test credentials, or persiste
 
 ## Phase 8: Convergence
 
-- [ ] T059 Strengthen Firestore-backed E2E assertions for unconfigured no-creation behavior, guild isolation, restart retrieval, and invalid/unavailable/recovery outcomes per FR-018 and Constitution I (partial)
-- [ ] T060 Add worker/source integration coverage that drives repository read failure and subsequent successful read, proving readiness recovery while liveness remains healthy per FR-013a and FR-013b (partial)
-- [ ] T061 Add unavailable and simulated configured-resource inspection tests plus manager-level privacy-safe safe-skip/no-creation assertions per FR-006a and FR-014 (partial)
-- [ ] T062 Add Firestore client-factory tests for emulator host parsing, isolated project routing, malformed host handling, and disposal per plan: emulator routing (partial)
-- [ ] T063 Add explicit invalid-save adapter coverage and a test contract proving the emulator lifecycle scripts execute emulator-backed integration and E2E suites per FR-018 and SC-005 (partial)
-- [ ] T064 Add documentation assertions for deterministic seed/reset behavior and the local-only configuration management boundary per FR-019 and quickstart.md (partial)
+- [X] T059 Strengthen Firestore-backed E2E assertions for unconfigured no-creation behavior, guild isolation, restart retrieval, and invalid/unavailable/recovery outcomes per FR-018 and Constitution I (partial)
+- [X] T060 Add worker/source integration coverage that drives repository read failure and subsequent successful read, proving readiness recovery while liveness remains healthy per FR-013a and FR-013b (partial)
+- [X] T061 Add unavailable and simulated configured-resource inspection tests plus manager-level privacy-safe safe-skip/no-creation assertions per FR-006a and FR-014 (partial)
+- [X] T062 Add Firestore client-factory tests for emulator host parsing, isolated project routing, malformed host handling, and disposal per plan: emulator routing (partial)
+- [X] T063 Add explicit invalid-save adapter coverage and a test contract proving the emulator lifecycle scripts execute emulator-backed integration and E2E suites per FR-018 and SC-005 (partial)
+- [X] T064 Add documentation assertions for deterministic seed/reset behavior and the local-only configuration management boundary per FR-019 and quickstart.md (partial)

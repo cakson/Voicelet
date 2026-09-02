@@ -85,7 +85,7 @@ PERSISTENCE_PROVIDER=firestore FIRESTORE_PROJECT_ID=voicelet-local \
   pnpm guild-config:seed -- <development-guild-id> <trigger-channel-id> <category-id>
 ```
 
-Stop and restart the emulator to reset its disposable data. Never run this command with production
+This seed command is local-only. Stop and restart the emulator to reset its disposable data. Never run this command with production
 credentials or against a production project.
 
 Start with the repository example, which contains every setting and safe placeholders:
