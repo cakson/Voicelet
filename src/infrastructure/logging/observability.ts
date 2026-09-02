@@ -46,6 +46,17 @@ export class Observability implements ObservationSink {
     labelNames: ['outcome'],
     registers: [this.registry],
   });
+  readonly persistenceReady = new Gauge({
+    name: 'voicelet_persistence_ready',
+    help: 'Whether guild configuration persistence is available',
+    registers: [this.registry],
+  });
+  readonly configurationOperations = new Counter({
+    name: 'voicelet_guild_configuration_operations_total',
+    help: 'Guild configuration outcomes without identifiers or records',
+    labelNames: ['outcome'],
+    registers: [this.registry],
+  });
 
   constructor(readonly logger: Logger) {}
 
@@ -64,6 +75,17 @@ export class Observability implements ObservationSink {
 
   setGatewayState(state: GatewayState): void {
     this.gatewayReady.set(state === 'ready' ? 1 : 0);
+  }
+  setPersistenceReady(ready: boolean): void {
+    this.persistenceReady.set(ready ? 1 : 0);
+  }
+  recordConfiguration(outcome: string): void {
+    const allowed = ['found', 'not_found', 'invalid', 'unavailable', 'saved', 'list'];
+    const normalized = allowed.includes(outcome) ? outcome : 'unavailable';
+    this.configurationOperations.inc({ outcome: normalized });
+    this.setPersistenceReady(normalized !== 'unavailable');
+    if (normalized === 'unavailable')
+      this.logger.error({ failureClass: 'persistence' }, 'persistence_failure');
   }
 
   recordReconnect(): void {

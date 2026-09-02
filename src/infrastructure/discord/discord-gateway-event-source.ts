@@ -8,7 +8,7 @@ import type {
 import { normalizeVoiceState } from '../../domain/normalize-voice-state.js';
 import { TemporaryRoomManager } from '../../application/manage-temporary-room.js';
 import { TemporaryRoomReconciler } from '../../application/reconcile-temporary-rooms.js';
-import type { TemporaryRoomConfig } from '../../domain/voice-state.js';
+import type { GuildConfigRepository } from '../../ports/guild-config-repository.js';
 import type { Observability } from '../logging/observability.js';
 
 export class DiscordGatewayEventSource {
@@ -20,7 +20,7 @@ export class DiscordGatewayEventSource {
     private readonly token: string,
     private readonly clock: Clock,
     private readonly observability: Observability,
-    configurations: Map<string, TemporaryRoomConfig> = new Map(),
+    repository: GuildConfigRepository,
     scheduler: Scheduler = {
       schedule: (delayMs, callback) => {
         const timer = setTimeout(callback, delayMs);
@@ -29,15 +29,20 @@ export class DiscordGatewayEventSource {
     },
   ) {
     this.client = factory.create();
-    this.rooms = new TemporaryRoomManager(configurations, this.client, scheduler, (event) =>
-      this.observability.recordTemporaryRoom(event),
+    this.rooms = new TemporaryRoomManager(
+      repository,
+      this.client,
+      scheduler,
+      (event) => this.observability.recordTemporaryRoom(event),
+      (outcome) => this.recordPersistence(outcome),
     );
     this.reconciler = new TemporaryRoomReconciler(
-      configurations,
+      repository,
       this.client,
       scheduler,
       (guildId, roomId) => this.rooms.isKnownManagedRoom(guildId, roomId),
       (event) => this.observability.recordReconciliation(event),
+      (outcome) => this.recordPersistence(outcome),
     );
   }
   private readonly rooms: TemporaryRoomManager;
@@ -45,6 +50,16 @@ export class DiscordGatewayEventSource {
 
   get readiness(): GatewayState {
     return this.state;
+  }
+  private persistenceAvailable = true;
+
+  get persistenceReady(): boolean {
+    return this.persistenceAvailable;
+  }
+
+  private recordPersistence(outcome: string): void {
+    this.persistenceAvailable = outcome !== 'unavailable';
+    this.observability.recordConfiguration(outcome);
   }
 
   private setState(state: GatewayState): void {
@@ -57,7 +72,7 @@ export class DiscordGatewayEventSource {
     this.client.onReady(() => {
       if (this.state === 'ready') return;
       this.setState('ready');
-      this.reconciler.start();
+      void this.reconciler.start();
     });
     this.client.onVoiceState((event) => {
       const normalized = normalizeVoiceState(event, this.clock);

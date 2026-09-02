@@ -8,6 +8,12 @@ import {
 import { createOperationalServer } from '../infrastructure/http/operational-server.js';
 import { Observability } from '../infrastructure/logging/observability.js';
 import type { Clock, DiscordClientFactory, Scheduler } from '../ports/index.js';
+import { InMemoryGuildConfigRepository } from '../infrastructure/memory/in-memory-guild-config-repository.js';
+import {
+  createFirestoreClient,
+  disposeFirestoreClient,
+} from '../infrastructure/firestore/firestore-client-factory.js';
+import { FirestoreGuildConfigRepository } from '../infrastructure/firestore/firestore-guild-config-repository.js';
 
 const systemClock: Clock = { now: () => new Date() };
 const systemScheduler: Scheduler = {
@@ -27,14 +33,34 @@ export function createWorker(config: AppConfig, simulatedFactory?: DiscordClient
     factory.client.autoReady = config.simulatedAutoReady;
   const simulatedScheduler =
     config.gatewayMode === 'simulated' ? new SimulatedScheduler() : undefined;
+  const firestore =
+    config.persistenceProvider === 'firestore'
+      ? createFirestoreClient(config.firestoreProjectId ?? 'voicelet')
+      : undefined;
+  const repository = firestore
+    ? new FirestoreGuildConfigRepository(firestore)
+    : new InMemoryGuildConfigRepository();
   const source = new DiscordGatewayEventSource(
     factory,
     config.discordToken ?? 'simulated-token',
     systemClock,
     observability,
-    config.temporaryRooms,
+    repository,
     simulatedScheduler ?? systemScheduler,
   );
-  const server = createOperationalServer(() => source.readiness, observability);
-  return { source, server, observability, factory, simulatedScheduler };
+  const server = createOperationalServer(
+    () => ({ gateway: source.readiness, persistence: source.persistenceReady }),
+    observability,
+  );
+  return {
+    source,
+    server,
+    observability,
+    factory,
+    simulatedScheduler,
+    repository,
+    dispose: async () => {
+      if (firestore) await disposeFirestoreClient(firestore);
+    },
+  };
 }

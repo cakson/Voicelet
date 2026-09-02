@@ -73,18 +73,18 @@ describe('worker voice-state flow', () => {
         GATEWAY_MODE: 'simulated',
         SOCKET_PATH: socketPath,
         LOG_LEVEL: 'silent',
-        TEMPORARY_ROOM_CONFIG: JSON.stringify({
-          'test-guild': {
-            triggerChannelId: 'trigger-channel',
-            destinationCategoryId: 'category-id',
-            inactivityTimeoutMinutes: 1,
-          },
-        }),
       },
       execArgv: ['--import', 'tsx'],
       stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
     });
     workers.push(worker);
+    worker.send({
+      type: 'seed-guild-config',
+      guildId: 'test-guild',
+      triggerChannelId: 'trigger-channel',
+      destinationCategoryId: 'category-id',
+      inactivityTimeoutMinutes: 1,
+    });
     await waitFor(
       () => request(socketPath, '/readyz'),
       (response) => response.statusCode === 200,
@@ -229,20 +229,20 @@ describe('worker voice-state flow', () => {
         SIMULATED_AUTO_READY: 'false',
         SOCKET_PATH: socketPath,
         LOG_LEVEL: 'silent',
-        TEMPORARY_ROOM_CONFIG: JSON.stringify({
-          'test-guild': {
-            triggerChannelId: 'trigger-channel',
-            destinationCategoryId: 'category-id',
-            inactivityTimeoutMinutes: 1,
-            reconciliationIntervalMinutes: 1,
-            permanentChannelIds: ['permanent-room'],
-          },
-        }),
       },
       execArgv: ['--import', 'tsx'],
       stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
     });
     workers.push(worker);
+    worker.send({
+      type: 'seed-guild-config',
+      guildId: 'test-guild',
+      triggerChannelId: 'trigger-channel',
+      destinationCategoryId: 'category-id',
+      inactivityTimeoutMinutes: 1,
+      reconciliationIntervalMinutes: 1,
+      permanentChannelIds: ['permanent-room'],
+    });
     await waitFor(
       () => request(socketPath, '/livez'),
       (response) => response.statusCode === 200,
@@ -298,19 +298,19 @@ describe('worker voice-state flow', () => {
         GATEWAY_MODE: 'simulated',
         SOCKET_PATH: socketPath,
         LOG_LEVEL: 'silent',
-        TEMPORARY_ROOM_CONFIG: JSON.stringify({
-          'test-guild': {
-            triggerChannelId: 'trigger-channel',
-            destinationCategoryId: 'category-id',
-            inactivityTimeoutMinutes: 1,
-            permanentChannelIds: ['permanent-room'],
-          },
-        }),
       },
       execArgv: ['--import', 'tsx'],
       stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
     });
     workers.push(worker);
+    worker.send({
+      type: 'seed-guild-config',
+      guildId: 'test-guild',
+      triggerChannelId: 'trigger-channel',
+      destinationCategoryId: 'category-id',
+      inactivityTimeoutMinutes: 1,
+      permanentChannelIds: ['permanent-room'],
+    });
     await waitFor(
       () => request(socketPath, '/readyz'),
       (response) => response.statusCode === 200,

@@ -9,6 +9,7 @@ import type {
   OwnerAllowanceResult,
   RoomCategoryRestorationResult,
   RoomParentChanged,
+  GuildConfigResourceInspection,
 } from '../../ports/index.js';
 
 export const requiredGatewayIntents = [
@@ -76,6 +77,29 @@ export class DiscordJsClient implements DiscordClient {
       return roomIds;
     } catch {
       return null;
+    }
+  }
+  async inspectGuildConfigResources(
+    guildId: string,
+    triggerChannelId: string,
+    destinationCategoryId: string,
+  ): Promise<GuildConfigResourceInspection> {
+    try {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) return 'unavailable';
+      const trigger = await guild.channels.fetch(triggerChannelId);
+      const category = await guild.channels.fetch(destinationCategoryId);
+      if (!trigger || !category) return 'missing';
+      if (
+        trigger.guild.id !== guildId ||
+        category.guild.id !== guildId ||
+        trigger.type !== ChannelType.GuildVoice ||
+        category.type !== ChannelType.GuildCategory
+      )
+        return 'wrong_type';
+      return 'valid';
+    } catch (error) {
+      return isUnknownChannel(error) ? 'missing' : 'unavailable';
     }
   }
   async deleteEmptyRoom(guildId: string, roomId: string): Promise<DeleteEmptyRoomResult> {

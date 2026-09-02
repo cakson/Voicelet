@@ -1,4 +1,5 @@
-import type { VoiceStateChanged, TemporaryRoomConfig } from '../domain/voice-state.js';
+import type { VoiceStateChanged } from '../domain/voice-state.js';
+import type { GuildConfig } from '../domain/guild-config.js';
 import type {
   DiscordClient,
   RoomParentChanged,
@@ -6,6 +7,7 @@ import type {
   ScheduledWork,
   TemporaryRoomObservation,
 } from '../ports/index.js';
+import type { GuildConfigRepository } from '../ports/guild-config-repository.js';
 
 const retryDelayMs = 15 * 60 * 1000;
 
@@ -38,10 +40,11 @@ export class TemporaryRoomManager {
   private readonly deletingRooms = new Set<string>();
 
   constructor(
-    private readonly configurations: Map<string, TemporaryRoomConfig>,
+    private readonly configurations: GuildConfigRepository,
     private readonly discord: DiscordClient,
     schedulerOrObserve: Scheduler | ((event: TemporaryRoomObservation) => void),
     observe?: (event: TemporaryRoomObservation) => void,
+    private readonly observeConfiguration?: (outcome: string) => void,
   ) {
     this.scheduler =
       typeof schedulerOrObserve === 'function'
@@ -62,7 +65,7 @@ export class TemporaryRoomManager {
 
   async handle(event: VoiceStateChanged): Promise<void> {
     if (event.isBot) return;
-    const config = this.configurations.get(event.guildId);
+    const config = await this.config(event.guildId);
     if (
       config &&
       event.channelId === config.triggerChannelId &&
@@ -100,7 +103,7 @@ export class TemporaryRoomManager {
   async roomParentChanged(event: RoomParentChanged): Promise<void> {
     const key = this.roomKey(event.guildId, event.roomId);
     const association = this.managedRooms.get(key);
-    const config = this.configurations.get(event.guildId);
+    const config = await this.config(event.guildId);
     if (
       !association ||
       !config ||
@@ -145,10 +148,22 @@ export class TemporaryRoomManager {
     }
   }
 
-  private async createOrReuse(
-    event: VoiceStateChanged,
-    config: TemporaryRoomConfig,
-  ): Promise<void> {
+  private async config(guildId: string): Promise<GuildConfig | undefined> {
+    const result = await this.configurations.get(guildId);
+    this.observeConfiguration?.(result.kind);
+    return result.kind === 'found' ? result.config : undefined;
+  }
+
+  private async createOrReuse(event: VoiceStateChanged, config: GuildConfig): Promise<void> {
+    const resources = await this.discord.inspectGuildConfigResources(
+      event.guildId,
+      config.triggerChannelId,
+      config.destinationCategoryId,
+    );
+    if (resources !== 'valid') {
+      this.observe('temporary_room_configuration_invalid');
+      return;
+    }
     const ownerKey = `${event.guildId}:${event.userId}`;
     await this.serial(ownerKey, async () => {
       let association = this.associationForOwner(event.guildId, event.userId);
@@ -204,7 +219,7 @@ export class TemporaryRoomManager {
   private async updateLifecycle(
     guildId: string,
     roomId: string,
-    config?: TemporaryRoomConfig,
+    config?: GuildConfig,
   ): Promise<void> {
     if (!config) return;
     await this.serial(this.roomKey(guildId, roomId), async () => {

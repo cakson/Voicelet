@@ -14,20 +14,22 @@ describe('documentation', () => {
     expect(readme).toContain('Local Discord development');
   });
 
+  it('documents deterministic persistence seed and reset boundaries', async () => {
+    const guide = await readFile('docs/local-discord-development.md', 'utf8');
+    expect(guide).toContain('pnpm guild-config:seed');
+    expect(guide).toContain('stopping and restarting the emulator');
+    expect(guide).toContain('local-only');
+  });
+
   it('keeps the tracked environment example safe and complete', async () => {
     const example = await readFile('.env.example', 'utf8');
     expect(example).toContain('DISCORD_TOKEN=');
     expect(example).toContain('GATEWAY_MODE=discord');
-    expect(example).toContain('TEMPORARY_ROOM_CONFIG=');
+    expect(example).toContain('PERSISTENCE_PROVIDER=firestore');
     expect(example).toContain('Secret:');
     expect(example).toContain('Non-secret');
     expect(example).toContain('127.0.0.1');
     expect(example).toContain('3000');
-    expect(example).toContain('<development-server-id>');
-    expect(example).toContain('inactivityTimeoutMinutes');
-    expect(example).toContain('reconciliationIntervalMinutes');
-    expect(example).toContain('permanentChannelIds');
-    expect(example).toContain('1-1440');
     expect(example).not.toMatch(/DISCORD_TOKEN=\S+/);
     expect(example).not.toMatch(/\b\d{17,20}\b/);
   });
@@ -79,9 +81,10 @@ describe('documentation', () => {
       'GuildVoiceStates',
       'no privileged',
       'Developer Mode',
-      'TEMPORARY_ROOM_CONFIG',
+      'PERSISTENCE_PROVIDER',
       'triggerChannelId',
       'destinationCategoryId',
+      'Firestore',
       '/livez',
       '/readyz',
       '/metrics',
@@ -116,5 +119,16 @@ describe('documentation', () => {
       expect(`${readme}\n${guide}`).toContain(phrase);
     }
     expect(readme).toContain('reconciliation never expands');
+  });
+
+  it('does not retain runtime-map guild configuration guidance', async () => {
+    const [readme, deployment] = await Promise.all([
+      readFile('README.md', 'utf8'),
+      readFile('docs/deployment.md', 'utf8'),
+    ]);
+    for (const document of [readme, deployment]) {
+      expect(document).not.toMatch(/servers omitted from the map|mapping entries/i);
+      expect(document).not.toContain('TEMPORARY_ROOM_CONFIG');
+    }
   });
 });

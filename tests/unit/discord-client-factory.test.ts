@@ -4,6 +4,10 @@ import {
   DiscordJsClient,
   requiredGatewayIntents,
 } from '../../src/infrastructure/discord/discord-client-factory.js';
+import {
+  createFirestoreClient,
+  disposeFirestoreClient,
+} from '../../src/infrastructure/firestore/firestore-client-factory.js';
 
 describe('DiscordJsClient room lifecycle boundary', () => {
   it('requests guild and voice-state Gateway intents for channel lifecycle events', () => {
@@ -166,5 +170,63 @@ describe('DiscordJsClient room lifecycle boundary', () => {
       },
     } as never);
     await expect(failing.applyOwnerAllowance('guild', 'room', 'owner')).resolves.toBe('failed');
+  });
+
+  it('classifies configured Discord resources by existence and channel type', async () => {
+    const valid = new DiscordJsClient({
+      guilds: {
+        cache: {
+          get: () => ({
+            channels: {
+              fetch: async (id: string) => ({
+                id,
+                guild: { id: 'guild' },
+                type: id === 'trigger' ? ChannelType.GuildVoice : ChannelType.GuildCategory,
+              }),
+            },
+          }),
+        },
+      },
+    } as never);
+    await expect(valid.inspectGuildConfigResources('guild', 'trigger', 'category')).resolves.toBe(
+      'valid',
+    );
+    const wrong = new DiscordJsClient({
+      guilds: {
+        cache: {
+          get: () => ({
+            channels: {
+              fetch: async () => ({ guild: { id: 'guild' }, type: ChannelType.GuildText }),
+            },
+          }),
+        },
+      },
+    } as never);
+    await expect(wrong.inspectGuildConfigResources('guild', 'trigger', 'category')).resolves.toBe(
+      'wrong_type',
+    );
+    const missing = new DiscordJsClient({
+      guilds: { cache: { get: () => ({ channels: { fetch: async () => null } }) } },
+    } as never);
+    await expect(missing.inspectGuildConfigResources('guild', 'trigger', 'category')).resolves.toBe(
+      'missing',
+    );
+  });
+
+  it('routes Firestore explicitly to the emulator and rejects malformed routing', async () => {
+    const original = process.env.FIRESTORE_EMULATOR_HOST;
+    process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+    const client = createFirestoreClient('isolated-test');
+    expect(
+      (client as unknown as { _settings: { servicePath?: string; port?: number; ssl?: boolean } })
+        ._settings,
+    ).toMatchObject({ servicePath: '127.0.0.1', port: 8080, ssl: false });
+    await disposeFirestoreClient(client);
+    process.env.FIRESTORE_EMULATOR_HOST = 'not-a-port';
+    expect(() => createFirestoreClient('isolated-test')).toThrow(
+      'Invalid Firestore emulator configuration',
+    );
+    if (original === undefined) delete process.env.FIRESTORE_EMULATOR_HOST;
+    else process.env.FIRESTORE_EMULATOR_HOST = original;
   });
 });

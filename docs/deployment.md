@@ -47,13 +47,13 @@ Run without source changes or embedded environment values:
 docker run --rm --publish 3000:3000 \
   --env HOST=0.0.0.0 \
   --env GATEWAY_MODE=simulated \
-  --env TEMPORARY_ROOM_CONFIG='{}' \
   voicelet:local
 ```
 
 Check `GET /livez`, `GET /readyz`, and `GET /metrics`. `pnpm container:smoke` automates the
-credential-free local check. A real environment supplies `DISCORD_TOKEN`, `TEMPORARY_ROOM_CONFIG`,
-and other runtime values independently; none is present in the image.
+credential-free local check. A real environment supplies `DISCORD_TOKEN`, `PERSISTENCE_PROVIDER`,
+`FIRESTORE_PROJECT_ID`, and datastore credentials through runtime secrets/configuration; none is
+present in the image. Guild configuration is stored in Firestore, not in application environment.
 
 ## External deployment handoff
 

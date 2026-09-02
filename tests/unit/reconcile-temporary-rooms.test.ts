@@ -1,19 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { TemporaryRoomReconciler } from '../../src/application/reconcile-temporary-rooms.js';
 import { SimulatedDiscordClient } from '../../src/infrastructure/discord/simulated-client-factory.js';
+import { InMemoryGuildConfigRepository } from '../../src/infrastructure/memory/in-memory-guild-config-repository.js';
 import { ManualScheduler } from '../support/manual-scheduler.js';
 
-const config = new Map([
-  [
-    'guild',
-    {
-      triggerChannelId: 'trigger',
-      destinationCategoryId: 'category',
-      inactivityTimeoutMinutes: 1,
-      reconciliationIntervalMinutes: 1,
-      permanentChannelIds: ['permanent'],
-    },
-  ],
+const config = new InMemoryGuildConfigRepository([
+  {
+    guildId: 'guild',
+    triggerChannelId: 'trigger',
+    destinationCategoryId: 'category',
+    inactivityTimeoutMinutes: 1,
+    reconciliationIntervalMinutes: 1,
+    permanentChannelIds: ['permanent'],
+  },
 ]);
 
 async function settled(): Promise<void> {

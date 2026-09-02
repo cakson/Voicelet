@@ -8,16 +8,16 @@ import {
   unconfiguredTemporaryRoomJoin,
 } from '../support/fixtures/voice-state.js';
 import { ManualScheduler } from '../support/manual-scheduler.js';
+import { InMemoryGuildConfigRepository } from '../../src/infrastructure/memory/in-memory-guild-config-repository.js';
+import { createOperationalServer } from '../../src/infrastructure/http/operational-server.js';
 
-const configurations = new Map([
-  [
-    'test-guild',
-    {
-      triggerChannelId: 'trigger-channel',
-      destinationCategoryId: 'category-id',
-      inactivityTimeoutMinutes: 1,
-    },
-  ],
+const configurations = new InMemoryGuildConfigRepository([
+  {
+    guildId: 'test-guild',
+    triggerChannelId: 'trigger-channel',
+    destinationCategoryId: 'category-id',
+    inactivityTimeoutMinutes: 1,
+  },
 ]);
 
 async function settled(): Promise<void> {
@@ -33,6 +33,7 @@ describe('DiscordGatewayEventSource', () => {
       'test-token',
       { now: () => new Date() },
       observability,
+      configurations,
     );
     await source.start();
     factory.client.emitReady();
@@ -191,6 +192,63 @@ describe('DiscordGatewayEventSource', () => {
     source.stop();
   });
 
+  it('recovers persistence readiness after a failed read', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const repository = new InMemoryGuildConfigRepository();
+    const observability = Observability.create('silent');
+    await repository.save({
+      guildId: 'test-guild',
+      triggerChannelId: 'trigger-channel',
+      destinationCategoryId: 'category-id',
+    });
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      observability,
+      repository,
+    );
+    const server = createOperationalServer(
+      () => ({ gateway: source.readiness, persistence: source.persistenceReady }),
+      observability,
+    );
+    await source.start();
+    repository.unavailable = true;
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    expect(source.persistenceReady).toBe(false);
+    expect((await server.inject('/livez')).statusCode).toBe(200);
+    expect((await server.inject('/readyz')).statusCode).toBe(503);
+    repository.unavailable = false;
+    factory.client.emitVoiceState({ ...temporaryRoomJoin, userId: 'recovered' });
+    await settled();
+    expect(source.persistenceReady).toBe(true);
+    expect((await server.inject('/readyz')).statusCode).toBe(200);
+    source.stop();
+    await server.close();
+  });
+
+  it('records unusable configured resources with a bounded outcome', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const observability = Observability.create('silent');
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      observability,
+      configurations,
+    );
+    await source.start();
+    factory.client.failNextGuildConfigInspection = 'wrong_type';
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    expect(factory.client.rooms).toHaveLength(0);
+    expect(await observability.registry.metrics()).toContain(
+      'voicelet_temporary_room_operations_total{outcome="configuration_invalid"} 1',
+    );
+    source.stop();
+  });
+
   it('contains owner allowance failure without duplicate creation', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const observability = Observability.create('silent');
@@ -292,17 +350,15 @@ describe('DiscordGatewayEventSource', () => {
   it('reconciles startup zombies while preserving configured permanent and known managed rooms', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const scheduler = new ManualScheduler();
-    const reconciliationConfig = new Map([
-      [
-        'test-guild',
-        {
-          triggerChannelId: 'trigger-channel',
-          destinationCategoryId: 'category-id',
-          inactivityTimeoutMinutes: 1,
-          reconciliationIntervalMinutes: 1,
-          permanentChannelIds: ['permanent-room'],
-        },
-      ],
+    const reconciliationConfig = new InMemoryGuildConfigRepository([
+      {
+        guildId: 'test-guild',
+        triggerChannelId: 'trigger-channel',
+        destinationCategoryId: 'category-id',
+        inactivityTimeoutMinutes: 1,
+        reconciliationIntervalMinutes: 1,
+        permanentChannelIds: ['permanent-room'],
+      },
     ]);
     factory.client.seedRoom('test-guild', 'empty-zombie', 'category-id');
     factory.client.seedRoom('test-guild', 'occupied-zombie', 'category-id');

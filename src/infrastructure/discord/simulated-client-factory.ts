@@ -10,6 +10,7 @@ import type {
   OwnerAllowanceResult,
   RoomCategoryRestorationResult,
   RoomParentChanged,
+  GuildConfigResourceInspection,
 } from '../../ports/index.js';
 
 export class SimulatedScheduler implements Scheduler {
@@ -51,6 +52,7 @@ export class SimulatedDiscordClient implements DiscordClient {
   failNextMove = false;
   failNextDelete = false;
   failNextCategoryInspection = false;
+  failNextGuildConfigInspection: GuildConfigResourceInspection | undefined;
   failNextRoomInspection = false;
   failNextOwnerAllowance = false;
   failNextCategoryRestore = false;
@@ -103,6 +105,18 @@ export class SimulatedDiscordClient implements DiscordClient {
     return [...this.rooms.entries()]
       .filter(([, room]) => room.guildId === guildId && room.categoryId === categoryId)
       .map(([roomId]) => roomId);
+  }
+  async inspectGuildConfigResources(
+    guildId: string,
+    triggerChannelId: string,
+    destinationCategoryId: string,
+  ): Promise<GuildConfigResourceInspection> {
+    void guildId;
+    void triggerChannelId;
+    void destinationCategoryId;
+    const result = this.failNextGuildConfigInspection;
+    this.failNextGuildConfigInspection = undefined;
+    return result ?? 'valid';
   }
   async deleteEmptyRoom(guildId: string, roomId: string): Promise<DeleteEmptyRoomResult> {
     this.deleteAttempts.push({ guildId, roomId });
