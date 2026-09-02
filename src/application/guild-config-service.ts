@@ -1,0 +1,23 @@
+import type { GuildConfig, GuildConfigInput } from '../domain/guild-config.js';
+import type {
+  GuildConfigLookup,
+  GuildConfigRepository,
+  GuildConfigSave,
+} from '../ports/guild-config-repository.js';
+
+export class GuildConfigService {
+  constructor(private readonly repository: GuildConfigRepository) {}
+  get(guildId: string): Promise<GuildConfigLookup> {
+    return this.repository.get(guildId);
+  }
+  list() {
+    return this.repository.list();
+  }
+  save(input: GuildConfigInput): Promise<GuildConfigSave> {
+    return this.repository.save(input);
+  }
+  async required(guildId: string): Promise<GuildConfig | undefined> {
+    const result = await this.get(guildId);
+    return result.kind === 'found' ? result.config : undefined;
+  }
+}

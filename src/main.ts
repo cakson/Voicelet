@@ -33,6 +33,36 @@ export async function bootstrap(): Promise<void> {
       if (message.type === 'fail-next-category-restore')
         simulatedFactory.client.failNextCategoryRestore = true;
       if (
+        message.type === 'seed-guild-config' &&
+        'guildId' in message &&
+        'triggerChannelId' in message &&
+        'destinationCategoryId' in message &&
+        typeof message.guildId === 'string' &&
+        typeof message.triggerChannelId === 'string' &&
+        typeof message.destinationCategoryId === 'string'
+      )
+        void worker.repository.save({
+          guildId: message.guildId,
+          triggerChannelId: message.triggerChannelId,
+          destinationCategoryId: message.destinationCategoryId,
+          inactivityTimeoutMinutes:
+            'inactivityTimeoutMinutes' in message &&
+            typeof message.inactivityTimeoutMinutes === 'number'
+              ? message.inactivityTimeoutMinutes
+              : 60,
+          reconciliationIntervalMinutes:
+            'reconciliationIntervalMinutes' in message &&
+            typeof message.reconciliationIntervalMinutes === 'number'
+              ? message.reconciliationIntervalMinutes
+              : 15,
+          permanentChannelIds:
+            'permanentChannelIds' in message &&
+            Array.isArray(message.permanentChannelIds) &&
+            message.permanentChannelIds.every((id) => typeof id === 'string')
+              ? message.permanentChannelIds
+              : [],
+        });
+      if (
         message.type === 'seed-room' &&
         'guildId' in message &&
         'roomId' in message &&
@@ -107,6 +137,7 @@ export async function bootstrap(): Promise<void> {
       timeout = setTimeout(resolve, gracefulShutdownTimeoutMs);
     });
     await Promise.race([worker.server.close(), timeoutReached]);
+    await worker.dispose();
     clearTimeout(timeout!);
     if (process.connected) process.disconnect();
     process.exit(0);

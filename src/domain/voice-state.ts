@@ -1,4 +1,5 @@
 import type { GatewayState } from '../ports/index.js';
+import type { GuildConfig } from './guild-config.js';
 
 export type VoiceStateChanged = {
   guildId: string;
@@ -11,13 +12,7 @@ export type VoiceStateChanged = {
   receivedAt: Date;
 };
 
-export type TemporaryRoomConfig = {
-  triggerChannelId: string;
-  destinationCategoryId: string;
-  inactivityTimeoutMinutes: number;
-  reconciliationIntervalMinutes?: number;
-  permanentChannelIds?: string[];
-};
+export type TemporaryRoomConfig = Omit<GuildConfig, 'guildId'>;
 
 export type VoiceStateOutcome = {
   eventType: 'voice_state';

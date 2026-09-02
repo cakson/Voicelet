@@ -5,6 +5,7 @@ import type {
   ScheduledWork,
   Scheduler,
 } from '../ports/index.js';
+import type { GuildConfigRepository } from '../ports/guild-config-repository.js';
 
 const minuteMs = 60_000;
 
@@ -16,17 +17,24 @@ export class TemporaryRoomReconciler {
   private disposed = false;
 
   constructor(
-    private readonly configurations: Map<string, TemporaryRoomConfig>,
+    private readonly configurations: Map<string, TemporaryRoomConfig> | GuildConfigRepository,
     private readonly discord: DiscordClient,
     private readonly scheduler: Scheduler,
     private readonly isKnownManagedRoom: (guildId: string, roomId: string) => boolean,
     private readonly observe: (event: ReconciliationObservation) => void,
+    private readonly observeConfiguration?: (outcome: string) => void,
   ) {}
 
-  start(): void {
+  async start(): Promise<void> {
     if (this.disposed) return;
     this.active = true;
-    for (const guildId of this.configurations.keys()) this.request(guildId);
+    if (this.configurations instanceof Map) {
+      for (const guildId of this.configurations.keys()) this.request(guildId);
+      return;
+    }
+    const result = await this.configurations.list();
+    this.observeConfiguration?.(result.kind);
+    if (result.kind === 'found') for (const config of result.configs) this.request(config.guildId);
   }
 
   pause(): void {
@@ -42,7 +50,8 @@ export class TemporaryRoomReconciler {
   }
 
   request(guildId: string): void {
-    if (this.disposed || !this.active || !this.configurations.has(guildId)) return;
+    if (this.disposed || !this.active) return;
+    if (this.configurations instanceof Map ? !this.configurations.has(guildId) : false) return;
     if (this.running.has(guildId)) {
       this.queued.add(guildId);
       return;
@@ -51,9 +60,13 @@ export class TemporaryRoomReconciler {
   }
 
   private async run(guildId: string): Promise<void> {
-    const config = this.configurations.get(guildId);
-    if (!config || this.disposed) return;
+    if (this.disposed) return;
     this.running.add(guildId);
+    const config = await this.config(guildId);
+    if (!config) {
+      this.running.delete(guildId);
+      return;
+    }
     this.observe('reconciliation_started');
     try {
       const candidates = await this.discord.listCategoryVoiceRooms(
@@ -79,6 +92,13 @@ export class TemporaryRoomReconciler {
       guildId,
       this.scheduler.schedule(interval * minuteMs, () => this.request(guildId)),
     );
+  }
+
+  private async config(guildId: string): Promise<TemporaryRoomConfig | undefined> {
+    if (this.configurations instanceof Map) return this.configurations.get(guildId);
+    const result = await this.configurations.get(guildId);
+    this.observeConfiguration?.(result.kind);
+    return result.kind === 'found' ? result.config : undefined;
   }
 
   private isPermanent(roomId: string, config: TemporaryRoomConfig): boolean {

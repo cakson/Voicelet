@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs';
 import { z } from 'zod';
-import type { TemporaryRoomConfig } from '../domain/voice-state.js';
 
 const configSchema = z.object({
   DISCORD_TOKEN: z.string().min(1).optional(),
@@ -10,7 +9,8 @@ const configSchema = z.object({
   LOG_LEVEL: z.enum(['silent', 'fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   GATEWAY_MODE: z.enum(['discord', 'simulated']).default('discord'),
   SIMULATED_AUTO_READY: z.enum(['true', 'false']).default('true'),
-  TEMPORARY_ROOM_CONFIG: z.string().default('{}'),
+  PERSISTENCE_PROVIDER: z.enum(['memory', 'firestore']).default('memory'),
+  FIRESTORE_PROJECT_ID: z.string().min(1).optional(),
 });
 
 export type AppConfig = {
@@ -21,22 +21,9 @@ export type AppConfig = {
   logLevel: z.infer<typeof configSchema>['LOG_LEVEL'];
   gatewayMode: 'discord' | 'simulated';
   simulatedAutoReady: boolean;
-  temporaryRooms: Map<string, TemporaryRoomConfig>;
+  persistenceProvider: 'memory' | 'firestore';
+  firestoreProjectId?: string;
 };
-
-const roomConfigSchema = z.record(
-  z.string().min(1),
-  z.object({
-    triggerChannelId: z.string().min(1),
-    destinationCategoryId: z.string().min(1),
-    inactivityTimeoutMinutes: z.number().int().min(1).max(1440).default(60),
-    reconciliationIntervalMinutes: z.number().int().min(1).max(1440).default(15),
-    permanentChannelIds: z
-      .array(z.string().min(1))
-      .default([])
-      .transform((ids) => [...new Set(ids)]),
-  }),
-);
 
 export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppConfig {
   const parsed = configSchema.safeParse(environment);
@@ -44,14 +31,6 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     throw new Error('Invalid environment configuration. Check documented variable names.');
   if (parsed.data.GATEWAY_MODE === 'discord' && !parsed.data.DISCORD_TOKEN) {
     throw new Error('DISCORD_TOKEN is required when GATEWAY_MODE=discord.');
-  }
-  let temporaryRooms: Map<string, TemporaryRoomConfig>;
-  try {
-    const configured = roomConfigSchema.safeParse(JSON.parse(parsed.data.TEMPORARY_ROOM_CONFIG));
-    if (!configured.success) throw new Error();
-    temporaryRooms = new Map(Object.entries(configured.data));
-  } catch {
-    throw new Error('Invalid environment configuration. Check documented variable names.');
   }
   return {
     discordToken: parsed.data.DISCORD_TOKEN,
@@ -61,7 +40,8 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     logLevel: parsed.data.LOG_LEVEL,
     gatewayMode: parsed.data.GATEWAY_MODE,
     simulatedAutoReady: parsed.data.SIMULATED_AUTO_READY === 'true',
-    temporaryRooms,
+    persistenceProvider: parsed.data.PERSISTENCE_PROVIDER,
+    firestoreProjectId: parsed.data.FIRESTORE_PROJECT_ID,
   };
 }
 
