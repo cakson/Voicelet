@@ -21,7 +21,7 @@
     "test:e2e": "vitest run --project e2e",
     "firebase:emulator": "firebase emulators:start --only firestore --project voicelet-local",
     "guild-config:seed": "tsx src/infrastructure/firestore/seed-guild-config.ts",
-    "test:persistence:integration": "firebase emulators:exec --only firestore --project voicelet-test \"pnpm vitest run --project integration\"",
+    "test:persistence:integration": "firebase emulators:exec --only firestore --project voicelet-test \"pnpm vitest run --project integration --no-file-parallelism\"",
     "test:persistence:e2e": "firebase emulators:exec --only firestore --project voicelet-test \"pnpm vitest run --project e2e\"",
     "test": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
     "test:worker": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",

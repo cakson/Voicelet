@@ -78,6 +78,7 @@ describe('documented environment configuration', () => {
     expect(packageJson.scripts['test:persistence:integration']).toContain('emulators:exec');
     expect(packageJson.scripts['test:persistence:e2e']).toContain('emulators:exec');
     expect(packageJson.scripts['test:persistence:integration']).toContain('--only firestore');
+    expect(packageJson.scripts['test:persistence:integration']).toContain('--no-file-parallelism');
     expect(packageJson.scripts['test:persistence:e2e']).toContain('--only firestore');
   });
 });
