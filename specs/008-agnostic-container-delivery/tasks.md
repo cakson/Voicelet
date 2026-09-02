@@ -174,10 +174,10 @@ T010: docs/testing.md
   modified or tested as active operational guidance.
 - The implementation must not add an external deployment workflow, provider credentials, runtime
   secrets, or raw Discord data to repository artifacts or logs.
-- Validation note: `pnpm check` passed formatting, lint, typecheck, unit, integration, and build
-  stages; the existing E2E worker-start suite failed its 10-second readiness wait in two consecutive
-  runs. The focused feature tests and Docker build/smoke validation passed.
+- Validation note: the initial sandboxed `pnpm check` E2E readiness failures were caused by denied
+  Unix-socket listen permission. With elevated socket access, all E2E tests pass; formatting, lint,
+  typecheck, unit, integration, build, focused feature tests, and Docker build/smoke validation pass.
 
 ## Phase 7: Convergence
 
-- [ ] T014 CRITICAL: Investigate and resolve the reproducible E2E worker-start readiness timeout in `tests/e2e/worker-voice-state.test.ts` and the affected worker startup path so the full `pnpm check` quality gate passes (Constitution II, partial).
+- [X] T014 CRITICAL: Investigate and resolve the reproducible E2E worker-start readiness timeout in `tests/e2e/worker-voice-state.test.ts` and the affected worker startup path so the full `pnpm check` quality gate passes (Constitution II, partial).
