@@ -69,7 +69,7 @@ production credentials for local testing.
 | `pnpm build`     | Compile the worker to `dist/`.               |
 | `pnpm check`     | Run the CI-equivalent quality gate.          |
 
-## Production container and deployment
+## Production container and delivery
 
 Build the production Docker image from the repository and lockfile with:
 
@@ -97,8 +97,9 @@ after they pass. Each published image uses the immutable tag
 `ghcr.io/<owner>/<repository>:sha-<40-character-git-commit>`; its OCI revision metadata identifies
 the source Git commit. A mutable `main` convenience tag may exist, but it is never deployed.
 
-To deploy, open GitHub Actions, select **Deploy Northflank**, choose **Run workflow**, and enter the
-retained `sha-` version in `image_version`. The workflow validates the version, resolves its digest,
-updates the existing Northflank service, and requires `/readyz` readiness within five minutes. Runtime
-configuration and secrets remain Northflank-managed; build-time content never includes them. See
-[the deployment guide](docs/deployment.md) for required secret/configuration names and rollback.
+After publication, provide the immutable GHCR image reference to a compatible external container
+environment. That environment owns registry pull authorization, runtime configuration, deployment,
+health verification, observability, and rollback; repository CI does not perform or verify those
+operations. Before removing the legacy repository deployment workflow, confirm that the chosen
+environment can pull GHCR and is configured for the selected immutable image. See [the delivery
+guide](docs/deployment.md) for the repository boundary and handoff details.
