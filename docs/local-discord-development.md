@@ -77,6 +77,17 @@ The native Firestore emulator stores guild configuration locally. Seed the canon
 internal setup path; reset disposable emulator data by stopping and restarting the emulator. The
 room-creation trigger is the persisted `triggerChannelId`.
 
+With the emulator running, seed one deterministic guild configuration using placeholder or copied
+development IDs:
+
+```sh
+PERSISTENCE_PROVIDER=firestore FIRESTORE_PROJECT_ID=voicelet-local \
+  pnpm guild-config:seed -- <development-guild-id> <trigger-channel-id> <category-id>
+```
+
+Stop and restart the emulator to reset its disposable data. Never run this command with production
+credentials or against a production project.
+
 Start with the repository example, which contains every setting and safe placeholders:
 
 ```sh
