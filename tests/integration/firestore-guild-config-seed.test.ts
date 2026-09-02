@@ -83,8 +83,12 @@ suite('Firestore emulator guild configuration setup', () => {
       isBot: false,
       displayName: 'Recovered',
     });
-    await new Promise((resolve) => setImmediate(resolve));
-    expect((await server.inject('/readyz')).statusCode).toBe(200);
+    await expect
+      .poll(async () => (await server.inject('/readyz')).statusCode, {
+        timeout: 5_000,
+        interval: 50,
+      })
+      .toBe(200);
     source.stop();
     await server.close();
   });
