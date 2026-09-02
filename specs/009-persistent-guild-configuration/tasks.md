@@ -101,3 +101,14 @@ creation, liveness remains healthy, readiness fails then recovers, and diagnosti
 Deliver and validate US1 against the emulator first, then add US2 management/seed behavior and US3
 safety/health behavior. Finish documentation and the full quality gate without adding listeners,
 provider values outside infrastructure, production test credentials, or persistent room state.
+
+## Phase 7: Convergence
+
+- [ ] T051 Add isolated Firestore-emulator E2E coverage for restart persistence, guild isolation, and configured/unconfigured behavior per Constitution I and FR-017 (missing)
+- [ ] T052 Add deterministic Firestore emulator seed/reset support and `worker-guild-config.test.ts` scenarios for invalid, unavailable, stale, and recovered configuration per Constitution I and FR-018 (missing)
+- [ ] T053 Expand Firestore adapter integration coverage for list, replacement, invalid saves, malformed records, provider-error mapping, and emulator lifecycle per FR-018 and SC-005 (partial)
+- [ ] T054 Add operational readiness transition tests proving persistence failure returns not-ready, liveness remains healthy, and the next successful read restores readiness per FR-013a and FR-013b (missing)
+- [ ] T055 Implement and test the local Firestore guild-configuration seed/setup workflow per FR-005a (partial)
+- [ ] T056 Complete configured Discord-resource inspection tests and privacy-safe safe-skip assertions for stale, missing, wrong-type, and unavailable resources per FR-006a and FR-014 (partial)
+- [ ] T057 Add Firestore client-factory tests for emulator routing, isolated project configuration, and resource disposal per plan: client creation/emulator routing (partial)
+- [ ] T058 Complete local development documentation with a concrete deterministic seed/reset example and remove remaining legacy map-oriented wording per FR-019 and quickstart.md (partial)
