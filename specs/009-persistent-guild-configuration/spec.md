@@ -16,6 +16,9 @@
 - Q: At what point should Voicelet verify that configured Discord channel and category identifiers still refer to usable resources? → A: Validate identifier format when loading; verify Discord resources when used.
 - Q: When persistent guild configuration cannot be read, should readiness report the worker as not ready while liveness remains healthy? → A: Readiness fails; liveness stays healthy.
 - Q: Which persistence technology should Voicelet implement as its first real storage adapter? → A: Firestore using the official client and official local emulator.
+- Q: Which existing per-guild temporary-room settings must move into persistent guild configuration? → A: Trigger, category, both intervals, and permanent-channel IDs.
+- Q: After this feature ships, should TEMPORARY_ROOM_CONFIG cease to be a source of guild-specific configuration? → A: Remove runtime guild configuration; persistent storage is authoritative.
+- Q: When should readiness return to healthy after a persistent-configuration read failure? → A: After the next successful configuration read.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -45,6 +48,9 @@ same isolated persistent datastore, and process that guild's event; verify the s
    belong to another guild, or have an incompatible type, **When** Voicelet attempts the configured
    behavior, **Then** it detects the unusable Discord resources, skips the behavior safely, and
    records a privacy-safe observable failure.
+5. **Given** a guild has saved timeout, reconciliation, and protected permanent-channel settings,
+   **When** Voicelet restarts and processes that guild, **Then** its temporary-room lifecycle and
+   reconciliation behavior uses the same saved settings.
 
 ---
 
@@ -97,6 +103,8 @@ configuration.
 3. **Given** the persistence service is unavailable, **When** Voicelet requests guild configuration,
    **Then** it applies a safe failure outcome, reports the worker as not ready while retaining
    liveness unless the process itself is unhealthy, and does not terminate unexpectedly.
+4. **Given** readiness is not ready because a configuration read failed, **When** a subsequent
+   configuration read succeeds, **Then** Voicelet returns readiness to healthy without a restart.
 
 ### Edge Cases
 
@@ -116,6 +124,8 @@ configuration.
   the worker.
 - Discord credentials, application-wide operational settings, temporary-room state, room ownership,
   and user content are never included in guild configuration.
+- A legacy runtime guild-configuration value is supplied alongside persistent data; Voicelet ignores
+  it for guild behavior and documents that it is no longer supported.
 
 ## Requirements *(mandatory)*
 
@@ -123,8 +133,13 @@ configuration.
 
 - **FR-001**: Voicelet MUST persist a separate guild configuration for each Discord guild, identified
   by that guild's identifier.
-- **FR-002**: Guild configuration MUST represent the designated voice channel that triggers temporary
-  room creation and the category in which temporary rooms are created.
+- **FR-002**: Guild configuration MUST represent all current per-guild temporary-room settings: the
+  designated voice channel that triggers temporary-room creation, the category in which rooms are
+  created, the inactivity timeout, the reconciliation interval, and the protected permanent-channel
+  identifiers excluded from reconciliation cleanup.
+- **FR-002a**: The inactivity timeout and reconciliation interval MUST be whole minutes from 1 through
+  1,440; when omitted during creation or replacement, they MUST default to 60 and 15 minutes,
+  respectively. Protected permanent-channel identifiers MUST be unique.
 - **FR-003**: Voicelet MUST retrieve guild configuration by guild identifier when processing
   configuration-dependent behavior.
 - **FR-004**: Voicelet MUST distinguish a configured guild from a guild with no configuration and
@@ -144,7 +159,8 @@ configuration.
   the persistence provider, and be extensible for future guild-specific settings.
 - **FR-008**: Application and domain behavior MUST access guild configuration through an
   application-defined storage boundary and MUST NOT depend on provider-specific types, APIs, query
-  syntax, identifiers, timestamps, references, snapshots, or equivalent structures.
+  syntax, persistence-record identifiers, timestamps, references, snapshots, or equivalent
+  structures.
 - **FR-009**: Provider-specific persistence representations MUST be translated at the infrastructure
   boundary into or from the canonical guild configuration representation without loss of
   application-level meaning.
@@ -160,6 +176,8 @@ configuration.
   bounded safe outcomes that do not cause uncontrolled worker termination.
 - **FR-013a**: When Voicelet cannot read persistent guild configuration, it MUST report not ready;
   its liveness result MUST remain healthy unless the worker process itself is unhealthy.
+- **FR-013b**: A successful subsequent configuration read MUST restore readiness without requiring a
+  worker restart.
 - **FR-014**: Important persistence failures MUST be observable through privacy-safe diagnostics that
   identify the failure category and relevant bounded context without logging full persisted records,
   Discord tokens, raw Discord payloads, or unnecessary personal identifiers.
@@ -178,12 +196,17 @@ configuration.
   application-wide operational configuration, and secrets; describe local development management of
   persistent guild configuration; and explain how another persistence provider can replace the
   current provider without changing application or domain behavior.
+- **FR-020**: Persistent storage MUST be the sole source of guild-specific configuration after this
+  feature ships. Voicelet MUST remove `TEMPORARY_ROOM_CONFIG` as a supported guild-configuration
+  input and MUST document its removal; application-wide operational configuration and secrets remain
+  environment-supplied.
 
 ### Key Entities
 
 - **Guild Configuration**: The canonical, provider-independent application settings for one Discord
   guild, including its guild identifier, designated trigger voice channel, temporary-room category,
-  and an extensible set of future guild-specific settings.
+  inactivity timeout, reconciliation interval, protected permanent-channel identifiers, and an
+  extensible set of future guild-specific settings.
 - **Guild Identifier**: The stable Discord identifier that associates exactly one configuration with
   one guild.
 - **Configuration Lookup Result**: A safe application-level outcome that distinguishes a valid
@@ -213,12 +236,14 @@ configuration.
   and where to replace the persistence provider.
 - **SC-007**: Existing liveness and readiness checks continue to return their documented normal
   outcomes; in 100% of simulated configuration-read failures, readiness reports not ready and
-  liveness remains healthy while the process is otherwise healthy.
+  liveness remains healthy while the process is otherwise healthy; in 100% of subsequent successful
+  reads, readiness returns to healthy without restart.
 
 ## Assumptions
 
 - The existing temporary-room behavior remains the consumer of the trigger channel and category
-  settings; this feature changes where guild configuration comes from, not temporary-room policy.
+  settings, timeouts, reconciliation settings, and protected permanent-channel settings; this feature
+  changes where guild configuration comes from, not temporary-room policy.
 - A guild has at most one current configuration, and saving a valid configuration replaces the
   current value for that guild.
 - A missing configuration is a normal unconfigured state, while malformed persisted data and
@@ -233,6 +258,8 @@ configuration.
   canonical guild configuration model or application storage boundary.
 - Local development may use disposable persisted data and an explicit setup or seed workflow; no
   production datastore or credentials are required for local or end-to-end tests.
+- Deployments transition their existing guild settings into persistent storage before removing the
+  legacy runtime guild-configuration input; runtime fallback and override behavior are not provided.
 - Configuration creation and replacement are invoked through an internal application service and a
   documented local seed or setup workflow. User-facing management interfaces, authentication, and
   authorization remain outside this feature; existing or future callers remain responsible for
