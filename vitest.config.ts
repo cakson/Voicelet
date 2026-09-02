@@ -9,6 +9,8 @@ export default defineConfig({
           name: 'integration',
           include: ['tests/integration/**/*.test.ts'],
           environment: 'node',
+          // Firestore emulator suites share a disposable datastore and reset it after each test.
+          fileParallelism: false,
         },
       },
       { test: { name: 'e2e', include: ['tests/e2e/**/*.test.ts'], environment: 'node' } },
