@@ -9,7 +9,7 @@ Firestore emulator; E2E retains the simulated Discord Gateway.
 
 - [ ] T001 Add official Firestore server SDK and pinned Firebase CLI dependencies in `package.json` and `pnpm-lock.yaml`
 - [ ] T002 [P] Add Firestore-only emulator configuration in `firebase.json`
-- [ ] T003 [P] Add emulator lifecycle and persistence test scripts in `package.json`
+- [ ] T003 Add emulator lifecycle and persistence test scripts in `package.json`
 - [ ] T004 [P] Add Java 21 and emulator execution to `.github/workflows/ci.yml`
 
 ## Phase 2: Foundational
