@@ -1,12 +1,14 @@
 import { z } from 'zod';
 
+const identifierSchema = z.string().trim().min(1);
+
 export const guildConfigInputSchema = z.object({
-  guildId: z.string().min(1),
-  triggerChannelId: z.string().min(1),
-  destinationCategoryId: z.string().min(1),
+  guildId: identifierSchema,
+  triggerChannelId: identifierSchema,
+  destinationCategoryId: identifierSchema,
   inactivityTimeoutMinutes: z.number().int().min(1).max(1440).default(60),
   reconciliationIntervalMinutes: z.number().int().min(1).max(1440).default(15),
-  permanentChannelIds: z.array(z.string().min(1)).default([]),
+  permanentChannelIds: z.array(identifierSchema).default([]),
 });
 
 export type GuildConfigInput = z.input<typeof guildConfigInputSchema>;
@@ -14,7 +16,7 @@ export type GuildConfig = z.output<typeof guildConfigInputSchema>;
 export type StoredGuildConfigV1 = GuildConfig & { schemaVersion: 1 };
 
 export function isGuildId(value: string): boolean {
-  return value.trim().length > 0;
+  return identifierSchema.safeParse(value).success;
 }
 
 export function parseGuildConfig(input: unknown): GuildConfig | undefined {

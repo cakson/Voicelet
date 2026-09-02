@@ -49,4 +49,20 @@ describe('GuildConfigService', () => {
     await expect(service.get('   ')).resolves.toEqual({ kind: 'invalid' });
     expect(reads).toBe(0);
   });
+
+  it('rejects blank submitted identifiers before writing persistence', async () => {
+    let saves = 0;
+    const service = new GuildConfigService({
+      get: async () => ({ kind: 'not_found' }) as const,
+      list: async () => ({ kind: 'found', configs: [], invalidCount: 0 }) as const,
+      save: async () => {
+        saves += 1;
+        return { kind: 'invalid' } as const;
+      },
+    });
+    await expect(
+      service.save({ guildId: 'guild', triggerChannelId: ' ', destinationCategoryId: 'category' }),
+    ).resolves.toEqual({ kind: 'invalid' });
+    expect(saves).toBe(0);
+  });
 });

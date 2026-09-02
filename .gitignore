@@ -4,6 +4,7 @@ coverage/
 *.log
 .env
 .env.local
+.env*
 .DS_Store
 *.tmp
 *.swp

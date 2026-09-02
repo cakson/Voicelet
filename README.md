@@ -47,7 +47,7 @@ non-permanent voice channel in the destination category that lacks a current ass
 Reconciliation removes an empty zombie immediately, preserves an occupied zombie, and never rebuilds
 ownership from names or members. After restart, temporary associations are intentionally lost, so
 pre-existing empty rooms may be cleaned up at startup while occupied rooms remain until a later scan
-finds them empty. Servers omitted from the map are ignored. The bot requires
+finds them empty. The bot requires
 View Channel, Manage Channels, Move Members, and Connect for the configured voice resources;
 configuration or Discord operation failures are recorded without identifiers or provider details.
 Room owners receive member-specific `Manage Channels` and `Manage Roles` overwrites only on their
@@ -57,9 +57,9 @@ Administrator, server management, or moderation privilege. Native access editing
 Administrator on the Voicelet bot as a bot-only prerequisite so lifecycle authority survives owner
 overwrite changes; it is never granted to owners. A tracked room moved outside the category is
 restored, and reconciliation never expands beyond the configured category.
-Malformed JSON or mapping entries fail startup with a generic validation error; the invalid value is
-not echoed. Development credentials and identifiers belong in the ignored `.env`; do not use
-production credentials for local testing.
+Invalid runtime configuration fails startup with a generic validation error; the invalid value is not
+echoed. Development credentials and identifiers belong in the ignored `.env`; do not use production
+credentials for local testing.
 
 ## Common commands
 

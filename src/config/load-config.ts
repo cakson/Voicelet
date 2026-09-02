@@ -10,7 +10,7 @@ const configSchema = z.object({
   GATEWAY_MODE: z.enum(['discord', 'simulated']).default('discord'),
   SIMULATED_AUTO_READY: z.enum(['true', 'false']).default('true'),
   PERSISTENCE_PROVIDER: z.enum(['memory', 'firestore']).default('memory'),
-  FIRESTORE_PROJECT_ID: z.string().min(1).optional(),
+  FIRESTORE_PROJECT_ID: z.string().trim().min(1).optional(),
 });
 
 export type AppConfig = {
@@ -31,6 +31,12 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): AppCon
     throw new Error('Invalid environment configuration. Check documented variable names.');
   if (parsed.data.GATEWAY_MODE === 'discord' && !parsed.data.DISCORD_TOKEN) {
     throw new Error('DISCORD_TOKEN is required when GATEWAY_MODE=discord.');
+  }
+  if (parsed.data.GATEWAY_MODE === 'discord' && parsed.data.PERSISTENCE_PROVIDER !== 'firestore') {
+    throw new Error('Firestore persistence is required when GATEWAY_MODE=discord.');
+  }
+  if (parsed.data.GATEWAY_MODE === 'discord' && !parsed.data.FIRESTORE_PROJECT_ID) {
+    throw new Error('FIRESTORE_PROJECT_ID is required when GATEWAY_MODE=discord.');
   }
   return {
     discordToken: parsed.data.DISCORD_TOKEN,

@@ -24,6 +24,16 @@ describe('documented environment configuration', () => {
 
   it('rejects missing production credentials without exposing values', () => {
     expect(() => loadConfig({ GATEWAY_MODE: 'discord' })).toThrow('DISCORD_TOKEN is required');
+    expect(() => loadConfig({ GATEWAY_MODE: 'discord', DISCORD_TOKEN: 'secret-value' })).toThrow(
+      'Firestore persistence is required',
+    );
+    expect(() =>
+      loadConfig({
+        GATEWAY_MODE: 'discord',
+        DISCORD_TOKEN: 'secret-value',
+        PERSISTENCE_PROVIDER: 'firestore',
+      }),
+    ).toThrow('FIRESTORE_PROJECT_ID is required');
     try {
       loadConfig({ GATEWAY_MODE: 'discord', PORT: 'not-a-port', DISCORD_TOKEN: 'secret-value' });
     } catch (error) {

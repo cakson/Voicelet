@@ -37,4 +37,20 @@ describe('guild configuration', () => {
     ).toBeUndefined();
     expect(parseStoredGuildConfig(toStoredGuildConfig(valid), 'other')).toBeUndefined();
   });
+
+  it('rejects whitespace-only identifiers', () => {
+    for (const input of [
+      { guildId: '   ', triggerChannelId: 't', destinationCategoryId: 'c' },
+      { guildId: 'g', triggerChannelId: '   ', destinationCategoryId: 'c' },
+      { guildId: 'g', triggerChannelId: 't', destinationCategoryId: '   ' },
+      {
+        guildId: 'g',
+        triggerChannelId: 't',
+        destinationCategoryId: 'c',
+        permanentChannelIds: ['   '],
+      },
+    ]) {
+      expect(parseGuildConfig(input)).toBeUndefined();
+    }
+  });
 });

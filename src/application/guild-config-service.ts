@@ -1,4 +1,9 @@
-import { isGuildId, type GuildConfig, type GuildConfigInput } from '../domain/guild-config.js';
+import {
+  isGuildId,
+  parseGuildConfig,
+  type GuildConfig,
+  type GuildConfigInput,
+} from '../domain/guild-config.js';
 import type {
   GuildConfigLookup,
   GuildConfigRepository,
@@ -15,7 +20,8 @@ export class GuildConfigService {
     return this.repository.list();
   }
   save(input: GuildConfigInput): Promise<GuildConfigSave> {
-    return this.repository.save(input);
+    const config = parseGuildConfig(input);
+    return config ? this.repository.save(config) : Promise.resolve({ kind: 'invalid' });
   }
   async required(guildId: string): Promise<GuildConfig | undefined> {
     const result = await this.get(guildId);
