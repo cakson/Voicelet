@@ -8,6 +8,7 @@ import {
   unconfiguredTemporaryRoomJoin,
 } from '../support/fixtures/voice-state.js';
 import { ManualScheduler } from '../support/manual-scheduler.js';
+import { InMemoryGuildConfigRepository } from '../../src/infrastructure/memory/in-memory-guild-config-repository.js';
 
 const configurations = new Map([
   [
@@ -188,6 +189,33 @@ describe('DiscordGatewayEventSource', () => {
     factory.client.emitVoiceState({ ...temporaryRoomJoin, previousChannelId: 'elsewhere' });
     await settled();
     expect(factory.client.rooms.has('sim-room-2')).toBe(true);
+    source.stop();
+  });
+
+  it('recovers persistence readiness after a failed read', async () => {
+    const factory = new SimulatedDiscordClientFactory();
+    const repository = new InMemoryGuildConfigRepository();
+    await repository.save({
+      guildId: 'test-guild',
+      triggerChannelId: 'trigger-channel',
+      destinationCategoryId: 'category-id',
+    });
+    const source = new DiscordGatewayEventSource(
+      factory,
+      'test-token',
+      { now: () => new Date() },
+      Observability.create('silent'),
+      repository,
+    );
+    await source.start();
+    repository.unavailable = true;
+    factory.client.emitVoiceState(temporaryRoomJoin);
+    await settled();
+    expect(source.persistenceReady).toBe(false);
+    repository.unavailable = false;
+    factory.client.emitVoiceState({ ...temporaryRoomJoin, userId: 'recovered' });
+    await settled();
+    expect(source.persistenceReady).toBe(true);
     source.stop();
   });
 

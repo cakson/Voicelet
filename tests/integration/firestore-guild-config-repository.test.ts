@@ -74,4 +74,17 @@ suite('Firestore guild configuration repository', () => {
       }),
     ).resolves.toEqual({ kind: 'unavailable' });
   });
+
+  it('rejects invalid saves before writing a provider document', async () => {
+    await expect(
+      repository.save({
+        guildId: 'guild-a',
+        triggerChannelId: '',
+        destinationCategoryId: 'category',
+      }),
+    ).resolves.toEqual({ kind: 'invalid' });
+    await expect(
+      firestore.collection('guildConfigurations').doc('guild-a').get(),
+    ).resolves.toMatchObject({ exists: false });
+  });
 });

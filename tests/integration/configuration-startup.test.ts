@@ -1,4 +1,4 @@
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -59,5 +59,15 @@ describe('documented environment configuration', () => {
     ).toMatchObject({
       persistenceProvider: 'memory',
     });
+  });
+
+  it('defines emulator-backed persistence test lifecycles', async () => {
+    const packageJson = JSON.parse(await readFile('package.json', 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+    expect(packageJson.scripts['test:persistence:integration']).toContain('emulators:exec');
+    expect(packageJson.scripts['test:persistence:e2e']).toContain('emulators:exec');
+    expect(packageJson.scripts['test:persistence:integration']).toContain('--only firestore');
+    expect(packageJson.scripts['test:persistence:e2e']).toContain('--only firestore');
   });
 });

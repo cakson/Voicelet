@@ -58,6 +58,10 @@ suite('worker persistent guild configuration', () => {
       triggerChannelId: 'trigger-b',
       destinationCategoryId: 'category-b',
     });
+    await firestore
+      .collection('guildConfigurations')
+      .doc('invalid-guild')
+      .set({ schemaVersion: 99 });
     const directory = await mkdtemp(join(tmpdir(), 'voicelet-persistence-e2e-'));
     const start = (socketPath: string) =>
       fork('src/main.ts', [], {
@@ -100,6 +104,14 @@ suite('worker persistent guild configuration', () => {
     );
     send(first, 'unconfigured', 'trigger-a');
     await new Promise((resolve) => setTimeout(resolve, 100));
+    expect((await request(firstSocket, '/metrics')).body.match(/outcome="created"/g)).toHaveLength(
+      1,
+    );
+    send(first, 'invalid-guild', 'trigger-a');
+    await waitFor(
+      () => request(firstSocket, '/metrics'),
+      (response) => response.body.includes('outcome="invalid"'),
+    );
     first.kill('SIGTERM');
     const secondSocket = join(directory, 'second.sock');
     const second = start(secondSocket);

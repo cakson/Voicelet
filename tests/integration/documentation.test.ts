@@ -14,6 +14,13 @@ describe('documentation', () => {
     expect(readme).toContain('Local Discord development');
   });
 
+  it('documents deterministic persistence seed and reset boundaries', async () => {
+    const guide = await readFile('docs/local-discord-development.md', 'utf8');
+    expect(guide).toContain('pnpm guild-config:seed');
+    expect(guide).toContain('stopping and restarting the emulator');
+    expect(guide).toContain('local-only');
+  });
+
   it('keeps the tracked environment example safe and complete', async () => {
     const example = await readFile('.env.example', 'utf8');
     expect(example).toContain('DISCORD_TOKEN=');
