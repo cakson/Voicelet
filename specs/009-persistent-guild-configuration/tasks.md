@@ -124,6 +124,12 @@ provider values outside infrastructure, production test credentials, or persiste
 
 ## Phase 9: Convergence
 
-- [ ] T065 Add application-boundary guild identifier validation for lookups and tests proving invalid IDs never invoke persistence per FR-006a edge cases (partial)
-- [ ] T066 Add an emulator-backed worker health scenario for datastore unavailability and later successful read, asserting `/livez` remains healthy and `/readyz` recovers per FR-013a, FR-013b, and Constitution I (partial)
-- [ ] T067 Add manager/source assertions for bounded no-identifier observability across missing, wrong-type, and unavailable configured Discord resources per FR-006a and FR-014 (partial)
+- [X] T065 Add application-boundary guild identifier validation for lookups and tests proving invalid IDs never invoke persistence per FR-006a edge cases (partial)
+- [X] T066 Add an emulator-backed worker health scenario for datastore unavailability and later successful read, asserting `/livez` remains healthy and `/readyz` recovers per FR-013a, FR-013b, and Constitution I (partial)
+- [X] T067 Add manager/source assertions for bounded no-identifier observability across missing, wrong-type, and unavailable configured Discord resources per FR-006a and FR-014 (partial)
+
+## Phase 10: Convergence
+
+- [ ] T068 Reject whitespace-only guild, trigger-channel, destination-category, and permanent-channel identifiers before repository saves, with tests proving invalid submissions do not reach persistence per FR-006 and FR-006a (partial)
+- [ ] T069 Require Firestore persistence configuration for live Discord Gateway mode while preserving explicit in-memory selection for deterministic simulated tests; update configuration tests and safe examples per FR-011, FR-016, and plan: production adapter (partial)
+- [ ] T070 Remove stale runtime-map configuration wording from documentation and add regression assertions for the retired configuration path per FR-019 and FR-020 (partial)
