@@ -167,4 +167,45 @@ describe('DiscordJsClient room lifecycle boundary', () => {
     } as never);
     await expect(failing.applyOwnerAllowance('guild', 'room', 'owner')).resolves.toBe('failed');
   });
+
+  it('classifies configured Discord resources by existence and channel type', async () => {
+    const valid = new DiscordJsClient({
+      guilds: {
+        cache: {
+          get: () => ({
+            channels: {
+              fetch: async (id: string) => ({
+                id,
+                guild: { id: 'guild' },
+                type: id === 'trigger' ? ChannelType.GuildVoice : ChannelType.GuildCategory,
+              }),
+            },
+          }),
+        },
+      },
+    } as never);
+    await expect(valid.inspectGuildConfigResources('guild', 'trigger', 'category')).resolves.toBe(
+      'valid',
+    );
+    const wrong = new DiscordJsClient({
+      guilds: {
+        cache: {
+          get: () => ({
+            channels: {
+              fetch: async () => ({ guild: { id: 'guild' }, type: ChannelType.GuildText }),
+            },
+          }),
+        },
+      },
+    } as never);
+    await expect(wrong.inspectGuildConfigResources('guild', 'trigger', 'category')).resolves.toBe(
+      'wrong_type',
+    );
+    const missing = new DiscordJsClient({
+      guilds: { cache: { get: () => ({ channels: { fetch: async () => null } }) } },
+    } as never);
+    await expect(missing.inspectGuildConfigResources('guild', 'trigger', 'category')).resolves.toBe(
+      'missing',
+    );
+  });
 });

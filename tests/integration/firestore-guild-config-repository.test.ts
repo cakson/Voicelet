@@ -43,4 +43,35 @@ suite('Firestore guild configuration repository', () => {
       .set({ schemaVersion: 1, guildId: 'guild-a' });
     await expect(repository.get('guild-a')).resolves.toEqual({ kind: 'invalid' });
   });
+
+  it('lists valid records and aggregates invalid records without exposing documents', async () => {
+    await repository.save({
+      guildId: 'guild-a',
+      triggerChannelId: 'trigger',
+      destinationCategoryId: 'category',
+    });
+    await firestore.collection('guildConfigurations').doc('broken').set({ schemaVersion: 99 });
+    await expect(repository.list()).resolves.toMatchObject({
+      kind: 'found',
+      invalidCount: 1,
+      configs: [{ guildId: 'guild-a' }],
+    });
+  });
+
+  it('maps provider failures to unavailable', async () => {
+    const failing = new FirestoreGuildConfigRepository({
+      collection: () => {
+        throw new Error('provider failure');
+      },
+    } as never);
+    await expect(failing.get('guild-a')).resolves.toEqual({ kind: 'unavailable' });
+    await expect(failing.list()).resolves.toEqual({ kind: 'unavailable' });
+    await expect(
+      failing.save({
+        guildId: 'guild-a',
+        triggerChannelId: 'trigger',
+        destinationCategoryId: 'category',
+      }),
+    ).resolves.toEqual({ kind: 'unavailable' });
+  });
 });
