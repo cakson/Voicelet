@@ -59,6 +59,13 @@ describe('container and deployment artifacts', () => {
     expect(workflow).not.toContain('pull-requests: write');
   });
 
+  it('caches Firebase emulator downloads using the pinned tooling lockfile', async () => {
+    const workflow = await read('.github/workflows/ci.yml');
+    expect(workflow).toContain('actions/cache@');
+    expect(workflow).toContain('~/.cache/firebase/emulators');
+    expect(workflow).toContain("hashFiles('pnpm-lock.yaml')");
+  });
+
   it('does not retain a repository-managed provider deployment workflow', () => {
     expect(existsSync('.github/workflows/deploy-northflank.yml')).toBe(false);
   });

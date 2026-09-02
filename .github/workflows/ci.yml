@@ -25,6 +25,11 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Cache Firebase emulators
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ~/.cache/firebase/emulators
+          key: ${{ runner.os }}-firebase-emulators-${{ hashFiles('pnpm-lock.yaml') }}
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm test:persistence:integration
