@@ -40,4 +40,40 @@ describe('GuildAdministrationService', () => {
     await expect(service.deleteGuild(guildId)).resolves.toEqual({ kind: 'deleted' });
     await expect(service.getRegisteredGuild(guildId)).resolves.toEqual({ kind: 'not_found' });
   });
+  it('rejects stale or invalid edits without replacing valid persisted configuration', async () => {
+    const service = new GuildAdministrationService(new InMemoryGuildRepository());
+    await service.registerGuild({ guildId, configuration: input });
+    const current = await service.getRegisteredGuild(guildId);
+    if (current.kind !== 'found' || !current.guild.configuration)
+      throw new Error('Expected config');
+    await expect(
+      service.replaceConfiguration(guildId, { ...input, triggerChannelId: '' }, 1),
+    ).resolves.toEqual({ kind: 'invalid' });
+    await expect(
+      service.replaceConfiguration(
+        guildId,
+        { ...input, triggerChannelId: '223456789012345679' },
+        2,
+      ),
+    ).resolves.toMatchObject({ kind: 'conflict' });
+    await expect(service.getRegisteredGuild(guildId)).resolves.toMatchObject({
+      kind: 'found',
+      guild: { configuration: { triggerChannelId: input.triggerChannelId, revision: 1 } },
+    });
+  });
+  it('keeps other guilds intact and permits clean re-registration after deletion', async () => {
+    const otherGuildId = '123456789012345679';
+    const service = new GuildAdministrationService(new InMemoryGuildRepository());
+    await service.registerGuild({ guildId, configuration: input });
+    await service.registerGuild({ guildId: otherGuildId, configuration: input });
+    await service.deleteGuild(guildId);
+    await expect(service.getRegisteredGuild(otherGuildId)).resolves.toMatchObject({
+      kind: 'found',
+      guild: { configuration: { triggerChannelId: input.triggerChannelId } },
+    });
+    await expect(service.registerGuild({ guildId })).resolves.toMatchObject({
+      kind: 'registered',
+      guild: { configuration: null },
+    });
+  });
 });
