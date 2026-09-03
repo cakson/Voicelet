@@ -35,4 +35,23 @@ suite('Firestore guild repository', () => {
     await expect(repository.deleteGuild(guildId)).resolves.toEqual({ kind: 'deleted' });
     await expect(repository.getGuild(guildId)).resolves.toEqual({ kind: 'not_found' });
   });
+  it('keeps registrations isolated and permits clean re-registration after deletion', async () => {
+    const otherGuildId = '123456789012345679';
+    await expect(repository.registerGuild(guildId)).resolves.toMatchObject({ kind: 'registered' });
+    await expect(repository.registerGuild(guildId)).resolves.toEqual({ kind: 'duplicate' });
+    await expect(repository.registerGuild(otherGuildId)).resolves.toMatchObject({
+      kind: 'registered',
+      guild: { configuration: null },
+    });
+    await repository.createConfiguration(guildId, configuration);
+    await expect(repository.deleteGuild(guildId)).resolves.toEqual({ kind: 'deleted' });
+    await expect(repository.getGuild(otherGuildId)).resolves.toMatchObject({
+      kind: 'found',
+      guild: { configuration: null },
+    });
+    await expect(repository.registerGuild(guildId)).resolves.toMatchObject({
+      kind: 'registered',
+      guild: { configuration: null },
+    });
+  });
 });
