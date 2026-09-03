@@ -8,8 +8,12 @@ import { DiscordGatewayEventSource } from '../../src/infrastructure/discord/disc
 import { SimulatedDiscordClientFactory } from '../../src/infrastructure/discord/simulated-client-factory.js';
 import { createOperationalServer } from '../../src/infrastructure/http/operational-server.js';
 import { Observability } from '../../src/infrastructure/logging/observability.js';
-import { FirestoreGuildConfigRepository } from '../../src/infrastructure/firestore/firestore-guild-config-repository.js';
-import type { GuildConfigRepository } from '../../src/ports/guild-config-repository.js';
+import { FirestoreGuildRepository } from '../../src/infrastructure/firestore/firestore-guild-repository.js';
+import type { EnabledGuildConfigRepository } from '../../src/ports/enabled-guild-config-repository.js';
+
+const guildId = '100000000000000211';
+const triggerChannelId = '100000000000000212';
+const destinationCategoryId = '100000000000000213';
 
 const suite = process.env.FIRESTORE_EMULATOR_HOST ? describe : describe.skip;
 
@@ -19,32 +23,33 @@ suite('Firestore emulator guild configuration setup', () => {
 
   it('seeds deterministic canonical configuration and resets it', async () => {
     await seedGuildConfigEmulator(firestore, {
-      guildId: 'seed-guild',
-      triggerChannelId: 'trigger',
-      destinationCategoryId: 'category',
+      guildId,
+      triggerChannelId,
+      destinationCategoryId,
     });
     await expect(
-      firestore.collection('guildConfigurations').doc('seed-guild').get(),
+      firestore.collection('guildConfigurations').doc(guildId).get(),
     ).resolves.toMatchObject({ exists: true });
     await resetGuildConfigEmulator(firestore);
     await expect(
-      firestore.collection('guildConfigurations').doc('seed-guild').get(),
+      firestore.collection('guildConfigurations').doc(guildId).get(),
     ).resolves.toMatchObject({ exists: false });
   });
 
   it('keeps liveness healthy and restores readiness after a Firestore-backed read recovers', async () => {
     await seedGuildConfigEmulator(firestore, {
-      guildId: 'health-guild',
-      triggerChannelId: 'trigger',
-      destinationCategoryId: 'category',
+      guildId,
+      triggerChannelId,
+      destinationCategoryId,
     });
-    const delegate = new FirestoreGuildConfigRepository(firestore);
+    const delegate = new FirestoreGuildRepository(firestore);
     let unavailable = false;
-    const repository: GuildConfigRepository = {
-      get: (guildId) =>
-        unavailable ? Promise.resolve({ kind: 'unavailable' }) : delegate.get(guildId),
-      list: () => delegate.list(),
-      save: (input) => delegate.save(input),
+    const repository: EnabledGuildConfigRepository = {
+      getEnabled: (currentGuildId) =>
+        unavailable
+          ? Promise.resolve({ kind: 'unavailable' })
+          : delegate.getEnabled(currentGuildId),
+      listEnabled: () => delegate.listEnabled(),
     };
     const factory = new SimulatedDiscordClientFactory();
     const observability = Observability.create('silent');
@@ -62,9 +67,9 @@ suite('Firestore emulator guild configuration setup', () => {
     await source.start();
     unavailable = true;
     factory.client.emitVoiceState({
-      guildId: 'health-guild',
+      guildId,
       userId: 'user',
-      channelId: 'trigger',
+      channelId: triggerChannelId,
       previousChannelId: null,
       sessionId: 'session',
       isBot: false,
@@ -75,9 +80,9 @@ suite('Firestore emulator guild configuration setup', () => {
     expect((await server.inject('/readyz')).statusCode).toBe(503);
     unavailable = false;
     factory.client.emitVoiceState({
-      guildId: 'health-guild',
+      guildId,
       userId: 'recovered',
-      channelId: 'trigger',
+      channelId: triggerChannelId,
       previousChannelId: null,
       sessionId: 'session-2',
       isBot: false,

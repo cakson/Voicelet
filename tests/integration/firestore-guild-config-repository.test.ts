@@ -4,6 +4,11 @@ import { FirestoreGuildConfigRepository } from '../../src/infrastructure/firesto
 
 const enabled = Boolean(process.env.FIRESTORE_EMULATOR_HOST);
 const suite = enabled ? describe : describe.skip;
+const guildId = '100000000000000201';
+const triggerA = '100000000000000202';
+const categoryA = '100000000000000203';
+const triggerB = '100000000000000204';
+const categoryB = '100000000000000205';
 
 suite('Firestore guild configuration repository', () => {
   const firestore = new Firestore({ projectId: 'voicelet-test' });
@@ -13,48 +18,48 @@ suite('Firestore guild configuration repository', () => {
   });
 
   it('creates, reads, replaces, and distinguishes absent configurations', async () => {
-    await expect(repository.get('guild-a')).resolves.toEqual({ kind: 'not_found' });
+    await expect(repository.get(guildId)).resolves.toEqual({ kind: 'not_found' });
     await expect(
       repository.save({
-        guildId: 'guild-a',
-        triggerChannelId: 'trigger-a',
-        destinationCategoryId: 'category-a',
+        guildId,
+        triggerChannelId: triggerA,
+        destinationCategoryId: categoryA,
       }),
     ).resolves.toMatchObject({ kind: 'saved' });
-    await expect(repository.get('guild-a')).resolves.toMatchObject({
+    await expect(repository.get(guildId)).resolves.toMatchObject({
       kind: 'found',
-      config: { triggerChannelId: 'trigger-a', destinationCategoryId: 'category-a' },
+      config: { triggerChannelId: triggerA, destinationCategoryId: categoryA },
     });
     await repository.save({
-      guildId: 'guild-a',
-      triggerChannelId: 'trigger-b',
-      destinationCategoryId: 'category-b',
+      guildId,
+      triggerChannelId: triggerB,
+      destinationCategoryId: categoryB,
     });
-    await expect(repository.get('guild-a')).resolves.toMatchObject({
+    await expect(repository.get(guildId)).resolves.toMatchObject({
       kind: 'found',
-      config: { triggerChannelId: 'trigger-b', destinationCategoryId: 'category-b' },
+      config: { triggerChannelId: triggerB, destinationCategoryId: categoryB },
     });
   });
 
   it('rejects malformed persisted documents without returning them', async () => {
     await firestore
       .collection('guildConfigurations')
-      .doc('guild-a')
-      .set({ schemaVersion: 1, guildId: 'guild-a' });
-    await expect(repository.get('guild-a')).resolves.toEqual({ kind: 'invalid' });
+      .doc(guildId)
+      .set({ schemaVersion: 1, guildId });
+    await expect(repository.get(guildId)).resolves.toEqual({ kind: 'invalid' });
   });
 
   it('lists valid records and aggregates invalid records without exposing documents', async () => {
     await repository.save({
-      guildId: 'guild-a',
-      triggerChannelId: 'trigger',
-      destinationCategoryId: 'category',
+      guildId,
+      triggerChannelId: triggerA,
+      destinationCategoryId: categoryA,
     });
     await firestore.collection('guildConfigurations').doc('broken').set({ schemaVersion: 99 });
     await expect(repository.list()).resolves.toMatchObject({
       kind: 'found',
       invalidCount: 1,
-      configs: [{ guildId: 'guild-a' }],
+      configs: [{ guildId }],
     });
   });
 
@@ -64,13 +69,13 @@ suite('Firestore guild configuration repository', () => {
         throw new Error('provider failure');
       },
     } as never);
-    await expect(failing.get('guild-a')).resolves.toEqual({ kind: 'unavailable' });
+    await expect(failing.get(guildId)).resolves.toEqual({ kind: 'unavailable' });
     await expect(failing.list()).resolves.toEqual({ kind: 'unavailable' });
     await expect(
       failing.save({
-        guildId: 'guild-a',
-        triggerChannelId: 'trigger',
-        destinationCategoryId: 'category',
+        guildId,
+        triggerChannelId: triggerA,
+        destinationCategoryId: categoryA,
       }),
     ).resolves.toEqual({ kind: 'unavailable' });
   });
@@ -78,13 +83,13 @@ suite('Firestore guild configuration repository', () => {
   it('rejects invalid saves before writing a provider document', async () => {
     await expect(
       repository.save({
-        guildId: 'guild-a',
+        guildId,
         triggerChannelId: '',
-        destinationCategoryId: 'category',
+        destinationCategoryId: categoryA,
       }),
     ).resolves.toEqual({ kind: 'invalid' });
     await expect(
-      firestore.collection('guildConfigurations').doc('guild-a').get(),
+      firestore.collection('guildConfigurations').doc(guildId).get(),
     ).resolves.toMatchObject({ exists: false });
   });
 });
