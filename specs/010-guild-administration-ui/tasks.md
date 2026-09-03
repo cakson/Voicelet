@@ -154,7 +154,7 @@ worker behavior resumes.
 - [ ] T057 [US3] Implement edit mode using the shared persisted configuration form and conflict-safe refresh in `admin/src/features/guilds/components/guild-config-dialog.tsx`
 - [ ] T058 [US3] Implement the accessible persisted-result Switch and distinct edit/view actions in `admin/src/features/guilds/components/guild-list.tsx`
 - [ ] T059 [US3] Wire edit, enable, disable, and failure refresh flows without optimistic state in `admin/src/app/app.tsx`
-- [ ] T060 [US3] Extend emulator-backed worker E2E coverage for disabled restart persistence and re-enabled room behavior in `tests/e2e/worker-guild-config.test.ts`
+- [X] T060 [US3] Extend emulator-backed worker E2E coverage for disabled restart persistence and re-enabled room behavior in `tests/e2e/worker-guild-config.test.ts`
 - [ ] T061 [US3] Extend the Playwright scenario through edit, disable, retained-value verification, restart, and re-enable in `tests/e2e/admin-guild-management.spec.ts`
 
 **Checkpoint**: User Story 3 provides reversible activation control while persisted configuration and
