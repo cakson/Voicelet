@@ -57,6 +57,12 @@ export class Observability implements ObservationSink {
     labelNames: ['outcome'],
     registers: [this.registry],
   });
+  readonly administrationOperations = new Counter({
+    name: 'voicelet_guild_administration_operations_total',
+    help: 'Guild administration outcomes without identifiers, configuration values, or provider details',
+    labelNames: ['operation', 'outcome'],
+    registers: [this.registry],
+  });
 
   constructor(readonly logger: Logger) {}
 
@@ -86,6 +92,21 @@ export class Observability implements ObservationSink {
     this.setPersistenceReady(normalized !== 'unavailable');
     if (normalized === 'unavailable')
       this.logger.error({ failureClass: 'persistence' }, 'persistence_failure');
+  }
+  recordAdministration(operation: string, outcome: string): void {
+    const operations = ['list', 'register', 'get', 'configure', 'set_enabled', 'delete'];
+    const outcomes = [
+      'success',
+      'validation_error',
+      'duplicate',
+      'not_found',
+      'conflict',
+      'unavailable',
+    ];
+    this.administrationOperations.inc({
+      operation: operations.includes(operation) ? operation : 'list',
+      outcome: outcomes.includes(outcome) ? outcome : 'unavailable',
+    });
   }
 
   recordReconnect(): void {

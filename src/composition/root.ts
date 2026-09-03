@@ -58,7 +58,7 @@ export function createWorker(config: AppConfig, simulatedFactory?: DiscordClient
   const administration = new GuildAdministrationService(repository, {
     configurationChanged: (guildId, change) => source.configurationChanged(guildId, change),
   });
-  registerAdminApiRoutes(server, administration);
+  registerAdminApiRoutes(server, administration, observability);
   registerAdminStaticRoutes(server);
   return {
     source,

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import type { GuildAdministrationView } from '../../ports/guild-administration-repository.js';
 import { GuildAdministrationService } from '../../application/guild-administration-service.js';
+import type { Observability } from '../logging/observability.js';
 import { adminError } from './admin-error-response.js';
 import {
   guildParamsSchema,
@@ -24,7 +25,37 @@ function fields(error: {
 export function registerAdminApiRoutes(
   app: FastifyInstance,
   service: GuildAdministrationService,
+  observability?: Observability,
 ): void {
+  app.addHook('onResponse', (request, reply, done) => {
+    if (!request.url.startsWith('/admin/api/guilds')) return done();
+    const operation =
+      request.method === 'POST'
+        ? 'register'
+        : request.method === 'DELETE'
+          ? 'delete'
+          : request.method === 'PATCH'
+            ? 'set_enabled'
+            : request.method === 'PUT'
+              ? 'configure'
+              : request.url === '/admin/api/guilds'
+                ? 'list'
+                : 'get';
+    const outcome =
+      reply.statusCode < 300
+        ? 'success'
+        : reply.statusCode === 400
+          ? 'validation_error'
+          : reply.statusCode === 404
+            ? 'not_found'
+            : reply.statusCode === 409
+              ? operation === 'register'
+                ? 'duplicate'
+                : 'conflict'
+              : 'unavailable';
+    observability?.recordAdministration(operation, outcome);
+    done();
+  });
   app.get('/admin/api/guilds', async (_request, reply) => {
     const result = await service.listRegisteredGuilds();
     if (result.kind === 'unavailable') return adminError(reply, 503, 'service_unavailable');
