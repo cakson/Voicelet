@@ -63,4 +63,35 @@ describe('administration HTTP API', () => {
     expect(duplicate.statusCode).toBe(409);
     expect(duplicate.json().error).toEqual(expect.objectContaining({ code: 'duplicate_guild' }));
   });
+  it('returns stable not-found and conflict responses without replacing saved configuration', async () => {
+    const server = app();
+    await expect(server.inject('/admin/api/guilds/123456789012345679')).resolves.toMatchObject({
+      statusCode: 404,
+    });
+    await server.inject({ method: 'POST', url: '/admin/api/guilds', payload: { guildId } });
+    const created = await server.inject({
+      method: 'PUT',
+      url: `/admin/api/guilds/${guildId}/configuration`,
+      payload: { ...configuration, expectedRevision: null },
+    });
+    const stale = await server.inject({
+      method: 'PUT',
+      url: `/admin/api/guilds/${guildId}/configuration`,
+      payload: {
+        ...configuration,
+        triggerChannelId: '223456789012345679',
+        inactivityTimeoutMinutes: 60,
+        reconciliationIntervalMinutes: 15,
+        permanentChannelIds: [],
+        expectedRevision: 2,
+      },
+    });
+    expect(stale.statusCode).toBe(409);
+    expect((await server.inject(`/admin/api/guilds/${guildId}`)).json()).toMatchObject({
+      configuration: {
+        triggerChannelId: configuration.triggerChannelId,
+        revision: created.json().configuration.revision,
+      },
+    });
+  });
 });
