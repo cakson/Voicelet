@@ -207,7 +207,7 @@ evidence required for release.
 - [ ] T079 [P] Document the React → HTTP adapter → application → ports → persistence flow and same-process Discord worker in `docs/architecture.md`
 - [ ] T080 [P] Document component/API/persistence/browser test commands and isolated credentials-free fixtures in `docs/testing.md`
 - [ ] T081 [P] Document same-image Northflank deployment, prominent unauthenticated `/admin` and `/admin/api` VPN/private-network requirements, V2 rollback limits, roll-forward recovery, and verified-backup restoration in `docs/deployment.md` and `.env.example`
-- [ ] T082 Add documentation and package-contract assertions for all admin commands, security warnings, shadcn ownership, and unchanged worker workflows in `tests/integration/documentation.test.ts` and `tests/integration/configuration-startup.test.ts`
+- [X] T082 Add documentation and package-contract assertions for all admin commands, security warnings, shadcn ownership, and unchanged worker workflows in `tests/integration/documentation.test.ts` and `tests/integration/configuration-startup.test.ts`
 - [ ] T083 Run every scenario in `specs/010-guild-administration-ui/quickstart.md`, then run `pnpm check`, `pnpm test:persistence:integration`, `pnpm test:persistence:e2e`, `pnpm test:admin:e2e`, and `pnpm container:smoke`; record any environment-specific failure honestly
 
 ---
