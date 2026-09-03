@@ -66,3 +66,19 @@ Before removing the legacy repository deployment workflow, the release owner mus
 chosen external environment has GHCR pull authorization and is configured to run the selected
 immutable image. Record this transition prerequisite outside repository CI; it is release-readiness
 evidence, not a repository deployment action.
+
+# Deployment
+
+The production container includes the compiled React administration assets and serves them at `/admin`.
+The endpoint and `/admin/api` are unauthenticated. Do not expose them directly to the public internet:
+place the existing service ingress behind a VPN or equivalent private-network boundary.
+
+The same immutable GitHub Container Registry image (`sha-...`) is handed to the external deployment
+provider. No deployment credential, Discord token, or datastore credential is bundled into the UI.
+
+## Northflank service
+
+Deploy the immutable GHCR image to the existing Northflank Voicelet service; the same container runs
+the Discord Gateway worker and serves the administration UI. Configure `/livez` and `/readyz` as the
+service health endpoints. Keep `/admin` and `/admin/api` reachable only through a VPN or equivalent
+private network boundary; the administration UI has no authentication.

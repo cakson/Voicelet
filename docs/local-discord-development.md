@@ -206,3 +206,11 @@ running, while readiness requires an available outbound Discord connection. Chec
 access to Discord, Portal installation, and local logs for bounded failure outcomes. Do not add a
 public endpoint, callback, tunnel, or port forwarding; restore the outbound connection and wait for
 readiness again.
+
+# Local administration development
+
+Run `pnpm dev:admin` to start the disposable Firestore emulator, simulated Voicelet backend, and
+Vite UI. Vite proxies `/admin/api` to the backend, so local development needs no CORS configuration.
+
+Generated shadcn/ui primitives live in `admin/src/components/ui`; add only needed components and keep
+Voicelet-specific behavior in `admin/src/features/guilds`.

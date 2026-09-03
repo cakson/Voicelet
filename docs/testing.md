@@ -41,3 +41,10 @@ workflow, absence of a repository-managed provider deployment workflow, and acti
 documentation. The documented Docker smoke test uses `GATEWAY_MODE=simulated` and separately supplied
 environment values, then checks `/livez`, `/readyz`, and `/metrics`. It never records Discord,
 registry-pull, or deployment credentials.
+
+# Testing
+
+Use `pnpm test:admin` for React component tests, `pnpm test:integration` for injected admin API
+tests, `pnpm test:persistence:integration` for emulator persistence tests, and `pnpm test:admin:e2e`
+for browser coverage. These tests use simulated Discord and isolated persistence; no production
+credentials are required.

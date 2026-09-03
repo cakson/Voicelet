@@ -22,12 +22,12 @@ testable. Shared model, persistence, active-worker semantics, and build tooling 
 **Purpose**: Establish the root-package React/Vite/shadcn and test/build toolchain without creating a
 second deployable application.
 
-- [ ] T001 Add React, Vite, Tailwind 4, shadcn-required primitives/utilities, `@fastify/static`, Testing Library, jsdom, Playwright, `concurrently`, and `cross-env` through the root `package.json` and `pnpm-lock.yaml`
-- [ ] T002 [P] Create the Vite React entrypoint and `/admin/` base/proxy/alias configuration in `admin/index.html`, `admin/vite.config.ts`, `admin/tsconfig.json`, `admin/src/app/main.tsx`, and `admin/src/styles.css`
-- [ ] T003 Create and retain the shadcn configuration and only Button, Badge, Table, Dialog, AlertDialog, Input, Label, Switch, Skeleton, and Alert source in `admin/components.json`, `admin/src/lib/utils.ts`, and `admin/src/components/ui/*.tsx`
-- [ ] T004 [P] Add frontend TypeScript, jsdom test, lint, and format coverage in `admin/tsconfig.json`, `vitest.config.ts`, `eslint.config.mjs`, and `.prettierignore`
-- [ ] T005 [P] Configure Chromium browser E2E startup, base URL, isolation, and artifact retention in `playwright.config.ts`
-- [ ] T006 Add backend/frontend dev, typecheck, component-test, browser-test, and combined production-build commands while preserving existing worker commands in `package.json`
+- [X] T001 Add React, Vite, Tailwind 4, shadcn-required primitives/utilities, `@fastify/static`, Testing Library, jsdom, Playwright, `concurrently`, and `cross-env` through the root `package.json` and `pnpm-lock.yaml`
+- [X] T002 [P] Create the Vite React entrypoint and `/admin/` base/proxy/alias configuration in `admin/index.html`, `admin/vite.config.ts`, `admin/tsconfig.json`, `admin/src/app/main.tsx`, and `admin/src/styles.css`
+- [X] T003 Create and retain the shadcn configuration and only Button, Badge, Table, Dialog, AlertDialog, Input, Label, Switch, Skeleton, and Alert source in `admin/components.json`, `admin/src/lib/utils.ts`, and `admin/src/components/ui/*.tsx`
+- [X] T004 [P] Add frontend TypeScript, jsdom test, lint, and format coverage in `admin/tsconfig.json`, `vitest.config.ts`, `eslint.config.mjs`, and `.prettierignore`
+- [X] T005 [P] Configure Chromium browser E2E startup, base URL, isolation, and artifact retention in `playwright.config.ts`
+- [X] T006 Add backend/frontend dev, typecheck, component-test, browser-test, and combined production-build commands while preserving existing worker commands in `package.json`
 
 **Checkpoint**: The frontend scaffold compiles from the root package and no production Vite process
 has been introduced.

@@ -70,7 +70,7 @@ describe('container and deployment artifacts', () => {
     expect(existsSync('.github/workflows/deploy-northflank.yml')).toBe(false);
   });
 
-  it('documents a provider-neutral GHCR handoff and transition boundary', async () => {
+  it('documents the GHCR handoff, Northflank service, and administration boundary', async () => {
     const activeDocs = await Promise.all([
       read('README.md'),
       read('docs/deployment.md'),
@@ -84,10 +84,10 @@ describe('container and deployment artifacts', () => {
       'runtime configuration',
       'external',
       'transition prerequisite',
+      'Northflank',
     ]) {
       expect(content).toContain(phrase);
     }
-    expect(content).not.toMatch(/Northflank|Deploy Northflank|NORTHFLANK_/i);
     expect(content).not.toMatch(/DISCORD_TOKEN\s*[:=]\s*\S{20,}/);
     expect(content).not.toMatch(/GITHUB_TOKEN\s*[:=]\s*\S{20,}/);
   });

@@ -5,23 +5,23 @@ import { InMemoryGuildConfigRepository } from '../../src/infrastructure/memory/i
 describe('GuildConfigService', () => {
   it('distinguishes configured and unconfigured guilds and replaces values', async () => {
     const service = new GuildConfigService(new InMemoryGuildConfigRepository());
-    await expect(service.get('missing')).resolves.toEqual({ kind: 'not_found' });
+    await expect(service.get('123456789012345679')).resolves.toEqual({ kind: 'not_found' });
     await expect(
       service.save({
-        guildId: 'guild-a',
-        triggerChannelId: 'trigger-a',
-        destinationCategoryId: 'category-a',
+        guildId: '123456789012345678',
+        triggerChannelId: '223456789012345678',
+        destinationCategoryId: '323456789012345678',
       }),
     ).resolves.toMatchObject({ kind: 'saved' });
     await expect(
       service.save({
-        guildId: 'guild-a',
-        triggerChannelId: 'trigger-b',
-        destinationCategoryId: 'category-b',
+        guildId: '123456789012345678',
+        triggerChannelId: '223456789012345679',
+        destinationCategoryId: '323456789012345679',
       }),
     ).resolves.toMatchObject({ kind: 'saved' });
-    await expect(service.required('guild-a')).resolves.toMatchObject({
-      triggerChannelId: 'trigger-b',
+    await expect(service.required('123456789012345678')).resolves.toMatchObject({
+      triggerChannelId: '223456789012345679',
     });
   });
 
@@ -32,7 +32,7 @@ describe('GuildConfigService', () => {
       service.save({ guildId: '', triggerChannelId: 't', destinationCategoryId: 'c' }),
     ).resolves.toEqual({ kind: 'invalid' });
     repository.unavailable = true;
-    await expect(service.get('guild-a')).resolves.toEqual({ kind: 'unavailable' });
+    await expect(service.get('123456789012345678')).resolves.toEqual({ kind: 'unavailable' });
     await expect(service.required('guild-a')).resolves.toBeUndefined();
   });
 
@@ -61,7 +61,11 @@ describe('GuildConfigService', () => {
       },
     });
     await expect(
-      service.save({ guildId: 'guild', triggerChannelId: ' ', destinationCategoryId: 'category' }),
+      service.save({
+        guildId: '123456789012345678',
+        triggerChannelId: ' ',
+        destinationCategoryId: '323456789012345678',
+      }),
     ).resolves.toEqual({ kind: 'invalid' });
     expect(saves).toBe(0);
   });
