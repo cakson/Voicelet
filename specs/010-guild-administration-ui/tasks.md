@@ -76,12 +76,12 @@ explicitly-disabled creation paths.
 
 ### Tests for User Story 1
 
-- [ ] T024 [P] [US1] Write failing application tests for list, retrieve, invalid registration, duplicate/concurrent registration, unconfigured registration, and atomic initial configuration that defaults enabled but honors explicit disabled creation in `tests/unit/guild-administration-service.test.ts`
-- [ ] T025 [P] [US1] Write failing HTTP contract tests for `GET/POST /admin/api/guilds` and `GET /admin/api/guilds/:guildId`, including 400/404/409/503 safe errors, in `tests/integration/admin-http.test.ts`
-- [ ] T026 [P] [US1] Write failing React tests for loading, empty, error, configured/unconfigured list states, status badges, responsive table semantics, and row actions in `tests/unit/admin/guild-list.test.tsx`
-- [ ] T027 [P] [US1] Write failing React tests for guild-ID validation, duplicate-submit prevention, cancel, register-only, optional initial configuration with a default-on enabled control and explicit disabled selection, conflict, and uncertain-result refresh in `tests/unit/admin/register-guild-dialog.test.tsx`
-- [ ] T028 [P] [US1] Write failing emulator tests for persisted registration, duplicate/concurrent rejection, registration without configuration, and atomic registration with default-enabled or explicitly-disabled configuration in `tests/integration/firestore-guild-repository.test.ts`
-- [ ] T029 [P] [US1] Write failing static-delivery tests for `/admin`, `/admin/`, hashed assets, non-API fallback, missing assets, and health endpoint independence in `tests/integration/admin-static-assets.test.ts`
+- [X] T024 [P] [US1] Write failing application tests for list, retrieve, invalid registration, duplicate/concurrent registration, unconfigured registration, and atomic initial configuration that defaults enabled but honors explicit disabled creation in `tests/unit/guild-administration-service.test.ts`
+- [X] T025 [P] [US1] Write failing HTTP contract tests for `GET/POST /admin/api/guilds` and `GET /admin/api/guilds/:guildId`, including 400/404/409/503 safe errors, in `tests/integration/admin-http.test.ts`
+- [X] T026 [P] [US1] Write failing React tests for loading, empty, error, configured/unconfigured list states, status badges, responsive table semantics, and row actions in `tests/unit/admin/guild-list.test.tsx`
+- [X] T027 [P] [US1] Write failing React tests for guild-ID validation, duplicate-submit prevention, cancel, register-only, optional initial configuration with a default-on enabled control and explicit disabled selection, conflict, and uncertain-result refresh in `tests/unit/admin/register-guild-dialog.test.tsx`
+- [X] T028 [P] [US1] Write failing emulator tests for persisted registration, duplicate/concurrent rejection, registration without configuration, and atomic registration with default-enabled or explicitly-disabled configuration in `tests/integration/firestore-guild-repository.test.ts`
+- [X] T029 [P] [US1] Write failing static-delivery tests for `/admin`, `/admin/`, hashed assets, non-API fallback, missing assets, and health endpoint independence in `tests/integration/admin-static-assets.test.ts`
 
 ### Implementation for User Story 1
 
@@ -94,7 +94,7 @@ explicitly-disabled creation paths.
 - [X] T036 [US1] Implement the multi-step registration Dialog with register-only and register-with-configuration completion, including explicit disabled initial configuration, in `admin/src/features/guilds/components/register-guild-dialog.tsx`
 - [X] T037 [US1] Compose the page title, description, refresh lifecycle, registration flow, and list in `admin/src/app/app.tsx`
 - [X] T038 [US1] Serve `dist/admin` with asset cache policy and direct-load fallback without intercepting API/health paths in `src/infrastructure/http/admin-static-routes.ts` and `src/infrastructure/http/operational-server.ts`
-- [X] T039 [US1] Add a credential-free Playwright MVP scenario for opening the compiled page and registration/list flows, including an explicitly disabled initial configuration, in `tests/e2e/admin-guild-management.spec.ts and tests/support/admin-test-server.ts`
+- [X] T039 [US1] Add a credential-free Playwright MVP scenario for opening the compiled page and registration/list flows, including an explicitly disabled initial configuration, in `tests/e2e/admin-guild-management.spec.ts` and `tests/support/admin-test-server.ts`
 
 **Checkpoint**: User Story 1 is a deployable MVP: operators can understand and establish the guild
 inventory without raw persistence access.
@@ -111,10 +111,10 @@ state, then open a read-only view showing every persisted setting and Enabled st
 
 ### Tests for User Story 2
 
-- [ ] T040 [P] [US2] Add failing application tests for configuration retrieval, create-only semantics, default-enabled and explicitly-disabled creation, validation, not-found, and unavailable preservation in `tests/unit/guild-administration-service.test.ts`
-- [ ] T041 [P] [US2] Add failing HTTP contract tests for default-enabled and explicitly-disabled configuration creation through `PUT /admin/api/guilds/:guildId/configuration`, including 201/400/404/409/503, in `tests/integration/admin-http.test.ts`
-- [ ] T042 [P] [US2] Add failing emulator tests for create-only configuration, required registration, normalized defaults, explicit disabled creation, invalid no-write, and read-after-restart in `tests/integration/firestore-guild-repository.test.ts`
-- [ ] T043 [P] [US2] Write failing React tests for required fields, default-on enabled control, explicit disabled creation, invalid-value preservation, successful create refresh, and read-only display of all persisted values in `tests/unit/admin/guild-config-dialog.test.tsx`
+- [X] T040 [P] [US2] Add failing application tests for configuration retrieval, create-only semantics, default-enabled and explicitly-disabled creation, validation, not-found, and unavailable preservation in `tests/unit/guild-administration-service.test.ts`
+- [X] T041 [P] [US2] Add failing HTTP contract tests for default-enabled and explicitly-disabled configuration creation through `PUT /admin/api/guilds/:guildId/configuration`, including 201/400/404/409/503, in `tests/integration/admin-http.test.ts`
+- [X] T042 [P] [US2] Add failing emulator tests for create-only configuration, required registration, normalized defaults, explicit disabled creation, invalid no-write, and read-after-restart in `tests/integration/firestore-guild-repository.test.ts`
+- [X] T043 [P] [US2] Write failing React tests for required fields, default-on enabled control, explicit disabled creation, invalid-value preservation, successful create refresh, and read-only display of all persisted values in `tests/unit/admin/guild-config-dialog.test.tsx`
 
 ### Implementation for User Story 2
 
@@ -141,11 +141,11 @@ worker behavior resumes.
 
 ### Tests for User Story 3
 
-- [ ] T050 [P] [US3] Add failing application tests for complete revision-checked replacement, preserved enabled state, cancel/no-call expectations, stale conflicts, enable, disable, unchanged-value preservation, and notification outcomes in `tests/unit/guild-administration-service.test.ts`
-- [ ] T051 [P] [US3] Add failing HTTP tests for replace and `PATCH /admin/api/guilds/:guildId/configuration/enabled`, including revision conflict and safe current-state refresh, in `tests/integration/admin-http.test.ts`
-- [ ] T052 [P] [US3] Add failing emulator tests for complete replacement atomicity, omitted-field rejection, enabled-state preservation, concurrent revision conflict, disabled-value retention, re-enable, and enabled state across repository restart in `tests/integration/firestore-guild-repository.test.ts`
-- [ ] T053 [P] [US3] Add failing worker tests for no behavior while disabled, normal behavior after enable, and start/reschedule/cancel notification effects in `tests/unit/manage-temporary-room.test.ts`, `tests/unit/reconcile-temporary-rooms.test.ts`, and `tests/integration/gateway-lifecycle.test.ts`
-- [ ] T054 [P] [US3] Write failing React tests for persisted edit population, cancel/no mutation, invalid/API failure preservation, conflict refresh, non-optimistic switch, retained values, and accessible feedback in `tests/unit/admin/guild-config-dialog.test.tsx` and `tests/unit/admin/guild-list.test.tsx`
+- [X] T050 [P] [US3] Add failing application tests for complete revision-checked replacement, preserved enabled state, cancel/no-call expectations, stale conflicts, enable, disable, unchanged-value preservation, and notification outcomes in `tests/unit/guild-administration-service.test.ts`
+- [X] T051 [P] [US3] Add failing HTTP tests for replace and `PATCH /admin/api/guilds/:guildId/configuration/enabled`, including revision conflict and safe current-state refresh, in `tests/integration/admin-http.test.ts`
+- [X] T052 [P] [US3] Add failing emulator tests for complete replacement atomicity, omitted-field rejection, enabled-state preservation, concurrent revision conflict, disabled-value retention, re-enable, and enabled state across repository restart in `tests/integration/firestore-guild-repository.test.ts`
+- [X] T053 [P] [US3] Add failing worker tests for no behavior while disabled, normal behavior after enable, and start/reschedule/cancel notification effects in `tests/unit/manage-temporary-room.test.ts`, `tests/unit/reconcile-temporary-rooms.test.ts`, and `tests/integration/gateway-lifecycle.test.ts`
+- [X] T054 [P] [US3] Write failing React tests for persisted edit population, cancel/no mutation, invalid/API failure preservation, conflict refresh, non-optimistic switch, retained values, and accessible feedback in `tests/unit/admin/guild-config-dialog.test.tsx` and `tests/unit/admin/guild-list.test.tsx`
 
 ### Implementation for User Story 3
 
@@ -155,7 +155,7 @@ worker behavior resumes.
 - [X] T058 [US3] Implement the accessible persisted-result Switch and distinct edit/view actions in `admin/src/features/guilds/components/guild-list.tsx`
 - [X] T059 [US3] Wire edit, enable, disable, and failure refresh flows without optimistic state in `admin/src/app/app.tsx`
 - [X] T060 [US3] Extend emulator-backed worker E2E coverage for disabled restart persistence and re-enabled room behavior in `tests/e2e/worker-guild-config.test.ts`
-- [ ] T061 [US3] Extend the Playwright scenario through edit, disable, retained-value verification, restart, and re-enable in `tests/e2e/admin-guild-management.spec.ts`
+- [X] T061 [US3] Extend the Playwright scenario through edit, disable, retained-value verification, restart, and re-enable in `tests/e2e/admin-guild-management.spec.ts`
 
 **Checkpoint**: User Story 3 provides reversible activation control while persisted configuration and
 existing enabled worker behavior remain correct.
@@ -173,11 +173,11 @@ re-register it as new/unconfigured.
 
 ### Tests for User Story 4
 
-- [ ] T062 [P] [US4] Add failing application tests for unconfigured/configured/disabled deletion, not-found/unavailable results, notifier cancellation, isolation, and re-registration in `tests/unit/guild-administration-service.test.ts`
-- [ ] T063 [P] [US4] Add failing HTTP contract tests for `DELETE /admin/api/guilds/:guildId`, 204/400/404/503 mapping, and refreshed failure state in `tests/integration/admin-http.test.ts`
-- [ ] T064 [P] [US4] Add failing emulator tests for transactional registration/config deletion, configured-state variants, provider failure rollback, guild isolation, and clean re-registration in `tests/integration/firestore-guild-repository.test.ts`
-- [ ] T065 [P] [US4] Write failing React tests for destructive styling, required confirmation copy, cancel, duplicate-submit prevention, success removal, and failure retention in `tests/unit/admin/delete-guild-dialog.test.tsx`
-- [ ] T066 [P] [US4] Add failing simulated-Discord assertions that deletion invokes no Discord guild/channel/category/room mutation in `tests/integration/gateway-lifecycle.test.ts`
+- [X] T062 [P] [US4] Add failing application tests for unconfigured/configured/disabled deletion, not-found/unavailable results, notifier cancellation, isolation, and re-registration in `tests/unit/guild-administration-service.test.ts`
+- [X] T063 [P] [US4] Add failing HTTP contract tests for `DELETE /admin/api/guilds/:guildId`, 204/400/404/503 mapping, and refreshed failure state in `tests/integration/admin-http.test.ts`
+- [X] T064 [P] [US4] Add failing emulator tests for transactional registration/config deletion, configured-state variants, provider failure rollback, guild isolation, and clean re-registration in `tests/integration/firestore-guild-repository.test.ts`
+- [X] T065 [P] [US4] Write failing React tests for destructive styling, required confirmation copy, cancel, duplicate-submit prevention, success removal, and failure retention in `tests/unit/admin/delete-guild-dialog.test.tsx`
+- [X] T066 [P] [US4] Add failing simulated-Discord assertions that deletion invokes no Discord guild/channel/category/room mutation in `tests/integration/gateway-lifecycle.test.ts`
 
 ### Implementation for User Story 4
 
@@ -185,8 +185,8 @@ re-register it as new/unconfigured.
 - [X] T068 [US4] Implement delete use-case validation, post-commit cancellation notification, and isolation guarantees in `src/application/guild-administration-service.ts`
 - [X] T069 [US4] Implement the DELETE route with safe 204/400/404/503 responses in `src/infrastructure/http/admin-api-routes.ts`
 - [X] T070 [US4] Implement the destructive AlertDialog with explicit Voicelet-data and no-Discord-resource copy in `admin/src/features/guilds/components/delete-guild-dialog.tsx`
-- [X] T071 [US4] Wire confirmed deletion, cancel, pending state, failure retention, and authoritative list refresh in `admin/src/app/app.tsx and admin/src/features/guilds/components/guild-list.tsx`
-- [ ] T072 [US4] Complete the Playwright journey through cancel/confirm deletion, isolated guild preservation, disappearance, and clean re-registration in `tests/e2e/admin-guild-management.spec.ts`
+- [X] T071 [US4] Wire confirmed deletion, cancel, pending state, failure retention, and authoritative list refresh in `admin/src/app/app.tsx` and `admin/src/features/guilds/components/guild-list.tsx`
+- [X] T072 [US4] Complete the Playwright journey through cancel/confirm deletion, isolated guild preservation, disappearance, and clean re-registration in `tests/e2e/admin-guild-management.spec.ts`
 
 **Checkpoint**: All four user stories work independently and the complete administration lifecycle is
 available without Discord-side deletion.
@@ -198,7 +198,7 @@ available without Discord-side deletion.
 **Purpose**: Complete accessibility, security, performance, delivery, documentation, and the full
 evidence required for release.
 
-- [ ] T073 [P] Add keyboard/focus, label, status announcement, and tablet overflow coverage plus a loopback Playwright budget measuring the median of five warm 100-row request-to-render loads and confirmed mutations against the Firestore emulator in `tests/unit/admin/accessibility.test.tsx` and `tests/e2e/admin-performance.spec.ts`
+- [X] T073 [P] Add keyboard/focus, label, status announcement, and tablet overflow coverage plus a loopback Playwright budget measuring the median of five warm 100-row request-to-render loads and confirmed mutations against the Firestore emulator in `tests/unit/admin/accessibility.test.tsx` and `tests/e2e/admin-performance.spec.ts`
 - [X] T074 [P] Add security regression checks proving no Firebase browser SDK, Vite-exposed secret, raw provider error, credential, raw Discord data, or identifier-bearing telemetry reaches assets/responses/logs in `tests/integration/admin-security.test.ts`
 - [X] T075 [P] Add API/static route resilience tests proving admin persistence or asset failures do not change `/livez`, `/readyz`, or `/metrics` behavior in `tests/integration/operational-http.test.ts`
 - [X] T076 Integrate frontend compilation and `dist/admin` into the existing build/prune/runtime stages, exclude frontend source maps and development-only content, and smoke-test `/admin`, an asset, API, and operational endpoints in `Dockerfile`, `.dockerignore`, and `package.json`
@@ -206,7 +206,7 @@ evidence required for release.
 - [X] T078 [P] Document local backend/Vite/emulator startup, `/admin` access, frontend structure, shadcn maintenance, API boundary, production build, and operator workflows for register, configure, view, edit, enable, disable, and permanent deletion including its no-Discord-resource effect in `README.md`, `CONTRIBUTING.md`, and `docs/local-discord-development.md`
 - [X] T079 [P] Document the React → HTTP adapter → application → ports → persistence flow and same-process Discord worker in `docs/architecture.md`
 - [X] T080 [P] Document component/API/persistence/browser test commands and isolated credentials-free fixtures in `docs/testing.md`
-- [X] T081 [P] Document same-image Northflank deployment, prominent unauthenticated `/admin` and `/admin/api` VPN/private-network requirements, V2 rollback limits, roll-forward recovery, and verified-backup restoration in `docs/deployment.md and .env.example`
+- [X] T081 [P] Document same-image Northflank deployment, prominent unauthenticated `/admin` and `/admin/api` VPN/private-network requirements, V2 rollback limits, roll-forward recovery, and verified-backup restoration in `docs/deployment.md` and `.env.example`
 - [X] T082 Add documentation and package-contract assertions for all admin commands, security warnings, shadcn ownership, and unchanged worker workflows in `tests/integration/documentation.test.ts` and `tests/integration/configuration-startup.test.ts`
 - [X] T083 Run every scenario in `specs/010-guild-administration-ui/quickstart.md`, then run `pnpm check`, `pnpm test:persistence:integration`, `pnpm test:persistence:e2e`, `pnpm test:admin:e2e`, and `pnpm container:smoke`; record any environment-specific failure honestly
 
