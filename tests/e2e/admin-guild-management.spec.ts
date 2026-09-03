@@ -4,6 +4,7 @@ const guildId = '100000000000000101';
 const triggerId = '100000000000000102';
 const updatedTriggerId = '100000000000000103';
 const categoryId = '100000000000000104';
+const replacementGuildId = '100000000000000105';
 
 test('manages a guild registration and its Voicelet configuration', async ({ page }) => {
   await page.goto('/admin');
@@ -43,6 +44,16 @@ test('manages a guild registration and its Voicelet configuration', async ({ pag
 
   await page.getByRole('button', { name: 'Delete' }).click();
   await expect(page.getByText('It does not delete the Discord server')).toBeVisible();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await expect(page.getByText(guildId)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Register guild' }).click();
+  await page.getByLabel('Discord guild ID *').fill(replacementGuildId);
+  await page.getByRole('button', { name: 'Register guild' }).last().click();
+  await expect(page.getByText(replacementGuildId)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Delete' }).first().click();
+  await expect(page.getByText('It does not delete the Discord server')).toBeVisible();
   const deletion = page.waitForResponse(
     (response) =>
       response.request().method() === 'DELETE' && response.url().endsWith(`/guilds/${guildId}`),
@@ -50,5 +61,12 @@ test('manages a guild registration and its Voicelet configuration', async ({ pag
   await page.getByRole('button', { name: 'Delete registration' }).click();
   const deletionResponse = await deletion;
   expect(deletionResponse.status()).toBe(204);
-  await expect(page.getByText('No guilds are registered yet.')).toBeVisible();
+  await expect(page.getByText(guildId)).not.toBeVisible();
+  await expect(page.getByText(replacementGuildId)).toBeVisible();
+
+  await page.getByRole('button', { name: 'Register guild' }).click();
+  await page.getByLabel('Discord guild ID *').fill(guildId);
+  await page.getByRole('button', { name: 'Register guild' }).last().click();
+  await expect(page.getByText(guildId)).toBeVisible();
+  await expect(page.getByText('Unconfigured')).toBeVisible();
 });

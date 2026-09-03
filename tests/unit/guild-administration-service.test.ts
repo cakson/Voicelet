@@ -21,6 +21,22 @@ describe('GuildAdministrationService', () => {
       guild: { configuration: { enabled: true } },
     });
   });
+  it('lists registered guilds and supports explicitly disabled atomic initial configuration', async () => {
+    const service = new GuildAdministrationService(new InMemoryGuildRepository());
+    await expect(service.registerGuild({ guildId: 'invalid' })).resolves.toEqual({
+      kind: 'invalid',
+    });
+    await expect(
+      service.registerGuild({ guildId, configuration: { ...input, enabled: false } }),
+    ).resolves.toMatchObject({
+      kind: 'registered',
+      guild: { configuration: { enabled: false, revision: 1 } },
+    });
+    await expect(service.listRegisteredGuilds()).resolves.toMatchObject({
+      kind: 'found',
+      guilds: [{ guildId, configuration: { enabled: false } }],
+    });
+  });
   it('preserves configuration values while disabling and re-enables with a new revision', async () => {
     const service = new GuildAdministrationService(new InMemoryGuildRepository());
     await service.registerGuild({ guildId, configuration: input });
@@ -74,6 +90,19 @@ describe('GuildAdministrationService', () => {
     await expect(service.registerGuild({ guildId })).resolves.toMatchObject({
       kind: 'registered',
       guild: { configuration: null },
+    });
+  });
+  it('does not create a configuration for an unregistered guild or replace an existing one', async () => {
+    const service = new GuildAdministrationService(new InMemoryGuildRepository());
+    await expect(service.createConfiguration(guildId, input)).resolves.toEqual({
+      kind: 'not_found',
+    });
+    await service.registerGuild({ guildId });
+    await expect(service.createConfiguration(guildId, input)).resolves.toMatchObject({
+      kind: 'saved',
+    });
+    await expect(service.createConfiguration(guildId, input)).resolves.toMatchObject({
+      kind: 'conflict',
     });
   });
 });

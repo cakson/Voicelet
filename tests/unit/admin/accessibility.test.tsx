@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { GuildList } from '../../../admin/src/features/guilds/components/guild-list';
 
 it('exposes a labelled enable control and accessible loading state', () => {

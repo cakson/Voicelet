@@ -46,4 +46,20 @@ describe('DeleteGuildDialog', () => {
     expect(guildAdminApi.remove).toHaveBeenCalledWith('123456789012345678');
     expect(onDeleted).toHaveBeenCalledOnce();
   });
+  it('retains the dialog and reports a failed deletion without pretending it succeeded', async () => {
+    const user = userEvent.setup();
+    const onError = vi.fn();
+    vi.mocked(guildAdminApi.remove).mockRejectedValue(new Error('Voicelet is unavailable.'));
+    render(
+      <DeleteGuildDialog
+        guildId="123456789012345678"
+        onClose={vi.fn()}
+        onDeleted={vi.fn()}
+        onError={onError}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: 'Delete registration' }));
+    expect(await screen.findByRole('button', { name: 'Delete registration' })).toBeInTheDocument();
+    expect(onError).toHaveBeenCalledWith('Voicelet is unavailable.');
+  });
 });

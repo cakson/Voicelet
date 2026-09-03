@@ -54,4 +54,56 @@ suite('Firestore guild repository', () => {
       guild: { configuration: null },
     });
   });
+  it('requires registration, rejects invalid writes, and preserves disabled values across instances', async () => {
+    const disabledConfiguration = { ...configuration, enabled: false };
+    await expect(repository.createConfiguration(guildId, configuration)).resolves.toEqual({
+      kind: 'not_found',
+    });
+    await expect(repository.registerGuild(guildId, disabledConfiguration)).resolves.toMatchObject({
+      kind: 'registered',
+      guild: { configuration: { enabled: false, revision: 1 } },
+    });
+    await expect(
+      repository.replaceConfiguration(guildId, { ...configuration, triggerChannelId: 'bad' }, 1),
+    ).resolves.toEqual({ kind: 'invalid' });
+    const restartedRepository = new FirestoreGuildRepository(firestore);
+    await expect(restartedRepository.getGuild(guildId)).resolves.toMatchObject({
+      kind: 'found',
+      guild: {
+        configuration: {
+          enabled: false,
+          triggerChannelId: disabledConfiguration.triggerChannelId,
+          revision: 1,
+        },
+      },
+    });
+  });
+  it('atomically replaces configuration while retaining enabled state and rejects stale revisions', async () => {
+    await repository.registerGuild(guildId, { ...configuration, enabled: false });
+    const replacement = { ...configuration, triggerChannelId: '223456789012345679', enabled: true };
+    await expect(repository.replaceConfiguration(guildId, replacement, 1)).resolves.toMatchObject({
+      kind: 'saved',
+      guild: {
+        configuration: {
+          enabled: false,
+          triggerChannelId: replacement.triggerChannelId,
+          revision: 2,
+        },
+      },
+    });
+    await expect(repository.setConfigurationEnabled(guildId, true, 1)).resolves.toMatchObject({
+      kind: 'conflict',
+      guild: { configuration: { enabled: false, revision: 2 } },
+    });
+    await expect(repository.setConfigurationEnabled(guildId, true, 2)).resolves.toMatchObject({
+      kind: 'enabled',
+      guild: {
+        configuration: {
+          enabled: true,
+          triggerChannelId: replacement.triggerChannelId,
+          revision: 3,
+        },
+      },
+    });
+  });
 });

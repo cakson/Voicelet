@@ -35,4 +35,26 @@ describe('RegisterGuildDialog', () => {
     expect(guildAdminApi.register).toHaveBeenCalledWith('123456789012345678', undefined);
     expect(onSaved).toHaveBeenCalledOnce();
   });
+  it('allows an initial explicitly disabled configuration and prevents duplicate submission', async () => {
+    const user = userEvent.setup();
+    let resolveRegistration: (() => void) | undefined;
+    vi.mocked(guildAdminApi.register).mockImplementation(
+      () => new Promise((resolve) => (resolveRegistration = () => resolve({} as never))),
+    );
+    render(<RegisterGuildDialog open onOpenChange={vi.fn()} onSaved={vi.fn()} />);
+    await user.type(screen.getByLabelText(/Discord guild ID/), '123456789012345678');
+    await user.click(screen.getByLabelText('Configure Voicelet now'));
+    await user.type(screen.getByLabelText(/Trigger voice channel ID/), '223456789012345678');
+    await user.type(screen.getByLabelText(/Temporary-room category ID/), '323456789012345678');
+    await user.click(screen.getByRole('switch', { name: 'Enable Voicelet immediately' }));
+    const submit = screen.getByRole('button', { name: 'Register guild' });
+    await user.click(submit);
+    await user.click(submit);
+    expect(guildAdminApi.register).toHaveBeenCalledTimes(1);
+    expect(guildAdminApi.register).toHaveBeenCalledWith(
+      '123456789012345678',
+      expect.objectContaining({ enabled: false }),
+    );
+    resolveRegistration?.();
+  });
 });
