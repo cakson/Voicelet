@@ -8,6 +8,13 @@
 
 **Input**: User description: "Create a simple unauthenticated web administration interface for registering Discord guilds and managing their persisted Voicelet configuration, enabled state, and deletion."
 
+## Clarifications
+
+### Session 2026-09-03
+
+- Q: How should existing persisted guild configurations become guild registrations when this feature is deployed? → A: Require each existing configured guild to be manually registered in the new interface; production is expected to start with a clean datastore.
+- Q: How should the unauthenticated administration page be isolated from public traffic in the deployed application? → A: Serve it on the existing operational HTTP listener; operators restrict access through their network proxy or firewall.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Register and Understand Guilds (Priority: P1)
@@ -234,8 +241,9 @@ are unchanged.
   persistence or deployment credentials, raw Discord data, raw persisted records, raw provider
   errors, internal stack traces, or other secrets.
 - **FR-029**: The administration interface MUST be served without authentication or authorization
-  for this feature, and documentation MUST prominently warn that it is unauthenticated and MUST NOT
-  be exposed directly to the public internet.
+  for this feature on Voicelet's existing operational HTTP listener, and documentation MUST
+  prominently warn that it is unauthenticated and MUST NOT be exposed directly to the public
+  internet.
 - **FR-030**: Documentation MUST instruct operators to place the administration endpoint behind a
   VPN or equivalent private network boundary in production or any internet-exposed environment.
 - **FR-031**: Documentation MUST explain how to access and serve the interface locally and in a
@@ -253,8 +261,9 @@ are unchanged.
 - **FR-035**: Important administration failures MUST be observable through privacy-safe bounded
   outcomes without guild identifiers, submitted values, secrets, raw Discord payloads, or provider
   error detail in logs or telemetry.
-- **FR-036**: Existing persisted guild configuration MUST remain authoritative and MUST be represented
-  as a registered, configured guild without requiring an operator to re-enter its valid saved values.
+- **FR-036**: Guild configuration records MUST NOT implicitly create registrations. A pre-existing
+  configuration without an explicit registration MUST be treated as inactive until an operator
+  registers that guild; production deployment is expected to begin with a clean datastore.
 
 ### Key Entities
 
@@ -308,10 +317,12 @@ are unchanged.
 - This initial interface targets an operator using a conventional desktop browser; advanced
   dashboard behavior, analytics, multi-user coordination, and mobile-specific optimization are out
   of scope.
-- Network-level access control is an operator deployment responsibility until a future feature adds
-  authentication and authorization.
-- Existing persistent guild configuration remains the source of truth and is migrated or associated
-  with its corresponding registration without requiring operators to re-enter valid saved values.
+- The administration page shares Voicelet's existing operational HTTP listener. Network-level access
+  control through a proxy, firewall, VPN, or equivalent private network is an operator deployment
+  responsibility until a future feature adds authentication and authorization.
+- Production deployment is expected to begin with a clean datastore. Any pre-existing configuration
+  used outside production requires explicit guild registration and is not automatically migrated into
+  a registration.
 
 ## Out of Scope
 
