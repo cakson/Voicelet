@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { createOperationalServer } from '../../src/infrastructure/http/operational-server.js';
 import { Observability } from '../../src/infrastructure/logging/observability.js';
+import { GuildAdministrationService } from '../../src/application/guild-administration-service.js';
+import { registerAdminApiRoutes } from '../../src/infrastructure/http/admin-api-routes.js';
+import { InMemoryGuildRepository } from '../../src/infrastructure/memory/in-memory-guild-repository.js';
 
 const apps: Array<ReturnType<typeof createOperationalServer>> = [];
 afterEach(async () => {
@@ -37,5 +40,17 @@ describe('operational HTTP contract', () => {
     expect((await app.inject('/readyz')).statusCode).toBe(200);
     ready = false;
     expect((await app.inject('/readyz')).statusCode).toBe(503);
+  });
+  it('keeps operational endpoints independent from unavailable administration persistence', async () => {
+    const observability = Observability.create('silent');
+    const repository = new InMemoryGuildRepository();
+    repository.unavailable = true;
+    const app = createOperationalServer(() => 'ready', observability);
+    registerAdminApiRoutes(app, new GuildAdministrationService(repository), observability);
+    apps.push(app);
+    expect((await app.inject('/admin/api/guilds')).statusCode).toBe(503);
+    expect((await app.inject('/livez')).statusCode).toBe(200);
+    expect((await app.inject('/readyz')).statusCode).toBe(200);
+    expect((await app.inject('/metrics')).statusCode).toBe(200);
   });
 });
