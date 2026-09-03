@@ -118,12 +118,12 @@ state, then open a read-only view showing every persisted setting and Enabled st
 
 ### Implementation for User Story 2
 
-- [ ] T044 [US2] Implement the configuration-creation capability port with required registration, normalized defaults, explicit disabled preservation, and create-only conflict behavior in `src/infrastructure/memory/in-memory-guild-repository.ts`, `src/infrastructure/firestore/firestore-guild-repository.ts`, and `src/application/guild-administration-service.ts`
-- [ ] T045 [US2] Implement the configuration PUT route and 201 create response in `src/infrastructure/http/admin-api-routes.ts`
-- [ ] T046 [P] [US2] Implement the read-only configuration presentation and Enabled/Disabled badge in `admin/src/features/guilds/components/guild-config-view.tsx`
-- [ ] T047 [US2] Implement shared create/view Dialog modes with a default-on creation Switch, explicit disabled submission, persisted-data loading, cancel, success, and safe error feedback in `admin/src/features/guilds/components/guild-config-dialog.tsx`
-- [ ] T048 [US2] Wire Add Configuration and View Configuration row actions to server-authoritative refresh in `admin/src/app/app.tsx` and `admin/src/features/guilds/components/guild-list.tsx`
-- [ ] T049 [US2] Extend the Playwright scenario through add-configuration and view-verification using isolated persistence in `tests/e2e/admin-guild-management.spec.ts`
+- [X] T044 [US2] Implement the configuration-creation capability port with required registration, normalized defaults, explicit disabled preservation, and create-only conflict behavior in `src/infrastructure/memory/in-memory-guild-repository.ts`, `src/infrastructure/firestore/firestore-guild-repository.ts`, and `src/application/guild-administration-service.ts`
+- [X] T045 [US2] Implement the configuration PUT route and 201 create response in `src/infrastructure/http/admin-api-routes.ts`
+- [X] T046 [P] [US2] Implement the read-only configuration presentation and Enabled/Disabled badge in `admin/src/features/guilds/components/guild-config-view.tsx`
+- [X] T047 [US2] Implement shared create/view Dialog modes with a default-on creation Switch, explicit disabled submission, persisted-data loading, cancel, success, and safe error feedback in `admin/src/features/guilds/components/guild-config-dialog.tsx`
+- [X] T048 [US2] Wire Add Configuration and View Configuration row actions to server-authoritative refresh in `admin/src/app/app.tsx` and `admin/src/features/guilds/components/guild-list.tsx`
+- [X] T049 [US2] Extend the Playwright scenario through add-configuration and view-verification using isolated persistence in `tests/e2e/admin-guild-management.spec.ts`
 
 **Checkpoint**: User Story 2 independently turns an unconfigured registration into a verifiably
 configured guild.
