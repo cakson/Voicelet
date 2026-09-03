@@ -131,4 +131,16 @@ describe('documentation', () => {
       expect(document).not.toContain('TEMPORARY_ROOM_CONFIG');
     }
   });
+  it('documents the unauthenticated private administration boundary', async () => {
+    const [readme, deployment, guide] = await Promise.all([
+      readFile('README.md', 'utf8'),
+      readFile('docs/deployment.md', 'utf8'),
+      readFile('docs/local-discord-development.md', 'utf8'),
+    ]);
+    expect(readme).toContain('pnpm dev:admin');
+    expect(`${readme}\n${deployment}`).toContain('/admin/api');
+    expect(`${readme}\n${deployment}`).toMatch(/unauthenticated/i);
+    expect(`${readme}\n${deployment}`).toMatch(/VPN|private-network/i);
+    expect(guide).toContain('shadcn/ui');
+  });
 });
