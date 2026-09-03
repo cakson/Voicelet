@@ -6,7 +6,7 @@ Voicelet is a single background-worker process. Dependencies flow in one directi
 - `src/domain` holds transient voice-state types and validation.
 - `src/application` contains the pure event handler.
 - `src/ports` defines the Gateway client, clock, observation, and provider-independent
-  `GuildConfigRepository` boundaries.
+  guild registration and enabled-configuration repository boundaries.
 - `src/infrastructure/discord` adapts `discord.js` in production and supplies a deterministic
   simulated client for CI; Gateway failures are reduced to a safe failure class, readiness state,
   and bounded metrics without retaining provider error details.

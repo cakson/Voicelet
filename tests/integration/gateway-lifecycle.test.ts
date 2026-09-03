@@ -8,10 +8,10 @@ import {
   unconfiguredTemporaryRoomJoin,
 } from '../support/fixtures/voice-state.js';
 import { ManualScheduler } from '../support/manual-scheduler.js';
-import { InMemoryGuildConfigRepository } from '../../src/infrastructure/memory/in-memory-guild-config-repository.js';
+import { InMemoryEnabledConfigRepository } from '../support/in-memory-enabled-config-repository.js';
 import { createOperationalServer } from '../../src/infrastructure/http/operational-server.js';
 
-const configurations = new InMemoryGuildConfigRepository([
+const configurations = new InMemoryEnabledConfigRepository([
   {
     guildId: 'test-guild',
     triggerChannelId: 'trigger-channel',
@@ -194,7 +194,7 @@ describe('DiscordGatewayEventSource', () => {
 
   it('recovers persistence readiness after a failed read', async () => {
     const factory = new SimulatedDiscordClientFactory();
-    const repository = new InMemoryGuildConfigRepository();
+    const repository = new InMemoryEnabledConfigRepository();
     const observability = Observability.create('silent');
     await repository.save({
       guildId: 'test-guild',
@@ -350,7 +350,7 @@ describe('DiscordGatewayEventSource', () => {
   it('reconciles startup zombies while preserving configured permanent and known managed rooms', async () => {
     const factory = new SimulatedDiscordClientFactory();
     const scheduler = new ManualScheduler();
-    const reconciliationConfig = new InMemoryGuildConfigRepository([
+    const reconciliationConfig = new InMemoryEnabledConfigRepository([
       {
         guildId: 'test-guild',
         triggerChannelId: 'trigger-channel',
