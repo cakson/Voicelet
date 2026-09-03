@@ -85,16 +85,16 @@ explicitly-disabled creation paths.
 
 ### Implementation for User Story 1
 
-- [ ] T030 [US1] Implement the registration capability port with transaction-equivalent list, retrieve, duplicate-safe register, and optional atomic initial configuration that defaults enabled but preserves explicit disabled selection in both guild repository adapters and `src/application/guild-administration-service.ts`
-- [ ] T031 [US1] Implement provider-neutral Zod HTTP DTOs and stable safe error mapping for the OpenAPI contract in `src/infrastructure/http/admin-api-schemas.ts` and `src/infrastructure/http/admin-error-response.ts`
-- [ ] T032 [US1] Register list, retrieve, and create routes under `/admin/api/guilds` and compose the completed administration service/routes in `src/infrastructure/http/admin-api-routes.ts`, `src/infrastructure/http/operational-server.ts`, and `src/composition/root.ts`
-- [ ] T033 [P] [US1] Implement typed API DTOs, snowflake/config form validation, and centralized fetch/error handling in `admin/src/features/guilds/types.ts`, `admin/src/features/guilds/validation.ts`, and `admin/src/features/guilds/api/guild-admin-api.ts`
-- [ ] T034 [P] [US1] Implement the accessible guild table, status badges, empty/error/loading states, and action affordances in `admin/src/features/guilds/components/guild-list.tsx`
-- [ ] T035 [P] [US1] Implement the shared controlled configuration fields, including a default-on enabled Switch shown for creation but excluded from editing, needed by atomic registration and later create/edit flows in `admin/src/features/guilds/components/guild-config-form.tsx`
-- [ ] T036 [US1] Implement the multi-step registration Dialog with register-only and register-with-configuration completion, including explicit disabled initial configuration, in `admin/src/features/guilds/components/register-guild-dialog.tsx`
-- [ ] T037 [US1] Compose the page title, description, refresh lifecycle, registration flow, and list in `admin/src/app/app.tsx`
-- [ ] T038 [US1] Serve `dist/admin` with asset cache policy and direct-load fallback without intercepting API/health paths in `src/infrastructure/http/admin-static-routes.ts` and `src/infrastructure/http/operational-server.ts`
-- [ ] T039 [US1] Add a credential-free Playwright MVP scenario for opening the compiled page and registration/list flows, including an explicitly disabled initial configuration, in `tests/e2e/admin-guild-management.spec.ts` and `tests/support/admin-test-server.ts`
+- [X] T030 [US1] Implement the registration capability port with transaction-equivalent list, retrieve, duplicate-safe register, and optional atomic initial configuration that defaults enabled but preserves explicit disabled selection in both guild repository adapters and `src/application/guild-administration-service.ts`
+- [X] T031 [US1] Implement provider-neutral Zod HTTP DTOs and stable safe error mapping for the OpenAPI contract in `src/infrastructure/http/admin-api-schemas.ts` and `src/infrastructure/http/admin-error-response.ts`
+- [X] T032 [US1] Register list, retrieve, and create routes under `/admin/api/guilds` and compose the completed administration service/routes in `src/infrastructure/http/admin-api-routes.ts`, `src/infrastructure/http/operational-server.ts`, and `src/composition/root.ts`
+- [X] T033 [P] [US1] Implement typed API DTOs, snowflake/config form validation, and centralized fetch/error handling in `admin/src/features/guilds/types.ts`, `admin/src/features/guilds/validation.ts`, and `admin/src/features/guilds/api/guild-admin-api.ts`
+- [X] T034 [P] [US1] Implement the accessible guild table, status badges, empty/error/loading states, and action affordances in `admin/src/features/guilds/components/guild-list.tsx`
+- [X] T035 [P] [US1] Implement the shared controlled configuration fields, including a default-on enabled Switch shown for creation but excluded from editing, needed by atomic registration and later create/edit flows in `admin/src/features/guilds/components/guild-config-form.tsx`
+- [X] T036 [US1] Implement the multi-step registration Dialog with register-only and register-with-configuration completion, including explicit disabled initial configuration, in `admin/src/features/guilds/components/register-guild-dialog.tsx`
+- [X] T037 [US1] Compose the page title, description, refresh lifecycle, registration flow, and list in `admin/src/app/app.tsx`
+- [X] T038 [US1] Serve `dist/admin` with asset cache policy and direct-load fallback without intercepting API/health paths in `src/infrastructure/http/admin-static-routes.ts` and `src/infrastructure/http/operational-server.ts`
+- [X] T039 [US1] Add a credential-free Playwright MVP scenario for opening the compiled page and registration/list flows, including an explicitly disabled initial configuration, in `tests/e2e/admin-guild-management.spec.ts and tests/support/admin-test-server.ts`
 
 **Checkpoint**: User Story 1 is a deployable MVP: operators can understand and establish the guild
 inventory without raw persistence access.
