@@ -5,7 +5,7 @@ import type {
   ScheduledWork,
   Scheduler,
 } from '../ports/index.js';
-import type { GuildConfigRepository } from '../ports/guild-config-repository.js';
+import type { EnabledGuildConfigRepository } from '../ports/enabled-guild-config-repository.js';
 
 const minuteMs = 60_000;
 
@@ -17,7 +17,7 @@ export class TemporaryRoomReconciler {
   private disposed = false;
 
   constructor(
-    private readonly configurations: GuildConfigRepository,
+    private readonly configurations: EnabledGuildConfigRepository,
     private readonly discord: DiscordClient,
     private readonly scheduler: Scheduler,
     private readonly isKnownManagedRoom: (guildId: string, roomId: string) => boolean,
@@ -28,7 +28,7 @@ export class TemporaryRoomReconciler {
   async start(): Promise<void> {
     if (this.disposed) return;
     this.active = true;
-    const result = await this.configurations.list();
+    const result = await this.configurations.listEnabled();
     this.observeConfiguration?.(result.kind);
     if (result.kind === 'found') for (const config of result.configs) this.request(config.guildId);
   }
@@ -38,6 +38,18 @@ export class TemporaryRoomReconciler {
     for (const scheduled of this.scheduled.values()) scheduled.cancel();
     this.scheduled.clear();
     this.queued.clear();
+  }
+
+  async configurationChanged(
+    guildId: string,
+    change: 'configured' | 'interval_changed' | 'enabled' | 'disabled' | 'deleted',
+  ): Promise<void> {
+    if (change === 'disabled' || change === 'deleted') {
+      this.scheduled.get(guildId)?.cancel();
+      this.scheduled.delete(guildId);
+      return;
+    }
+    if (this.active && !this.disposed) this.request(guildId);
   }
 
   dispose(): void {
@@ -90,7 +102,7 @@ export class TemporaryRoomReconciler {
   }
 
   private async config(guildId: string): Promise<GuildConfig | undefined> {
-    const result = await this.configurations.get(guildId);
+    const result = await this.configurations.getEnabled(guildId);
     this.observeConfiguration?.(result.kind);
     return result.kind === 'found' ? result.config : undefined;
   }

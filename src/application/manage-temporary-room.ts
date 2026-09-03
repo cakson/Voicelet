@@ -7,7 +7,7 @@ import type {
   ScheduledWork,
   TemporaryRoomObservation,
 } from '../ports/index.js';
-import type { GuildConfigRepository } from '../ports/guild-config-repository.js';
+import type { EnabledGuildConfigRepository } from '../ports/enabled-guild-config-repository.js';
 
 const retryDelayMs = 15 * 60 * 1000;
 
@@ -40,7 +40,7 @@ export class TemporaryRoomManager {
   private readonly deletingRooms = new Set<string>();
 
   constructor(
-    private readonly configurations: GuildConfigRepository,
+    private readonly configurations: EnabledGuildConfigRepository,
     private readonly discord: DiscordClient,
     schedulerOrObserve: Scheduler | ((event: TemporaryRoomObservation) => void),
     observe?: (event: TemporaryRoomObservation) => void,
@@ -149,7 +149,7 @@ export class TemporaryRoomManager {
   }
 
   private async config(guildId: string): Promise<GuildConfig | undefined> {
-    const result = await this.configurations.get(guildId);
+    const result = await this.configurations.getEnabled(guildId);
     this.observeConfiguration?.(result.kind);
     return result.kind === 'found' ? result.config : undefined;
   }

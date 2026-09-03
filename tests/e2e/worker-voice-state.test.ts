@@ -80,9 +80,9 @@ describe('worker voice-state flow', () => {
     workers.push(worker);
     worker.send({
       type: 'seed-guild-config',
-      guildId: 'test-guild',
-      triggerChannelId: 'trigger-channel',
-      destinationCategoryId: 'category-id',
+      guildId: '100000000000000001',
+      triggerChannelId: '100000000000000002',
+      destinationCategoryId: '100000000000000003',
       inactivityTimeoutMinutes: 1,
     });
     await waitFor(
@@ -92,7 +92,8 @@ describe('worker voice-state flow', () => {
     );
     const triggerEvent = {
       ...validVoiceState,
-      channelId: 'trigger-channel',
+      guildId: '100000000000000001',
+      channelId: '100000000000000002',
       previousChannelId: null,
       isBot: false,
       displayName: 'Ada Lovelace',
@@ -112,7 +113,7 @@ describe('worker voice-state flow', () => {
     await expect(capability(worker, 'sim-room-1', 'other-user')).resolves.toBe(false);
     worker.send({
       type: 'move-room',
-      guildId: 'test-guild',
+      guildId: '100000000000000001',
       roomId: 'sim-room-1',
       categoryId: 'other-category',
     });
@@ -236,23 +237,28 @@ describe('worker voice-state flow', () => {
     workers.push(worker);
     worker.send({
       type: 'seed-guild-config',
-      guildId: 'test-guild',
-      triggerChannelId: 'trigger-channel',
-      destinationCategoryId: 'category-id',
+      guildId: '100000000000000001',
+      triggerChannelId: '100000000000000002',
+      destinationCategoryId: '100000000000000003',
       inactivityTimeoutMinutes: 1,
       reconciliationIntervalMinutes: 1,
-      permanentChannelIds: ['permanent-room'],
+      permanentChannelIds: ['100000000000000004'],
     });
     await waitFor(
       () => request(socketPath, '/livez'),
       (response) => response.statusCode === 200,
       10_000,
     );
-    for (const roomId of ['empty-zombie', 'occupied-zombie', 'permanent-room'])
-      worker.send({ type: 'seed-room', guildId: 'test-guild', roomId, categoryId: 'category-id' });
+    for (const roomId of ['empty-zombie', 'occupied-zombie', '100000000000000004'])
+      worker.send({
+        type: 'seed-room',
+        guildId: '100000000000000001',
+        roomId,
+        categoryId: '100000000000000003',
+      });
     worker.send({
       type: 'set-room-occupied',
-      guildId: 'test-guild',
+      guildId: '100000000000000001',
       roomId: 'occupied-zombie',
       occupied: true,
     });
@@ -270,7 +276,7 @@ describe('worker voice-state flow', () => {
     );
     worker.send({
       type: 'set-room-occupied',
-      guildId: 'test-guild',
+      guildId: '100000000000000001',
       roomId: 'occupied-zombie',
       occupied: false,
     });
@@ -305,11 +311,11 @@ describe('worker voice-state flow', () => {
     workers.push(worker);
     worker.send({
       type: 'seed-guild-config',
-      guildId: 'test-guild',
-      triggerChannelId: 'trigger-channel',
-      destinationCategoryId: 'category-id',
+      guildId: '100000000000000001',
+      triggerChannelId: '100000000000000002',
+      destinationCategoryId: '100000000000000003',
       inactivityTimeoutMinutes: 1,
-      permanentChannelIds: ['permanent-room'],
+      permanentChannelIds: ['100000000000000004'],
     });
     await waitFor(
       () => request(socketPath, '/readyz'),
@@ -318,11 +324,16 @@ describe('worker voice-state flow', () => {
     );
     worker.send({
       type: 'seed-room',
-      guildId: 'test-guild',
-      roomId: 'permanent-room',
-      categoryId: 'category-id',
+      guildId: '100000000000000001',
+      roomId: '100000000000000004',
+      categoryId: '100000000000000003',
     });
-    const ownerA = { ...validVoiceState, channelId: 'trigger-channel', previousChannelId: null };
+    const ownerA = {
+      ...validVoiceState,
+      guildId: '100000000000000001',
+      channelId: '100000000000000002',
+      previousChannelId: null,
+    };
     const ownerB = {
       ...ownerA,
       userId: 'owner-b',
@@ -343,11 +354,15 @@ describe('worker voice-state flow', () => {
     await expect(capability(worker, 'sim-room-2', 'owner-b')).resolves.toBe(true);
     await expect(capability(worker, 'sim-room-2', validVoiceState.userId)).resolves.toBe(false);
     await expect(capability(worker, 'sim-room-1', 'owner-b')).resolves.toBe(false);
-    await expect(capability(worker, 'trigger-channel', validVoiceState.userId)).resolves.toBe(
+    await expect(capability(worker, '100000000000000002', validVoiceState.userId)).resolves.toBe(
       false,
     );
-    await expect(capability(worker, 'category-id', validVoiceState.userId)).resolves.toBe(false);
-    await expect(capability(worker, 'permanent-room', validVoiceState.userId)).resolves.toBe(false);
+    await expect(capability(worker, '100000000000000003', validVoiceState.userId)).resolves.toBe(
+      false,
+    );
+    await expect(capability(worker, '100000000000000004', validVoiceState.userId)).resolves.toBe(
+      false,
+    );
 
     worker.send({ type: 'fail-next-owner-allowance' });
     worker.send({
@@ -382,7 +397,7 @@ describe('worker voice-state flow', () => {
 
     worker.send({
       type: 'external-room-delete',
-      guildId: 'test-guild',
+      guildId: '100000000000000001',
       roomId: 'sim-room-1',
       suppressCallback: true,
     });

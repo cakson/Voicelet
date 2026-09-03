@@ -49,18 +49,22 @@ suite('worker persistent guild configuration', () => {
 
   it('uses isolated configurations after a worker restart and skips unconfigured guilds', async () => {
     await seedGuildConfigEmulator(firestore, {
-      guildId: 'guild-a',
-      triggerChannelId: 'trigger-a',
-      destinationCategoryId: 'category-a',
+      guildId: '100000000000000011',
+      triggerChannelId: '100000000000000012',
+      destinationCategoryId: '100000000000000013',
     });
     await seedGuildConfigEmulator(firestore, {
-      guildId: 'guild-b',
-      triggerChannelId: 'trigger-b',
-      destinationCategoryId: 'category-b',
+      guildId: '100000000000000021',
+      triggerChannelId: '100000000000000022',
+      destinationCategoryId: '100000000000000023',
+    });
+    await firestore.collection('guildRegistrations').doc('100000000000000041').set({
+      schemaVersion: 1,
+      guildId: '100000000000000041',
     });
     await firestore
       .collection('guildConfigurations')
-      .doc('invalid-guild')
+      .doc('100000000000000041')
       .set({ schemaVersion: 99 });
     const directory = await mkdtemp(join(tmpdir(), 'voicelet-persistence-e2e-'));
     const start = (socketPath: string) =>
@@ -97,17 +101,17 @@ suite('worker persistent guild configuration', () => {
       () => request(firstSocket, '/readyz'),
       (response) => response.statusCode === 200,
     );
-    send(first, 'guild-a', 'trigger-a');
+    send(first, '100000000000000011', '100000000000000012');
     await waitFor(
       () => request(firstSocket, '/metrics'),
       (response) => response.body.includes('outcome="created"'),
     );
-    send(first, 'unconfigured', 'trigger-a');
+    send(first, '100000000000000031', '100000000000000012');
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect((await request(firstSocket, '/metrics')).body.match(/outcome="created"/g)).toHaveLength(
       1,
     );
-    send(first, 'invalid-guild', 'trigger-a');
+    send(first, '100000000000000041', '100000000000000012');
     await waitFor(
       () => request(firstSocket, '/metrics'),
       (response) => response.body.includes('outcome="invalid"'),
@@ -120,7 +124,7 @@ suite('worker persistent guild configuration', () => {
       () => request(secondSocket, '/readyz'),
       (response) => response.statusCode === 200,
     );
-    send(second, 'guild-b', 'trigger-b');
+    send(second, '100000000000000021', '100000000000000022');
     await waitFor(
       () => request(secondSocket, '/metrics'),
       (response) => response.body.includes('outcome="created"'),
