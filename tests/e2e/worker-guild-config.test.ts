@@ -9,6 +9,7 @@ import {
   resetGuildConfigEmulator,
   seedGuildConfigEmulator,
 } from '../support/firestore-emulator.js';
+import { FirestoreGuildRepository } from '../../src/infrastructure/firestore/firestore-guild-repository.js';
 
 type Response = { statusCode: number; body: string };
 function request(socketPath: string, path: string): Promise<Response> {
@@ -116,6 +117,13 @@ suite('worker persistent guild configuration', () => {
       () => request(firstSocket, '/metrics'),
       (response) => response.body.includes('outcome="invalid"'),
     );
+    await expect(
+      new FirestoreGuildRepository(firestore).setConfigurationEnabled(
+        '100000000000000021',
+        false,
+        1,
+      ),
+    ).resolves.toMatchObject({ kind: 'disabled' });
     first.kill('SIGTERM');
     const secondSocket = join(directory, 'second.sock');
     const second = start(secondSocket);
@@ -124,6 +132,16 @@ suite('worker persistent guild configuration', () => {
       () => request(secondSocket, '/readyz'),
       (response) => response.statusCode === 200,
     );
+    send(second, '100000000000000021', '100000000000000022');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect((await request(secondSocket, '/metrics')).body).not.toContain('outcome="created"');
+    await expect(
+      new FirestoreGuildRepository(firestore).setConfigurationEnabled(
+        '100000000000000021',
+        true,
+        2,
+      ),
+    ).resolves.toMatchObject({ kind: 'enabled' });
     send(second, '100000000000000021', '100000000000000022');
     await waitFor(
       () => request(secondSocket, '/metrics'),
