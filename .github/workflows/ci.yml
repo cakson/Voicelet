@@ -34,6 +34,8 @@ jobs:
       - run: pnpm check
       - run: pnpm test:persistence:integration
       - run: pnpm test:persistence:e2e
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:admin:e2e
       - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
