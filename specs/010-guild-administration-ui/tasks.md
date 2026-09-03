@@ -181,11 +181,11 @@ re-register it as new/unconfigured.
 
 ### Implementation for User Story 4
 
-- [ ] T067 [US4] Implement the deletion capability port with atomic delete and bounded result mapping in `src/infrastructure/memory/in-memory-guild-repository.ts` and `src/infrastructure/firestore/firestore-guild-repository.ts`
-- [ ] T068 [US4] Implement delete use-case validation, post-commit cancellation notification, and isolation guarantees in `src/application/guild-administration-service.ts`
-- [ ] T069 [US4] Implement the DELETE route with safe 204/400/404/503 responses in `src/infrastructure/http/admin-api-routes.ts`
-- [ ] T070 [US4] Implement the destructive AlertDialog with explicit Voicelet-data and no-Discord-resource copy in `admin/src/features/guilds/components/delete-guild-dialog.tsx`
-- [ ] T071 [US4] Wire confirmed deletion, cancel, pending state, failure retention, and authoritative list refresh in `admin/src/app/app.tsx` and `admin/src/features/guilds/components/guild-list.tsx`
+- [X] T067 [US4] Implement the deletion capability port with atomic delete and bounded result mapping in `src/infrastructure/memory/in-memory-guild-repository.ts` and `src/infrastructure/firestore/firestore-guild-repository.ts`
+- [X] T068 [US4] Implement delete use-case validation, post-commit cancellation notification, and isolation guarantees in `src/application/guild-administration-service.ts`
+- [X] T069 [US4] Implement the DELETE route with safe 204/400/404/503 responses in `src/infrastructure/http/admin-api-routes.ts`
+- [X] T070 [US4] Implement the destructive AlertDialog with explicit Voicelet-data and no-Discord-resource copy in `admin/src/features/guilds/components/delete-guild-dialog.tsx`
+- [X] T071 [US4] Wire confirmed deletion, cancel, pending state, failure retention, and authoritative list refresh in `admin/src/app/app.tsx and admin/src/features/guilds/components/guild-list.tsx`
 - [ ] T072 [US4] Complete the Playwright journey through cancel/confirm deletion, isolated guild preservation, disappearance, and clean re-registration in `tests/e2e/admin-guild-management.spec.ts`
 
 **Checkpoint**: All four user stories work independently and the complete administration lifecycle is
