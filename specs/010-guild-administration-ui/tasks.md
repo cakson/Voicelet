@@ -149,11 +149,11 @@ worker behavior resumes.
 
 ### Implementation for User Story 3
 
-- [ ] T055 [US3] Implement the configuration-mutation capability port with complete revision-checked replacement and enabled-state persistence/application use cases with lifecycle notification in `src/infrastructure/memory/in-memory-guild-repository.ts`, `src/infrastructure/firestore/firestore-guild-repository.ts`, and `src/application/guild-administration-service.ts`
-- [ ] T056 [US3] Complete PUT replacement and PATCH enabled-state mappings from the OpenAPI contract in `src/infrastructure/http/admin-api-routes.ts`
-- [ ] T057 [US3] Implement edit mode using the shared persisted configuration form and conflict-safe refresh in `admin/src/features/guilds/components/guild-config-dialog.tsx`
-- [ ] T058 [US3] Implement the accessible persisted-result Switch and distinct edit/view actions in `admin/src/features/guilds/components/guild-list.tsx`
-- [ ] T059 [US3] Wire edit, enable, disable, and failure refresh flows without optimistic state in `admin/src/app/app.tsx`
+- [X] T055 [US3] Implement the configuration-mutation capability port with complete revision-checked replacement and enabled-state persistence/application use cases with lifecycle notification in `src/infrastructure/memory/in-memory-guild-repository.ts`, `src/infrastructure/firestore/firestore-guild-repository.ts`, and `src/application/guild-administration-service.ts`
+- [X] T056 [US3] Complete PUT replacement and PATCH enabled-state mappings from the OpenAPI contract in `src/infrastructure/http/admin-api-routes.ts`
+- [X] T057 [US3] Implement edit mode using the shared persisted configuration form and conflict-safe refresh in `admin/src/features/guilds/components/guild-config-dialog.tsx`
+- [X] T058 [US3] Implement the accessible persisted-result Switch and distinct edit/view actions in `admin/src/features/guilds/components/guild-list.tsx`
+- [X] T059 [US3] Wire edit, enable, disable, and failure refresh flows without optimistic state in `admin/src/app/app.tsx`
 - [X] T060 [US3] Extend emulator-backed worker E2E coverage for disabled restart persistence and re-enabled room behavior in `tests/e2e/worker-guild-config.test.ts`
 - [ ] T061 [US3] Extend the Playwright scenario through edit, disable, retained-value verification, restart, and re-enable in `tests/e2e/admin-guild-management.spec.ts`
 
