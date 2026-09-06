@@ -47,6 +47,7 @@ export function RegisterGuildDialog({
       setConfigure(false);
       setConfiguration(defaultConfiguration);
     } catch (error) {
+      await onSaved();
       setMessage(
         error instanceof Error ? error.message : 'Voicelet could not register this guild.',
       );

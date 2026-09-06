@@ -20,7 +20,7 @@ export function DeleteGuildDialog({
   guildId: string | null;
   onClose: () => void;
   onDeleted: () => Promise<void>;
-  onError: (message: string) => void;
+  onError: (message: string) => Promise<void>;
 }) {
   const [pending, setPending] = useState(false);
   if (!guildId) return null;
@@ -31,7 +31,9 @@ export function DeleteGuildDialog({
       await onDeleted();
       onClose();
     } catch (error) {
-      onError(error instanceof Error ? error.message : 'Voicelet could not delete this guild.');
+      await onError(
+        error instanceof Error ? error.message : 'Voicelet could not delete this guild.',
+      );
       setPending(false);
     }
   };

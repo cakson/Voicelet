@@ -15,6 +15,7 @@ import type { GuildSummary } from '../types';
 export function GuildList({
   guilds,
   loading,
+  error,
   onAddConfiguration,
   onView,
   onEdit,
@@ -23,6 +24,7 @@ export function GuildList({
 }: {
   guilds: GuildSummary[];
   loading: boolean;
+  error?: string;
   onAddConfiguration: (guildId: string) => void;
   onView: (guildId: string) => void;
   onEdit: (guildId: string) => void;
@@ -34,6 +36,12 @@ export function GuildList({
       <div className="grid gap-2" aria-label="Loading guilds">
         <Skeleton className="h-12" />
         <Skeleton className="h-12" />
+      </div>
+    );
+  if (error)
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-800" role="alert">
+        {error}
       </div>
     );
   if (!guilds.length)

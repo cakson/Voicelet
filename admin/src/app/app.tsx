@@ -11,6 +11,7 @@ import type { GuildDetail, GuildSummary } from '@/features/guilds/types';
 export function App() {
   const [guilds, setGuilds] = useState<GuildSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [listError, setListError] = useState<string>();
   const [message, setMessage] = useState<string>();
   const [registerOpen, setRegisterOpen] = useState(false);
   const [detail, setDetail] = useState<GuildDetail | null>(null);
@@ -21,8 +22,9 @@ export function App() {
     setLoading(true);
     try {
       setGuilds(await guildAdminApi.list());
+      setListError(undefined);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Voicelet could not load guilds.');
+      setListError(error instanceof Error ? error.message : 'Voicelet could not load guilds.');
     } finally {
       setLoading(false);
     }
@@ -73,6 +75,7 @@ export function App() {
       <GuildList
         guilds={guilds}
         loading={loading}
+        error={listError}
         onAddConfiguration={(id) => void openConfiguration(id, 'create')}
         onView={(id) => void openConfiguration(id, 'view')}
         onEdit={(id) => void openConfiguration(id, 'edit')}
@@ -94,7 +97,10 @@ export function App() {
         guildId={deleteGuildId}
         onClose={() => setDeleteGuildId(null)}
         onDeleted={refresh}
-        onError={setMessage}
+        onError={async (error) => {
+          setMessage(error);
+          await refresh();
+        }}
       />
     </main>
   );

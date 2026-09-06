@@ -70,6 +70,7 @@ export function GuildConfigDialog({
       await onSaved();
       onClose();
     } catch (error) {
+      await onSaved();
       setMessage(
         error instanceof Error ? error.message : 'Voicelet could not save this configuration.',
       );
