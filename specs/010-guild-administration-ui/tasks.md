@@ -212,9 +212,9 @@ evidence required for release.
 
 ## Phase 8: Convergence
 
-- [ ] T084 Refresh the authoritative guild list after failed or uncertain registration, configuration save, and deletion operations, and render a distinct list-load error state rather than an empty-inventory claim, per FR-007 and FR-026 (partial)
-- [ ] T085 Run the Playwright administration CRUD and 100-row performance scenarios against an isolated Firestore emulator rather than the implicit in-memory backend, per plan: testing decision and T073 (partial)
-- [ ] T086 Add restart-persistence coverage to the browser-facing administration journey, proving disabled configuration values remain visible after restart before re-enabling, per US3 independent test and T061 (partial)
+- [X] T084 Refresh the authoritative guild list after failed or uncertain registration, configuration save, and deletion operations, and render a distinct list-load error state rather than an empty-inventory claim, per FR-007 and FR-026 (partial)
+- [X] T085 Run the Playwright administration CRUD and 100-row performance scenarios against an isolated Firestore emulator rather than the implicit in-memory backend, per plan: testing decision and T073 (partial)
+- [X] T086 Add restart-persistence coverage to the browser-facing administration journey, proving disabled configuration values remain visible after restart before re-enabling, per US3 independent test and T061 (partial)
 
 ---
 
