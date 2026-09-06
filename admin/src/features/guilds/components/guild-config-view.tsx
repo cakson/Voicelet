@@ -24,7 +24,7 @@ export function GuildConfigView({ configuration }: { configuration: GuildConfigu
       ))}
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium">State</span>
-        <Badge variant={configuration.enabled ? 'success' : 'warning'}>
+        <Badge variant={configuration.enabled ? 'success' : 'destructive'}>
           {configuration.enabled ? 'Enabled' : 'Disabled'}
         </Badge>
       </div>

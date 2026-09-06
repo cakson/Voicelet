@@ -79,7 +79,7 @@ export function GuildList({
                     checked={guild.enabled}
                     onCheckedChange={(enabled) => onToggle(guild.guildId, enabled)}
                   />
-                  <Badge variant={guild.enabled ? 'success' : 'warning'}>
+                  <Badge variant={guild.enabled ? 'success' : 'destructive'}>
                     {guild.enabled ? 'Enabled' : 'Disabled'}
                   </Badge>
                 </div>
