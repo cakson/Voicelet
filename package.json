@@ -20,7 +20,7 @@
     "typecheck:backend": "tsc --noEmit",
     "typecheck:admin": "tsc --project admin/tsconfig.json --noEmit",
     "test:unit": "vitest run --project unit",
-    "test:integration": "vitest run --project integration",
+    "test:integration": "pnpm build:admin && vitest run --project integration",
     "test:e2e": "vitest run --project e2e",
     "test:admin": "vitest run --project admin",
     "test:admin:e2e": "firebase emulators:exec --only firestore --project voicelet-test \"playwright test\"",
