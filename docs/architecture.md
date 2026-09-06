@@ -6,7 +6,7 @@ Voicelet is a single background-worker process. Dependencies flow in one directi
 - `src/domain` holds transient voice-state types and validation.
 - `src/application` contains the pure event handler.
 - `src/ports` defines the Gateway client, clock, observation, and provider-independent
-  `GuildConfigRepository` boundaries.
+  guild registration and enabled-configuration repository boundaries.
 - `src/infrastructure/discord` adapts `discord.js` in production and supplies a deterministic
   simulated client for CI; Gateway failures are reduced to a safe failure class, readiness state,
   and bounded metrics without retaining provider error details.
@@ -39,3 +39,14 @@ output and runtime dependencies only; GitHub Actions publishes a full-SHA GHCR v
 `pnpm check`. A compatible external container environment independently pulls and deploys that
 image, owns runtime configuration and Discord credentials, and defines its own health, observability,
 and rollback policy. Repository CI does not call or verify that environment.
+
+# Architecture
+
+The guild administration path preserves Voicelet's dependency direction:
+
+```text
+React Admin → Admin HTTP Adapter → Application Use Cases → Guild Repository Ports → Persistence Adapter
+```
+
+The Discord Gateway worker remains in the same Voicelet process. Both the worker and the administration
+use cases use Voicelet-owned ports; the browser never accesses Firestore or Discord credentials.

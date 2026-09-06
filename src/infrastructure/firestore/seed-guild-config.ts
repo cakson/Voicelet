@@ -1,13 +1,20 @@
-import type { GuildConfigInput } from '../../domain/guild-config.js';
-import type { GuildConfigRepository } from '../../ports/guild-config-repository.js';
+import { parseGuildConfig, type GuildConfigInput } from '../../domain/guild-config.js';
+import type {
+  GuildConfigurationCreationRepository,
+  GuildRegistrationRepository,
+} from '../../ports/guild-administration-repository.js';
 import { createFirestoreClient, disposeFirestoreClient } from './firestore-client-factory.js';
-import { FirestoreGuildConfigRepository } from './firestore-guild-config-repository.js';
+import { FirestoreGuildRepository } from './firestore-guild-repository.js';
 
 export async function seedGuildConfig(
-  repository: GuildConfigRepository,
+  repository: GuildRegistrationRepository & GuildConfigurationCreationRepository,
   input: GuildConfigInput,
 ): Promise<boolean> {
-  const result = await repository.save(input);
+  const registration = await repository.registerGuild(input.guildId);
+  if (registration.kind !== 'registered' && registration.kind !== 'duplicate') return false;
+  const configuration = parseGuildConfig({ ...input, revision: 1 });
+  if (!configuration) return false;
+  const result = await repository.createConfiguration(input.guildId, configuration);
   return result.kind === 'saved';
 }
 
@@ -19,7 +26,7 @@ async function main(): Promise<void> {
     );
   const firestore = createFirestoreClient(process.env.FIRESTORE_PROJECT_ID ?? 'voicelet-local');
   try {
-    const saved = await seedGuildConfig(new FirestoreGuildConfigRepository(firestore), {
+    const saved = await seedGuildConfig(new FirestoreGuildRepository(firestore), {
       guildId,
       triggerChannelId,
       destinationCategoryId,

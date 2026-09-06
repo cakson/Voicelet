@@ -6,14 +6,17 @@ import {
   SimulatedScheduler,
 } from '../infrastructure/discord/simulated-client-factory.js';
 import { createOperationalServer } from '../infrastructure/http/operational-server.js';
+import { registerAdminApiRoutes } from '../infrastructure/http/admin-api-routes.js';
+import { registerAdminStaticRoutes } from '../infrastructure/http/admin-static-routes.js';
 import { Observability } from '../infrastructure/logging/observability.js';
+import { GuildAdministrationService } from '../application/guild-administration-service.js';
 import type { Clock, DiscordClientFactory, Scheduler } from '../ports/index.js';
-import { InMemoryGuildConfigRepository } from '../infrastructure/memory/in-memory-guild-config-repository.js';
+import { InMemoryGuildRepository } from '../infrastructure/memory/in-memory-guild-repository.js';
 import {
   createFirestoreClient,
   disposeFirestoreClient,
 } from '../infrastructure/firestore/firestore-client-factory.js';
-import { FirestoreGuildConfigRepository } from '../infrastructure/firestore/firestore-guild-config-repository.js';
+import { FirestoreGuildRepository } from '../infrastructure/firestore/firestore-guild-repository.js';
 
 const systemClock: Clock = { now: () => new Date() };
 const systemScheduler: Scheduler = {
@@ -38,8 +41,8 @@ export function createWorker(config: AppConfig, simulatedFactory?: DiscordClient
       ? createFirestoreClient(config.firestoreProjectId ?? 'voicelet')
       : undefined;
   const repository = firestore
-    ? new FirestoreGuildConfigRepository(firestore)
-    : new InMemoryGuildConfigRepository();
+    ? new FirestoreGuildRepository(firestore)
+    : new InMemoryGuildRepository();
   const source = new DiscordGatewayEventSource(
     factory,
     config.discordToken ?? 'simulated-token',
@@ -52,6 +55,11 @@ export function createWorker(config: AppConfig, simulatedFactory?: DiscordClient
     () => ({ gateway: source.readiness, persistence: source.persistenceReady }),
     observability,
   );
+  const administration = new GuildAdministrationService(repository, {
+    configurationChanged: (guildId, change) => source.configurationChanged(guildId, change),
+  });
+  registerAdminApiRoutes(server, administration, observability);
+  registerAdminStaticRoutes(server);
   return {
     source,
     server,
@@ -59,6 +67,7 @@ export function createWorker(config: AppConfig, simulatedFactory?: DiscordClient
     factory,
     simulatedScheduler,
     repository,
+    administration,
     dispose: async () => {
       if (firestore) await disposeFirestoreClient(firestore);
     },

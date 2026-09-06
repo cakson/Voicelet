@@ -29,7 +29,7 @@ The operational endpoints are `GET /livez`, `GET /readyz`, and `GET /metrics`. A
 
 ## Persistent guild configuration
 
-Guild settings are stored through the application-owned `GuildConfigRepository`; Firestore is the
+Guild settings are stored through application-owned guild repository ports; Firestore is the
 production adapter and `PERSISTENCE_PROVIDER=memory` is deterministic for tests. Each guild has one
 validated document containing `triggerChannelId`, `destinationCategoryId`, optional
 `inactivityTimeoutMinutes` (default 60), `reconciliationIntervalMinutes` (default 15), and
@@ -106,3 +106,21 @@ health verification, observability, and rollback; repository CI does not perform
 operations. Before removing the legacy repository deployment workflow, confirm that the chosen
 environment can pull GHCR and is configured for the selected immutable image. See [the delivery
 guide](docs/deployment.md) for the repository boundary and handoff details.
+
+# Voicelet
+
+## Guild administration
+
+Voicelet serves its administration UI from `/admin` in the same process and container as the Discord
+Gateway worker. Start the local emulator-backed workflow with `pnpm dev:admin`, then open
+`http://127.0.0.1:5173/admin/`.
+
+The interface is intentionally **unauthenticated**. Never expose `/admin` or `/admin/api` directly
+to the public internet. Production and any internet-exposed deployment must protect these paths with
+a VPN or an equivalent private-network boundary.
+
+Register a guild using its Discord guild ID, then either configure it immediately or add configuration
+later. Enabled configurations allow Voicelet guild behavior; disabled configurations retain their
+values but make the guild inactive. Deleting a registration also deletes its stored Voicelet
+configuration, but does not change the Discord server, channels, categories, or other Discord-side
+resources.

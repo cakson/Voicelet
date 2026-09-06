@@ -1,22 +1,24 @@
 import { z } from 'zod';
-
-const identifierSchema = z.string().trim().min(1);
+import { discordSnowflakeSchema, isDiscordSnowflake } from './guild-registration.js';
 
 export const guildConfigInputSchema = z.object({
-  guildId: identifierSchema,
-  triggerChannelId: identifierSchema,
-  destinationCategoryId: identifierSchema,
+  guildId: discordSnowflakeSchema,
+  triggerChannelId: discordSnowflakeSchema,
+  destinationCategoryId: discordSnowflakeSchema,
   inactivityTimeoutMinutes: z.number().int().min(1).max(1440).default(60),
   reconciliationIntervalMinutes: z.number().int().min(1).max(1440).default(15),
-  permanentChannelIds: z.array(identifierSchema).default([]),
+  permanentChannelIds: z.array(discordSnowflakeSchema).default([]),
+  enabled: z.boolean().default(true),
+  revision: z.number().int().positive().default(1),
 });
 
 export type GuildConfigInput = z.input<typeof guildConfigInputSchema>;
 export type GuildConfig = z.output<typeof guildConfigInputSchema>;
-export type StoredGuildConfigV1 = GuildConfig & { schemaVersion: 1 };
+export type StoredGuildConfigV1 = Omit<GuildConfig, 'enabled' | 'revision'> & { schemaVersion: 1 };
+export type StoredGuildConfigV2 = GuildConfig & { schemaVersion: 2 };
 
 export function isGuildId(value: string): boolean {
-  return identifierSchema.safeParse(value).success;
+  return isDiscordSnowflake(value);
 }
 
 export function parseGuildConfig(input: unknown): GuildConfig | undefined {
@@ -28,13 +30,16 @@ export function parseGuildConfig(input: unknown): GuildConfig | undefined {
   };
 }
 
-export function toStoredGuildConfig(config: GuildConfig): StoredGuildConfigV1 {
-  return { schemaVersion: 1, ...config };
+export function toStoredGuildConfig(config: GuildConfig): StoredGuildConfigV2 {
+  return { schemaVersion: 2, ...config };
 }
 
 export function parseStoredGuildConfig(input: unknown, guildId: string): GuildConfig | undefined {
   if (typeof input !== 'object' || input === null || !('schemaVersion' in input)) return undefined;
   const record = input as Record<string, unknown>;
-  if (record.schemaVersion !== 1 || record.guildId !== guildId) return undefined;
-  return parseGuildConfig(record);
+  if (record.guildId !== guildId) return undefined;
+  if (record.schemaVersion === 1)
+    return parseGuildConfig({ ...record, enabled: true, revision: 1 });
+  if (record.schemaVersion === 2) return parseGuildConfig(record);
+  return undefined;
 }

@@ -1,0 +1,399 @@
+openapi: 3.1.0
+info:
+  title: Voicelet Guild Administration API
+  version: 1.0.0
+  description: >-
+    Unauthenticated, provider-independent JSON contract served by the existing Voicelet operational
+    listener. Deployments must protect /admin and /admin/api behind a VPN or equivalent private
+    network boundary.
+servers:
+  - url: /admin/api
+paths:
+  /guilds:
+    get:
+      operationId: listRegisteredGuilds
+      responses:
+        '200':
+          description: Current registered guilds.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuildListResponse'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+    post:
+      operationId: registerGuild
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterGuildRequest'
+      responses:
+        '201':
+          description: Guild registration and optional initial configuration were created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuildDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /guilds/{guildId}:
+    parameters:
+      - $ref: '#/components/parameters/GuildId'
+    get:
+      operationId: getRegisteredGuild
+      responses:
+        '200':
+          description: Current registration and optional persisted configuration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuildDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+    delete:
+      operationId: deleteRegisteredGuild
+      responses:
+        '204':
+          description: Registration and associated Voicelet configuration were deleted.
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /guilds/{guildId}/configuration:
+    parameters:
+      - $ref: '#/components/parameters/GuildId'
+    put:
+      operationId: createOrReplaceGuildConfiguration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveConfigurationRequest'
+      responses:
+        '200':
+          description: Existing configuration was replaced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuildDetail'
+        '201':
+          description: Configuration was created for the registered guild.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuildDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+  /guilds/{guildId}/configuration/enabled:
+    parameters:
+      - $ref: '#/components/parameters/GuildId'
+    patch:
+      operationId: setGuildConfigurationEnabled
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetEnabledRequest'
+      responses:
+        '200':
+          description: Persisted enabled state changed; all configuration values were preserved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuildDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '503':
+          $ref: '#/components/responses/Unavailable'
+components:
+  parameters:
+    GuildId:
+      name: guildId
+      in: path
+      required: true
+      description: Discord snowflake serialized as a decimal string.
+      schema:
+        $ref: '#/components/schemas/Snowflake'
+  schemas:
+    Snowflake:
+      type: string
+      pattern: '^[1-9][0-9]{0,19}$'
+      description: Canonical positive unsigned 64-bit decimal Discord identifier; range is validated server-side.
+      examples: ['123456789012345678']
+    GuildSummary:
+      oneOf:
+        - $ref: '#/components/schemas/UnconfiguredGuildSummary'
+        - $ref: '#/components/schemas/ConfiguredGuildSummary'
+      discriminator:
+        propertyName: configurationStatus
+        mapping:
+          unconfigured: '#/components/schemas/UnconfiguredGuildSummary'
+          configured: '#/components/schemas/ConfiguredGuildSummary'
+    UnconfiguredGuildSummary:
+      type: object
+      additionalProperties: false
+      required: [guildId, configurationStatus, enabled]
+      properties:
+        guildId:
+          $ref: '#/components/schemas/Snowflake'
+        configurationStatus:
+          type: string
+          const: unconfigured
+        enabled:
+          type: 'null'
+          const: null
+    ConfiguredGuildSummary:
+      type: object
+      additionalProperties: false
+      required: [guildId, configurationStatus, enabled]
+      properties:
+        guildId:
+          $ref: '#/components/schemas/Snowflake'
+        configurationStatus:
+          type: string
+          const: configured
+        enabled:
+          type: boolean
+    GuildListResponse:
+      type: object
+      additionalProperties: false
+      required: [guilds]
+      properties:
+        guilds:
+          type: array
+          items:
+            $ref: '#/components/schemas/GuildSummary'
+    GuildDetail:
+      type: object
+      additionalProperties: false
+      required: [guildId, configuration]
+      properties:
+        guildId:
+          $ref: '#/components/schemas/Snowflake'
+        configuration:
+          oneOf:
+            - $ref: '#/components/schemas/GuildConfiguration'
+            - type: 'null'
+    GuildConfiguration:
+      type: object
+      additionalProperties: false
+      required:
+        - triggerChannelId
+        - destinationCategoryId
+        - inactivityTimeoutMinutes
+        - reconciliationIntervalMinutes
+        - permanentChannelIds
+        - enabled
+        - revision
+      properties:
+        triggerChannelId:
+          $ref: '#/components/schemas/Snowflake'
+        destinationCategoryId:
+          $ref: '#/components/schemas/Snowflake'
+        inactivityTimeoutMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+        reconciliationIntervalMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+        permanentChannelIds:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Snowflake'
+        enabled:
+          type: boolean
+        revision:
+          type: integer
+          minimum: 1
+          description: Voicelet-owned conflict token; not persistence-provider metadata.
+    ConfigurationInput:
+      type: object
+      additionalProperties: false
+      required: [triggerChannelId, destinationCategoryId]
+      properties:
+        triggerChannelId:
+          $ref: '#/components/schemas/Snowflake'
+        destinationCategoryId:
+          $ref: '#/components/schemas/Snowflake'
+        inactivityTimeoutMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+          default: 60
+        reconciliationIntervalMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+          default: 15
+        permanentChannelIds:
+          type: array
+          uniqueItems: true
+          default: []
+          items:
+            $ref: '#/components/schemas/Snowflake'
+        enabled:
+          type: boolean
+          default: true
+    RegisterGuildRequest:
+      type: object
+      additionalProperties: false
+      required: [guildId]
+      properties:
+        guildId:
+          $ref: '#/components/schemas/Snowflake'
+        configuration:
+          oneOf:
+            - $ref: '#/components/schemas/ConfigurationInput'
+            - type: 'null'
+          default: null
+    SaveConfigurationRequest:
+      oneOf:
+        - $ref: '#/components/schemas/CreateConfigurationRequest'
+        - $ref: '#/components/schemas/ReplaceConfigurationRequest'
+    CreateConfigurationRequest:
+      type: object
+      additionalProperties: false
+      required: [triggerChannelId, destinationCategoryId, expectedRevision]
+      properties:
+        triggerChannelId:
+          $ref: '#/components/schemas/Snowflake'
+        destinationCategoryId:
+          $ref: '#/components/schemas/Snowflake'
+        inactivityTimeoutMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+          default: 60
+        reconciliationIntervalMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+          default: 15
+        permanentChannelIds:
+          type: array
+          uniqueItems: true
+          default: []
+          items:
+            $ref: '#/components/schemas/Snowflake'
+        enabled:
+          type: boolean
+          default: true
+        expectedRevision:
+          type: 'null'
+          const: null
+          description: Null makes this a create-only operation.
+    ReplaceConfigurationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - triggerChannelId
+        - destinationCategoryId
+        - inactivityTimeoutMinutes
+        - reconciliationIntervalMinutes
+        - permanentChannelIds
+        - expectedRevision
+      properties:
+        triggerChannelId:
+          $ref: '#/components/schemas/Snowflake'
+        destinationCategoryId:
+          $ref: '#/components/schemas/Snowflake'
+        inactivityTimeoutMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+        reconciliationIntervalMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+        permanentChannelIds:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Snowflake'
+        expectedRevision:
+          type: integer
+          minimum: 1
+          description: Replaces only the matching current revision; enabled state is preserved.
+    SetEnabledRequest:
+      type: object
+      additionalProperties: false
+      required: [enabled, expectedRevision]
+      properties:
+        enabled:
+          type: boolean
+        expectedRevision:
+          type: integer
+          minimum: 1
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [validation_error, duplicate_guild, not_found, conflict, service_unavailable]
+            message:
+              type: string
+              description: Stable safe operator-facing text without provider/internal detail.
+            fields:
+              type: object
+              additionalProperties:
+                type: string
+              description: Optional safe field-level validation messages.
+  responses:
+    ValidationError:
+      description: Path or JSON input failed validation; nothing changed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Registration or configuration does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Duplicate registration, create/update precondition, or revision conflict; nothing changed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unavailable:
+      description: Bounded infrastructure failure with no provider or secret detail.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

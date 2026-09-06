@@ -41,27 +41,33 @@ export async function bootstrap(): Promise<void> {
         typeof message.triggerChannelId === 'string' &&
         typeof message.destinationCategoryId === 'string'
       )
-        void worker.repository.save({
-          guildId: message.guildId,
-          triggerChannelId: message.triggerChannelId,
-          destinationCategoryId: message.destinationCategoryId,
-          inactivityTimeoutMinutes:
-            'inactivityTimeoutMinutes' in message &&
-            typeof message.inactivityTimeoutMinutes === 'number'
-              ? message.inactivityTimeoutMinutes
-              : 60,
-          reconciliationIntervalMinutes:
-            'reconciliationIntervalMinutes' in message &&
-            typeof message.reconciliationIntervalMinutes === 'number'
-              ? message.reconciliationIntervalMinutes
-              : 15,
-          permanentChannelIds:
-            'permanentChannelIds' in message &&
-            Array.isArray(message.permanentChannelIds) &&
-            message.permanentChannelIds.every((id) => typeof id === 'string')
-              ? message.permanentChannelIds
-              : [],
-        });
+        void (async () => {
+          const guildId = message.guildId as string;
+          const triggerChannelId = message.triggerChannelId as string;
+          const destinationCategoryId = message.destinationCategoryId as string;
+          const registration = await worker.administration.registerGuild({ guildId });
+          if (registration.kind !== 'registered' && registration.kind !== 'duplicate') return;
+          await worker.administration.createConfiguration(guildId, {
+            triggerChannelId,
+            destinationCategoryId,
+            inactivityTimeoutMinutes:
+              'inactivityTimeoutMinutes' in message &&
+              typeof message.inactivityTimeoutMinutes === 'number'
+                ? message.inactivityTimeoutMinutes
+                : 60,
+            reconciliationIntervalMinutes:
+              'reconciliationIntervalMinutes' in message &&
+              typeof message.reconciliationIntervalMinutes === 'number'
+                ? message.reconciliationIntervalMinutes
+                : 15,
+            permanentChannelIds:
+              'permanentChannelIds' in message &&
+              Array.isArray(message.permanentChannelIds) &&
+              message.permanentChannelIds.every((id) => typeof id === 'string')
+                ? message.permanentChannelIds
+                : [],
+          });
+        })();
       if (
         message.type === 'seed-room' &&
         'guildId' in message &&

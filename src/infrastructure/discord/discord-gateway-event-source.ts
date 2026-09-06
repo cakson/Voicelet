@@ -8,7 +8,8 @@ import type {
 import { normalizeVoiceState } from '../../domain/normalize-voice-state.js';
 import { TemporaryRoomManager } from '../../application/manage-temporary-room.js';
 import { TemporaryRoomReconciler } from '../../application/reconcile-temporary-rooms.js';
-import type { GuildConfigRepository } from '../../ports/guild-config-repository.js';
+import type { EnabledGuildConfigRepository } from '../../ports/enabled-guild-config-repository.js';
+import type { GuildConfigurationChange } from '../../ports/guild-config-change-notifier.js';
 import type { Observability } from '../logging/observability.js';
 
 export class DiscordGatewayEventSource {
@@ -20,7 +21,7 @@ export class DiscordGatewayEventSource {
     private readonly token: string,
     private readonly clock: Clock,
     private readonly observability: Observability,
-    repository: GuildConfigRepository,
+    repository: EnabledGuildConfigRepository,
     scheduler: Scheduler = {
       schedule: (delayMs, callback) => {
         const timer = setTimeout(callback, delayMs);
@@ -55,6 +56,10 @@ export class DiscordGatewayEventSource {
 
   get persistenceReady(): boolean {
     return this.persistenceAvailable;
+  }
+
+  configurationChanged(guildId: string, change: GuildConfigurationChange): Promise<void> {
+    return this.reconciler.configurationChanged(guildId, change);
   }
 
   private recordPersistence(outcome: string): void {

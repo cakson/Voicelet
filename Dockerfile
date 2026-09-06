@@ -8,6 +8,8 @@ RUN pnpm install --frozen-lockfile
 
 COPY tsconfig.json ./
 COPY src ./src
+COPY admin ./admin
+COPY vitest.config.ts ./vitest.config.ts
 RUN pnpm build
 RUN pnpm prune --prod
 

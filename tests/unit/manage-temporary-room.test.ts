@@ -4,10 +4,10 @@ import {
   temporaryRoomName,
 } from '../../src/application/manage-temporary-room.js';
 import { SimulatedDiscordClient } from '../../src/infrastructure/discord/simulated-client-factory.js';
-import { InMemoryGuildConfigRepository } from '../../src/infrastructure/memory/in-memory-guild-config-repository.js';
+import { InMemoryEnabledConfigRepository } from '../support/in-memory-enabled-config-repository.js';
 import { ManualScheduler } from '../support/manual-scheduler.js';
 
-const config = new InMemoryGuildConfigRepository([
+const config = new InMemoryEnabledConfigRepository([
   {
     guildId: 'test-guild',
     triggerChannelId: 'trigger',
