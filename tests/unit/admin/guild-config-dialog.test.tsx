@@ -129,4 +129,25 @@ describe('GuildConfigDialog', () => {
       configuration.triggerChannelId,
     );
   });
+  it('explains configuration fields and the protected-channel input format', async () => {
+    const user = userEvent.setup();
+    render(
+      <GuildConfigDialog
+        guildId="123456789012345678"
+        configuration={null}
+        mode="create"
+        onClose={vi.fn()}
+        onSaved={vi.fn()}
+      />,
+    );
+    await user.tab();
+    expect(screen.getAllByRole('tooltip')[0]).toHaveTextContent('lobby members join');
+    expect(screen.getByLabelText(/Protected permanent channel IDs/)).toHaveAttribute(
+      'placeholder',
+      expect.stringContaining('\n'),
+    );
+    expect(screen.getAllByRole('tooltip')[4]).toHaveTextContent(
+      'One Discord channel ID per line. Do not use commas.',
+    );
+  });
 });

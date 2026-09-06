@@ -8,11 +8,13 @@ import { GuildList } from '@/features/guilds/components/guild-list';
 import { RegisterGuildDialog } from '@/features/guilds/components/register-guild-dialog';
 import type { GuildDetail, GuildSummary } from '@/features/guilds/types';
 
+type Feedback = { text: string; tone: 'success' | 'error' };
+
 export function App() {
   const [guilds, setGuilds] = useState<GuildSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState<string>();
-  const [message, setMessage] = useState<string>();
+  const [message, setMessage] = useState<Feedback>();
   const [registerOpen, setRegisterOpen] = useState(false);
   const [detail, setDetail] = useState<GuildDetail | null>(null);
   const [mode, setMode] = useState<'create' | 'view' | 'edit' | null>(null);
@@ -38,7 +40,10 @@ export function App() {
       setDetail(await guildAdminApi.get(guildId));
       setMode(nextMode);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Voicelet could not load this guild.');
+      setMessage({
+        text: error instanceof Error ? error.message : 'Voicelet could not load this guild.',
+        tone: 'error',
+      });
     }
   };
   const toggle = async (guildId: string, enabled: boolean) => {
@@ -47,11 +52,13 @@ export function App() {
       if (!current.configuration) return;
       await guildAdminApi.setEnabled(guildId, enabled, current.configuration.revision);
       await refresh();
-      setMessage(`Configuration ${enabled ? 'enabled' : 'disabled'}.`);
+      setMessage({ text: `Configuration ${enabled ? 'enabled' : 'disabled'}.`, tone: 'success' });
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : 'Voicelet could not update this configuration.',
-      );
+      setMessage({
+        text:
+          error instanceof Error ? error.message : 'Voicelet could not update this configuration.',
+        tone: 'error',
+      });
       await refresh();
     }
   };
@@ -68,8 +75,15 @@ export function App() {
         <Button onClick={() => setRegisterOpen(true)}>Register guild</Button>
       </div>
       {message && (
-        <Alert className="mb-4" aria-live="polite">
-          {message}
+        <Alert
+          className={
+            message.tone === 'success'
+              ? 'mb-4 border-green-200 bg-green-50 text-green-900'
+              : 'mb-4 border-red-200 bg-red-50 text-red-900'
+          }
+          aria-live="polite"
+        >
+          {message.text}
         </Alert>
       )}
       <GuildList
@@ -98,7 +112,7 @@ export function App() {
         onClose={() => setDeleteGuildId(null)}
         onDeleted={refresh}
         onError={async (error) => {
-          setMessage(error);
+          setMessage({ text: error, tone: 'error' });
           await refresh();
         }}
       />

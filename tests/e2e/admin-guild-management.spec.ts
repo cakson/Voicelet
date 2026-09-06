@@ -123,4 +123,9 @@ test('manages a guild registration and its Voicelet configuration', async ({ pag
   await expect(
     page.getByRole('row').filter({ hasText: guildId }).getByText('Unconfigured'),
   ).toBeVisible();
+
+  const secondGuildRow = page.getByRole('row').filter({ hasText: replacementGuildId });
+  await secondGuildRow.getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('button', { name: 'Delete registration' }).click();
+  await expect(secondGuildRow).not.toBeVisible();
 });

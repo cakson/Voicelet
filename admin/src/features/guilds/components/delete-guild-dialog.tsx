@@ -29,6 +29,7 @@ export function DeleteGuildDialog({
     try {
       await guildAdminApi.remove(guildId);
       await onDeleted();
+      setPending(false);
       onClose();
     } catch (error) {
       await onError(

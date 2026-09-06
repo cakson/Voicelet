@@ -62,4 +62,30 @@ describe('DeleteGuildDialog', () => {
     expect(await screen.findByRole('button', { name: 'Delete registration' })).toBeInTheDocument();
     expect(onError).toHaveBeenCalledWith('Voicelet is unavailable.');
   });
+  it('resets pending state before opening a second deletion confirmation', async () => {
+    const user = userEvent.setup();
+    vi.mocked(guildAdminApi.remove).mockResolvedValue(undefined);
+    const onClose = vi.fn();
+    const { rerender } = render(
+      <DeleteGuildDialog
+        guildId="123456789012345678"
+        onClose={onClose}
+        onDeleted={vi.fn().mockResolvedValue(undefined)}
+        onError={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: 'Delete registration' }));
+    expect(onClose).toHaveBeenCalledOnce();
+    rerender(
+      <DeleteGuildDialog
+        guildId="123456789012345679"
+        onClose={vi.fn()}
+        onDeleted={vi.fn().mockResolvedValue(undefined)}
+        onError={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Delete registration' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Delete registration' }));
+    expect(guildAdminApi.remove).toHaveBeenLastCalledWith('123456789012345679');
+  });
 });
