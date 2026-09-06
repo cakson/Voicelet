@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { emulatorFirestore, resetGuildConfigEmulator } from '../support/firestore-emulator.js';
 
 const guildId = (index: number) => `200000000000000${String(index).padStart(3, '0')}`;
+const firestore = emulatorFirestore();
+
+test.beforeEach(async () => {
+  await resetGuildConfigEmulator(firestore);
+});
 
 test('renders a warm 100-row guild inventory within the loopback budget', async ({
   page,

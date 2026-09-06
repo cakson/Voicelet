@@ -109,4 +109,24 @@ describe('GuildConfigDialog', () => {
     );
     expect(onSaved).toHaveBeenCalledOnce();
   });
+  it('refreshes persisted state after a failed save while retaining the form values', async () => {
+    const user = userEvent.setup();
+    const onSaved = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(guildAdminApi.save).mockRejectedValue(new Error('Voicelet is unavailable.'));
+    render(
+      <GuildConfigDialog
+        guildId="123456789012345678"
+        configuration={configuration}
+        mode="edit"
+        onClose={vi.fn()}
+        onSaved={onSaved}
+      />,
+    );
+    await user.click(await screen.findByRole('button', { name: 'Save configuration' }));
+    expect(await screen.findByText('Voicelet is unavailable.')).toBeInTheDocument();
+    expect(onSaved).toHaveBeenCalledOnce();
+    expect(screen.getByLabelText(/Trigger voice channel ID/)).toHaveValue(
+      configuration.triggerChannelId,
+    );
+  });
 });

@@ -22,7 +22,7 @@ describe('DeleteGuildDialog', () => {
         guildId="123456789012345678"
         onClose={onClose}
         onDeleted={vi.fn()}
-        onError={vi.fn()}
+        onError={vi.fn().mockResolvedValue(undefined)}
       />,
     );
     expect(screen.getByText(/does not delete the Discord server/)).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('DeleteGuildDialog', () => {
         guildId="123456789012345678"
         onClose={vi.fn()}
         onDeleted={onDeleted}
-        onError={vi.fn()}
+        onError={vi.fn().mockResolvedValue(undefined)}
       />,
     );
     await user.click(screen.getByRole('button', { name: 'Delete registration' }));
@@ -48,7 +48,7 @@ describe('DeleteGuildDialog', () => {
   });
   it('retains the dialog and reports a failed deletion without pretending it succeeded', async () => {
     const user = userEvent.setup();
-    const onError = vi.fn();
+    const onError = vi.fn().mockResolvedValue(undefined);
     vi.mocked(guildAdminApi.remove).mockRejectedValue(new Error('Voicelet is unavailable.'));
     render(
       <DeleteGuildDialog

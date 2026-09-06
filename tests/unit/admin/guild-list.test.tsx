@@ -46,4 +46,16 @@ describe('GuildList', () => {
     await user.click(screen.getByRole('switch'));
     expect(handlers.onToggle).toHaveBeenCalledWith('123456789012345678', false);
   });
+  it('shows a list-load error without claiming the guild inventory is empty', () => {
+    render(
+      <GuildList
+        guilds={[]}
+        loading={false}
+        error="Voicelet is unavailable. Try again shortly."
+        {...actions()}
+      />,
+    );
+    expect(screen.getByRole('alert')).toHaveTextContent('Voicelet is unavailable.');
+    expect(screen.queryByText(/No guilds are registered/)).not.toBeInTheDocument();
+  });
 });

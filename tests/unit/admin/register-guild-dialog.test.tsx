@@ -57,4 +57,14 @@ describe('RegisterGuildDialog', () => {
     );
     resolveRegistration?.();
   });
+  it('refreshes the authoritative state after an uncertain registration failure', async () => {
+    const user = userEvent.setup();
+    const onSaved = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(guildAdminApi.register).mockRejectedValue(new Error('Voicelet is unavailable.'));
+    render(<RegisterGuildDialog open onOpenChange={vi.fn()} onSaved={onSaved} />);
+    await user.type(screen.getByLabelText(/Discord guild ID/), '123456789012345678');
+    await user.click(screen.getByRole('button', { name: 'Register guild' }));
+    expect(await screen.findByText('Voicelet is unavailable.')).toBeInTheDocument();
+    expect(onSaved).toHaveBeenCalledOnce();
+  });
 });
