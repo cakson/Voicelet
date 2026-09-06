@@ -210,6 +210,12 @@ evidence required for release.
 - [X] T082 Add documentation and package-contract assertions for all admin commands, security warnings, shadcn ownership, and unchanged worker workflows in `tests/integration/documentation.test.ts` and `tests/integration/configuration-startup.test.ts`
 - [X] T083 Run every scenario in `specs/010-guild-administration-ui/quickstart.md`, then run `pnpm check`, `pnpm test:persistence:integration`, `pnpm test:persistence:e2e`, `pnpm test:admin:e2e`, and `pnpm container:smoke`; record any environment-specific failure honestly
 
+## Phase 8: Convergence
+
+- [ ] T084 Refresh the authoritative guild list after failed or uncertain registration, configuration save, and deletion operations, and render a distinct list-load error state rather than an empty-inventory claim, per FR-007 and FR-026 (partial)
+- [ ] T085 Run the Playwright administration CRUD and 100-row performance scenarios against an isolated Firestore emulator rather than the implicit in-memory backend, per plan: testing decision and T073 (partial)
+- [ ] T086 Add restart-persistence coverage to the browser-facing administration journey, proving disabled configuration values remain visible after restart before re-enabling, per US3 independent test and T061 (partial)
+
 ---
 
 ## Dependencies & Execution Order
